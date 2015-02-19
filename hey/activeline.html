@@ -1,0 +1,130 @@
+<!doctype html>
+
+<title>CodeMirror: Active Line Demo</title>
+<meta charset="utf-8"/>
+<link rel=stylesheet href="../doc/docs.css">
+
+<link rel="stylesheet" href="../lib/codemirror.css">
+<script src="../lib/codemirror.js"></script>
+<script src="../addon/selection/active-line.js"></script>
+<style type="text/css">
+	.CodeMirror {
+		border-top: 1px solid black;
+		border-bottom: 1px solid black;
+		font-family: "Consolas", monaco, monospace
+	}
+
+	.CodeMirror {
+		display: inline-block;
+		width: 500px;
+		vertical-align: top;
+	}
+</style>
+<h2>Active Line Demo</h2>
+<textarea id="code" name="code">
+10
+20
+30
+40
+50
+60
+70
+80
+90
+10
+</textarea>
+<textarea id="code2" name="code">
+10
+20
+30
+40
+50
+60
+70
+80
+90
+10
+</textarea>
+
+<script>
+	var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+		styleActiveLine: true,
+		lineNumbers: true,
+		lineWrapping: true
+	});
+	var editor2 = CodeMirror.fromTextArea(document.getElementById("code2"), {
+		styleActiveLine: true,
+		lineNumbers: true,
+		lineWrapping: true
+	});
+	editor.on('beforeChange', function(cm, changes) {
+		var from = changes.from;
+		var to = changes.to;
+		if (CodeMirror.cmpPos(to, from) < 0) {
+			console.log("Change from to");
+			var tmp = to;
+			to = from;
+			from = tmp;
+		}
+
+		var line = from.line;
+		if (from.ch === 0) {
+			line--;
+		}
+		var insert = "";
+		for (var i = 0; i < changes.text.length - 1; i++) {
+			insert += "\n";
+		}
+		if (insert) {
+			editor2.doc.replaceRange(insert, CodeMirror.Pos(line), CodeMirror.Pos(line));
+		}
+
+		var emptyLines = 0;
+		var insertLen = changes.text.length - 1;
+		var deleteCount = to.line - from.line;
+		var i = from.line;
+		if (from.ch > 0){
+			i++;
+		}
+		var j = i;
+		for (; i <= to.line; i++, j++) {
+			if (deleteCount && j > 0) {
+				editor2.doc.replaceRange("", CodeMirror.Pos(j - 1, editor2.doc.getLine(j - 1).length), CodeMirror.Pos(j));
+				deleteCount--;
+				j--;
+			}
+		}
+	});
+
+
+/*	// end of line
+	var from = changes.from;
+	var to = changes.to;
+	if (CodeMirror.cmpPos(to, from) < 0) {
+		console.log("Change from to");
+		var tmp = to;
+		to = from;
+		from = tmp;
+	}
+
+	from = CodeMirror.Pos(from.line, editor.doc.getLine(from.line).length);
+	if (CodeMirror.cmpPos(to, from) < 0) {
+		console.log("Change from to");
+		var tmp = to;
+		to = from;
+		from = tmp;
+	}
+
+	var string = editor2.doc.getRange(from, to);
+	if (string.trim() === '') {
+		console.log("remove", from, to);
+		editor2.doc.replaceRange("", from, to);
+	}
+
+	if (insert) {
+		editor2.doc.replaceRange(insert, CodeMirror.Pos(line), CodeMirror.Pos(line));
+	}
+
+	console.log(editor.doc.children[0].lines);*/
+</script>
+
