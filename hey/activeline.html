@@ -22,6 +22,11 @@
 </style>
 <h2>Active Line Demo</h2>
 <div id="timing"></div>
+
+<svg width="190px" height="160px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,50 C15,50 15,80 30,80 L30,120 C15,120 15,70 0,70Z" stroke="black" f1ill="transparent"/>
+</svg>
+
 <textarea id="code" name="code">
 10
 20
@@ -121,6 +126,25 @@
             }
         }
     });
+
+
+
+    function pathGenerator(topLeft, leftHeight, topRight, rightHeight, width) {
+        var bx = width / 2 | 0;
+        var path = '';
+        path += 'M0,' + topLeft + ' ';
+
+        path += 'C' + bx + ',' + topLeft + ' ';
+        path += bx + ',' + topRight + ' ';
+        path += width + ',' + topRight + ' ';
+
+        path += 'L' + width + ',' + (topRight + rightHeight) + ' ';
+
+        path += 'C' + bx + ',' + (topRight + rightHeight) + ' ';
+        path += bx + ',' + (topLeft + leftHeight) + ' ';
+        path += '0,' + (topLeft + leftHeight) + 'Z';
+        return path;
+    }
 
 
     /*	// end of line
