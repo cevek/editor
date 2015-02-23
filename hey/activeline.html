@@ -6,6 +6,9 @@
 
 <link rel="stylesheet" href="../lib/codemirror.css">
 <script src="../lib/codemirror.js"></script>
+<script src="111.js"></script>
+<script src="script.js"></script>
+<script src="formatter.js"></script>
 <script src="../addon/selection/active-line.js"></script>
 <style type="text/css">
     .CodeMirror {
@@ -14,56 +17,76 @@
         font-family: "Consolas", monaco, monospace
     }
     .CodeMirror {
+        line-height: 30px;
+        font-size: 18px;
         display: inline-block;
-        width: 500px;
+        width: 600px;
         vertical-align: top;
+        height: 20000px;
     }
-    #timing { line-height: 1; padding: 4px 0;font-family: consolas, menlo, monaco, monospace; display: inline-block; width: 50px; vertical-align: top; }
+    .cm-timing { font-size: 8px; color: silver; vertical-align: top}
+    #timing { line-height: 1; padding: 4px 0; font-family: consolas, menlo, monaco, monospace; display: inline-block; width: 50px; vertical-align: top; }
+    .spectrogram{display: inline-block; vertical-align: top; background: green;}
 </style>
+<script type="text/javascript">
+    function load(file) {
+        var xhr = new XMLHttpRequest(); // (1)
+        xhr.open('GET', file, false); // (2)
+        xhr.send(null);
+        return xhr.responseText;
+    }
+    var en,ru;
+/*
+    var ru = parseSrt(load('data/ruSub.srt'));
+    var en = parseSrt(load('data/enSub.srt'));
+*/
+
+    function parseSrt(data) {
+        data = data.replace(/<i>/g, '').replace(/<\/i>/g, '');
+        return data.replace(/\n?\d+\n(\d\d):(\d\d):(\d\d),(\d\d\d) --> (\d\d):(\d\d):(\d\d),(\d\d\d)\n/g, function (data) {
+            var m = data.match(/\d+\n(\d\d):(\d\d):(\d\d),(\d\d\d) --> (\d\d):(\d\d):(\d\d),(\d\d\d)/);
+            var left = m[1] * 3600 + m[2] * 60 + m[3] * 1 + m[4] / 1000;
+            var right = m[5] * 3600 + m[6] * 60 + m[7] * 1 + m[8] / 1000;
+            var dur = right - left;
+            console.log(left, right, dur);
+
+            return m[1] + "" + m[2] + "" + m[3] + "" + (Math.round(m[4] / 100)) + '' + ('00' + Math.round(dur * 10)).substr(-2) + ' ';
+        });
+    }
+
+</script>
+
 <h2>Active Line Demo</h2>
 <div id="timing"></div>
 
-<svg width="190px" height="160px" version="1.1" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,50 C15,50 15,80 30,80 L30,120 C15,120 15,70 0,70Z" stroke="black" f1ill="transparent"/>
-</svg>
+<img class="spectrogram" src="data/spectrogram.png" alt=""/>
+<svg id="svg" width="50px" height="15000px" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
 
-<textarea id="code" name="code">
-10
-20
-30
-40
-50
-60
-70
-80
-90
-10
-</textarea>
-<textarea id="code2" name="code">
-10
-20
-30
-40
-50
-60
-70
-80
-90
-10
-</textarea>
+<textarea id="code"></textarea>
+<textarea id="code2"></textarea>
+<audio controls="" id="audio" src="data/enAudio.mp3"></audio>
 
 <script>
+
+    var svg = document.getElementById('svg');
+    var audio = document.getElementById('audio');
+    document.getElementById('code').value = en ? en : localStorage.en;
+    document.getElementById('code2').value = ru ? ru : localStorage.ru;
     var timing = document.getElementById('timing');
     var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
         styleActiveLine: true,
         lineNumbers: true,
+        viewportMargin: Infinity,
         lineWrapping: true
     });
     var editor2 = CodeMirror.fromTextArea(document.getElementById("code2"), {
         styleActiveLine: true,
         lineNumbers: true,
+        viewportMargin: Infinity,
         lineWrapping: true
     });
+//    changes();
+    syncLines();
 
     var lineCount = editor.doc.lineCount();
     for (var i = 0; i < lineCount; i++) {
@@ -72,15 +95,38 @@
         timing.appendChild(div);
     }
 
+    editor.on('changes', function () {
+        var val = editor.doc.getValue();
+        localStorage.en = val;
+        changes();
+    });
+    editor2.on('changes', function () {
+        var val = editor2.doc.getValue();
+        localStorage.ru = val;
+    });
+
+    editor.on('cursorActivity', function () {
+        editor2.doc.setCursor(editor.doc.getCursor())
+
+    });
+    editor2.on('beforeChange', function (cm, changes) {
+        console.log("Editor2", changes);
+
+    });
+
     editor.on('beforeChange', function (cm, changes) {
-        if (changes.origin == 'undo'){
+        if (changes.origin == 'undo') {
             editor2.doc.undo();
             return;
         }
-        if (changes.origin == 'redo'){
+        if (changes.origin == 'redo') {
             editor2.doc.redo();
             return;
         }
+        console.log(changes);
+
+        CodeMirror.signal(editor2, "changes", editor2, changes);
+        return;
 
         var from = changes.from;
         var to = changes.to;
@@ -100,7 +146,7 @@
             insert += "\n";
             var div = document.createElement('div');
             div.textContent = Math.random().toString(33).substr(3, 4);
-            timing.insertBefore(div, timing.children[line+1]);
+            timing.insertBefore(div, timing.children[line + 1]);
         }
         if (insert) {
             editor2.doc.replaceRange(insert, CodeMirror.Pos(line), CodeMirror.Pos(line));
@@ -126,7 +172,6 @@
             }
         }
     });
-
 
 
     function pathGenerator(topLeft, leftHeight, topRight, rightHeight, width) {
