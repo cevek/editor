@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+    function Atom(owner, name, val) {
+        /*
+                this.owner = owner;
+                this.name = name;
+                this.val = val;
+        */
+    }
+    Atom.prototype.set = function (val) {
+        this.val = val;
+    };
+    Atom.prototype.get = function () {
+        return this.val;
+    };
+    function A() {
+        /*this.a0_ = null;
+        this.a1_ = null;
+        this.a2_ = null;
+        this.a3_ = null;
+        this.a4_ = null;
+        this.a5_ = null;
+        this.a6_ = null;
+        this.a7_ = null;
+        this.a8_ = null;
+        this.a9_ = null;
+*/
+        this.a0 = 123;
+        this.a1 = 123;
+        this.a2 = 123;
+        this.a3 = 123;
+        this.a4 = 123;
+        this.a5 = 123;
+        this.a6 = 123;
+        this.a7 = 123;
+        this.a8 = 123;
+        this.a9 = 123;
+    }
+
+    A.prototype.__defineGetter__('a0', function () {
+        if (!this.a0_) {
+            this.a0_ = new Atom(this, 'a0');
+        }
+        return this.a0_.get();
+    });
+    A.prototype.__defineSetter__('a0', function (val) {            /*if (!this.a0_){                this.a0_ = new Atom(this, 'a0', val);            }            this.a0_.set(val);            */
+        this.a0_ = val;
+    });
+    A.prototype.__defineGetter__('a1', function () {
+        if (!this.a1_) {
+            this.a1_ = new Atom(this, 'a1');
+        }
+        return this.a1_.get();
+    });
+    A.prototype.__defineSetter__('a1', function (val) {            /*if (!this.a1_){                this.a1_ = new Atom(this, 'a1', val);            }            this.a1_.set(val);            */
+        this.a1_ = val;
+    });
+    A.prototype.__defineGetter__('a2', function () {
+        if (!this.a2_) {
+            this.a2_ = new Atom(this, 'a2');
+        }
+        return this.a2_.get();
+    });
+    A.prototype.__defineSetter__('a2', function (val) {            /*if (!this.a2_){                this.a2_ = new Atom(this, 'a2', val);            }            this.a2_.set(val);            */
+        this.a2_ = val;
+    });
+    A.prototype.__defineGetter__('a3', function () {
+        if (!this.a3_) {
+            this.a3_ = new Atom(this, 'a3');
+        }
+        return this.a3_.get();
+    });
+    A.prototype.__defineSetter__('a3', function (val) {            /*if (!this.a3_){                this.a3_ = new Atom(this, 'a3', val);            }            this.a3_.set(val);            */
+        this.a3_ = val;
+    });
+    A.prototype.__defineGetter__('a4', function () {
+        if (!this.a4_) {
+            this.a4_ = new Atom(this, 'a4');
+        }
+        return this.a4_.get();
+    });
+    A.prototype.__defineSetter__('a4', function (val) {            /*if (!this.a4_){                this.a4_ = new Atom(this, 'a4', val);            }            this.a4_.set(val);            */
+        this.a4_ = val;
+    });
+    A.prototype.__defineGetter__('a5', function () {
+        if (!this.a5_) {
+            this.a5_ = new Atom(this, 'a5');
+        }
+        return this.a5_.get();
+    });
+    A.prototype.__defineSetter__('a5', function (val) {            /*if (!this.a5_){                this.a5_ = new Atom(this, 'a5', val);            }            this.a5_.set(val);            */
+        this.a5_ = val;
+    });
+    A.prototype.__defineGetter__('a6', function () {
+        if (!this.a6_) {
+            this.a6_ = new Atom(this, 'a6');
+        }
+        return this.a6_.get();
+    });
+    A.prototype.__defineSetter__('a6', function (val) {            /*if (!this.a6_){                this.a6_ = new Atom(this, 'a6', val);            }            this.a6_.set(val);            */
+        this.a6_ = val;
+    });
+    A.prototype.__defineGetter__('a7', function () {
+        if (!this.a7_) {
+            this.a7_ = new Atom(this, 'a7');
+        }
+        return this.a7_.get();
+    });
+    A.prototype.__defineSetter__('a7', function (val) {            /*if (!this.a7_){                this.a7_ = new Atom(this, 'a7', val);            }            this.a7_.set(val);            */
+        this.a7_ = val;
+    });
+    A.prototype.__defineGetter__('a8', function () {
+        if (!this.a8_) {
+            this.a8_ = new Atom(this, 'a8');
+        }
+        return this.a8_.get();
+    });
+    A.prototype.__defineSetter__('a8', function (val) {            /*if (!this.a8_){                this.a8_ = new Atom(this, 'a8', val);            }            this.a8_.set(val);            */
+        this.a8_ = val;
+    });
+    A.prototype.__defineGetter__('a9', function () {
+        if (!this.a9_) {
+            this.a9_ = new Atom(this, 'a9');
+        }
+        return this.a9_.get();
+    });
+    A.prototype.__defineSetter__('a9', function (val) {            /*if (!this.a9_){                this.a9_ = new Atom(this, 'a9', val);            }            this.a9_.set(val);            */
+        this.a9_ = val;
+    });
+
+
+    function generateCode() {
+
+        var code = '';
+        for (var i = 0; i < 10; i++) {
+
+            code += "\
+        A.prototype.__defineGetter__('a" + i + "', function () {\
+            if (!this.a" + i + "_){\
+                this.a" + i + "_ = new Atom(this, 'a" + i + "');\
+            }\
+            return this.a" + i + "_.get();\
+        });\
+                \
+        A.prototype.__defineSetter__('a" + i + "', function (val) {\
+            /*if (!this.a" + i + "_){\
+                this.a" + i + "_ = new Atom(this, 'a" + i + "', val);\
+            }\
+            this.a" + i + "_.set(val);\
+            */this.a" + i + "_ = val;\
+        });\
+        "
+        }
+        console.log(code);
+
+//        eval(code);
+    }
+
+    generateCode();
+    /*
+
+        A.prototype.__defineGetter__('a0', function () {
+            if (!this.a0_){
+                this.a0_ = new Atom(this, "a0");
+            }
+            return this.a0_.get();
+        });
+         A.prototype.__defineSetter__('a0', function (val) {
+        if (!this.a0_) {
+            this.a0_ = new Atom(this, "a0", val);
+        }
+        this.a0_.set(val);
+    });
+    */
+
+
+    console.time('perf');
+    for (var i = 0; i < 1000000; i++) {
+        var a = new A;
+    }
+    console.timeEnd('perf');
+
+
+</script>
+</body>
+</html>

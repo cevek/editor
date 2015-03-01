@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/codemirror-4.12.iml" filepath="$PROJECT_DIR$/.idea/codemirror-4.12.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/editor.iml" filepath="$PROJECT_DIR$/.idea/editor.iml" />
     </modules>
   </component>

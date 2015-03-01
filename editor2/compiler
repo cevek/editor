@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+var fs = require('fs');
+fs.writeFileSync(__dirname + '/1.txt', process.argv);
