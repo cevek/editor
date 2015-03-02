@@ -11,16 +11,41 @@ module ag {
         }
     }
 
-    function smoothScroll(element, target, duration) {
+    function smoo1thScroll(stopY) {
+        var startY = window.pageYOffset;
+        var distance = stopY > startY ? stopY - startY : startY - stopY;
+        if (distance < 100) {
+            scrollTo(0, stopY); return;
+        }
+        var speed = Math.round(distance / 100);
+        if (speed >= 20) speed = 20;
+        var step = Math.round(distance / 25);
+        var leapY = stopY > startY ? startY + step : startY - step;
+        var timer = 0;
+        if (stopY > startY) {
+            for ( var i=startY; i<stopY; i+=step ) {
+                setTimeout("window.scrollTo(0, "+leapY+")", timer * speed);
+                leapY += step; if (leapY > stopY) leapY = stopY; timer++;
+            } return;
+        }
+        for ( var i=startY; i>stopY; i-=step ) {
+            setTimeout("window.scrollTo(0, "+leapY+")", timer * speed);
+            leapY -= step; if (leapY < stopY) leapY = stopY; timer++;
+        }
+    }
+
+    function smoothScroll(target, duration) {
+        console.log("scrollto", target);
+
         target = Math.round(target);
         duration = Math.round(duration);
         if (duration === 0) {
-            element.scrollTop = target;
+            window.scrollTo(0, target);
             return Promise.resolve();
         }
         var start_time = Date.now();
         var end_time = start_time + duration;
-        var start_top = element.scrollTop;
+        var start_top = window.pageYOffset;
         var distance = target - start_top;
 
         function smooth_step(start, end, point) {
@@ -31,27 +56,31 @@ module ag {
         }
 
         return new Promise(function (resolve, reject) {
-            var previous_top = element.scrollTop;
+            var previous_top = window.pageYOffset;
 
             function scroll_frame() {
-                if (element.scrollTop != previous_top) {
-                    //reject("interrupted");
+                if (window.pageYOffset != previous_top) {
+                    reject("interrupted");
                     return;
                 }
                 var now = Date.now();
                 var point = smooth_step(start_time, end_time, now);
+
                 var frameTop = Math.round(start_top + (distance * point));
-                element.scrollTop = frameTop;
+                //element.scrollTop = frameTop;
+                console.log("window.scrollTo(0, frameTop);", frameTop   );
+
+                window.scrollTo(0, frameTop);
                 if (now >= end_time) {
                     resolve();
                     return;
                 }
-                if (element.scrollTop === previous_top
-                    && element.scrollTop !== frameTop) {
+                if (window.pageYOffset === previous_top
+                    && window.pageYOffset !== frameTop) {
                     resolve();
                     return;
                 }
-                previous_top = element.scrollTop;
+                previous_top = window.pageYOffset;
                 setTimeout(scroll_frame, 0);
             }
 
@@ -158,11 +187,15 @@ module ag {
                         var bottom = up + window.innerHeight;
                         var offsetTop = space.offsetTop;
 
-                        if (key.up && offsetTop < up + wH / 5) {
-                            smoothScroll(document.body, offsetTop - wH, 500);
+                        if (key.up && offsetTop < up + 100) {
+                            window.scrollTo(0,  offsetTop - wH + 100);
+                            //smoothScroll(offsetTop - wH + 100);
+                            //smoothScroll(document.body, offsetTop - wH, 500);
                         }
-                        if (key.down && offsetTop > bottom - wH / 5) {
-                            smoothScroll(document.body, offsetTop, 500);
+                        if (key.down && offsetTop > bottom - 100) {
+                            window.scrollTo(0, offsetTop - 30);
+                            //smoothScroll(offsetTop - 30);
+                            //smoothScroll(offsetTop - 100, 500);
                         }
                         console.log("offsetTop", offsetTop, "up", up, "bottom", bottom);
 
