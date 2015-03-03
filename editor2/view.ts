@@ -33,41 +33,15 @@ module ag {
         }
 
         insertLine(cut = false) {
-            linesStore[linesStore.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
-            for (var i = linesStore.length - 1; i >= this.sel.line; i--) {
-                var line = linesStore[i];
-                linesStore[i + 1][this.sel.lang] = linesStore[i][this.sel.lang];
-            }
-            var firstText = '';
-            var nextText = this.lines[this.sel.line][this.sel.lang].text;
-            if (cut) {
-                for (var i = 0; i < this.sel.pos; i++) {
-                    firstText += this.lines[this.sel.line][this.sel.lang].words[i].value;
-                }
-                var nextText = '';
-                for (var i = this.sel.pos; i < this.lines[this.sel.line][this.sel.lang].words.length; i++) {
-                    nextText += this.lines[this.sel.line][this.sel.lang].words[i].value;
-                }
-            }
-            var nextT = linesStore[this.sel.line + 1][this.sel.lang];
-            nextT.text = nextText;
-            linesStore[this.sel.line][this.sel.lang] = new Text(nextT.start, nextT.end, firstText);
-
-            linesStore.length++;
+            var cutPos = this.lines[this.sel.line][this.sel.lang].words.slice(0, this.sel.pos).map(w=>w.value).join("").length;
+            linesStore.insertLine(cut, cutPos, this.sel.line, this.sel.lang, this.sel.pos);
             this.sel.line++;
             this.sel.pos = 0;
             this.forceUpdate();
         }
 
         removeLine(append = false) {
-            if (append) {
-                linesStore[this.sel.line - 1][this.sel.lang].text += ' ' + linesStore[this.sel.line][this.sel.lang].text.trim();
-            }
-            for (var i = this.sel.line + 1; i < linesStore.length - 1; i++) {
-                linesStore[i - 1][this.sel.lang] = linesStore[i][this.sel.lang];
-            }
-            linesStore[linesStore.length - 1][this.sel.lang] = new Text(0, 0, '');
-
+            linesStore.removeLine(append, this.sel.line, this.sel.lang);
             var prevLine = this.lines[this.sel.line - 1][this.sel.lang];
             if (prevLine.words.length === 1 && prevLine.words[0].value.trim() === '') {
                 this.sel.pos = 0;

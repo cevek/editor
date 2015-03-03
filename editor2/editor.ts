@@ -24,6 +24,29 @@ module ag {
             }
         }
 
+        removeLine(append:boolean, line: number, lang: string){
+            if (append) {
+                this[line - 1][lang].text += ' ' + this[line][lang].text.trim();
+            }
+            for (var i = line + 1; i < this.length - 1; i++) {
+                this[i - 1][lang] = this[i][lang];
+            }
+            this[this.length - 1][lang] = new Text(0, 0, '');
+        }
+
+        insertLine(cut: boolean, cutPos: number, line:number, lang:string, pos: number) {
+            this[this.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
+            for (var i = this.length - 1; i >= line; i--) {
+                this[i + 1][lang] = this[i][lang];
+            }
+            var firstText = this[line][lang].text.substr(0, cutPos);
+            var nextText = this[line][lang].text.substr(cutPos);
+            var nextT = this[line + 1][lang];
+            nextT.text = nextText;
+            this[line][lang] = new Text(nextT.start, nextT.end, firstText);
+            this.length++;
+        }
+
         parseSrt(subtitle:string) {
             var re = /\d+\s+(-?)(\d{2}):(\d{2}):(\d{2})[,.](\d{3}) --> (-?)(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s+([\S\s]*?)(?=\d+\s+-?\d{2}:\d{2}:\d{2}|$)/g;
             var res;
