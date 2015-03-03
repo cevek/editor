@@ -1,5 +1,6 @@
 module ag {
     export class Key {
+        noMod = true;
         shiftMod = false;
         shiftLeftMod = false;
         shiftRightMod = false;
@@ -239,21 +240,25 @@ module ag {
                 return;
             }
             if (e.shiftKey) {
+                this.noMod = false;
                 this.shiftMod = true;
                 this.shiftLeftMod = Key.shiftLeft;
                 this.shiftRightMod = !Key.shiftLeft;
             }
             if (e.altKey) {
+                this.noMod = false;
                 this.altMod = true;
                 this.altLeftMod = Key.altLeft;
                 this.altRightMod = !Key.altLeft;
             }
             if (e.ctrlKey) {
+                this.noMod = false;
                 this.ctrlMod = true;
                 this.ctrlLeftMod = Key.ctrlLeft;
                 this.ctrlRightMod = !Key.ctrlLeft;
             }
             if (e.metaKey) {
+                this.noMod = false;
                 this.metaMod = true;
                 this.metaLeftMod = Key.metaLeft;
                 this.metaRightMod = !Key.metaLeft;

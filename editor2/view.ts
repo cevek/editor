@@ -6,86 +6,10 @@ module ag {
     }
 
     class Selection {
-        constructor(public line:number, public pos:number, public lang:string) {
-
-        }
-    }
-
-    function smoo1thScroll(stopY) {
-        var startY = window.pageYOffset;
-        var distance = stopY > startY ? stopY - startY : startY - stopY;
-        if (distance < 100) {
-            scrollTo(0, stopY); return;
-        }
-        var speed = Math.round(distance / 100);
-        if (speed >= 20) speed = 20;
-        var step = Math.round(distance / 25);
-        var leapY = stopY > startY ? startY + step : startY - step;
-        var timer = 0;
-        if (stopY > startY) {
-            for ( var i=startY; i<stopY; i+=step ) {
-                setTimeout("window.scrollTo(0, "+leapY+")", timer * speed);
-                leapY += step; if (leapY > stopY) leapY = stopY; timer++;
-            } return;
-        }
-        for ( var i=startY; i>stopY; i-=step ) {
-            setTimeout("window.scrollTo(0, "+leapY+")", timer * speed);
-            leapY -= step; if (leapY < stopY) leapY = stopY; timer++;
-        }
-    }
-
-    function smoothScroll(target, duration) {
-        console.log("scrollto", target);
-
-        target = Math.round(target);
-        duration = Math.round(duration);
-        if (duration === 0) {
-            window.scrollTo(0, target);
-            return Promise.resolve();
-        }
-        var start_time = Date.now();
-        var end_time = start_time + duration;
-        var start_top = window.pageYOffset;
-        var distance = target - start_top;
-
-        function smooth_step(start, end, point) {
-            if (point <= start) { return 0; }
-            if (point >= end) { return 1; }
-            var x = (point - start) / (end - start); // interpolation
-            return x * x * (3 - 2 * x);
-        }
-
-        return new Promise(function (resolve, reject) {
-            var previous_top = window.pageYOffset;
-
-            function scroll_frame() {
-                if (window.pageYOffset != previous_top) {
-                    reject("interrupted");
-                    return;
-                }
-                var now = Date.now();
-                var point = smooth_step(start_time, end_time, now);
-
-                var frameTop = Math.round(start_top + (distance * point));
-                //element.scrollTop = frameTop;
-                console.log("window.scrollTo(0, frameTop);", frameTop   );
-
-                window.scrollTo(0, frameTop);
-                if (now >= end_time) {
-                    resolve();
-                    return;
-                }
-                if (window.pageYOffset === previous_top
-                    && window.pageYOffset !== frameTop) {
-                    resolve();
-                    return;
-                }
-                previous_top = window.pageYOffset;
-                setTimeout(scroll_frame, 0);
-            }
-
-            setTimeout(scroll_frame, 0);
-        });
+        line = 0;
+        pos = 0;
+        lang = 'en';
+        leftOffset = -1;
     }
 
     class LineView extends Line {
@@ -102,168 +26,179 @@ module ag {
 
     export class EditorView extends React.Component<any,any> {
         lines:List<LineView>;
-        sel = new Selection(0, 0, 'en');
-
-        left = -1;
+        sel = new Selection();
 
         constructor() {
             super(null, null);
         }
 
-        componentDidMount(node:HTMLElement) {
+        insertLine(cut = false) {
+            linesStore[linesStore.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
+            for (var i = linesStore.length - 1; i >= this.sel.line; i--) {
+                var line = linesStore[i];
+                linesStore[i + 1][this.sel.lang] = linesStore[i][this.sel.lang];
+            }
+            var firstText = '';
+            var nextText = this.lines[this.sel.line][this.sel.lang].text;
+            if (cut) {
+                for (var i = 0; i < this.sel.pos; i++) {
+                    firstText += this.lines[this.sel.line][this.sel.lang].words[i].value;
+                }
+                var nextText = '';
+                for (var i = this.sel.pos; i < this.lines[this.sel.line][this.sel.lang].words.length; i++) {
+                    nextText += this.lines[this.sel.line][this.sel.lang].words[i].value;
+                }
+            }
+            var nextT = linesStore[this.sel.line + 1][this.sel.lang];
+            nextT.text = nextText;
+            linesStore[this.sel.line][this.sel.lang] = new Text(nextT.start, nextT.end, firstText);
+
+            linesStore.length++;
+            this.sel.line++;
+            this.sel.pos = 0;
+            this.forceUpdate();
+        }
+
+        removeLine(append = false) {
+            if (append) {
+                linesStore[this.sel.line - 1][this.sel.lang].text += ' ' + linesStore[this.sel.line][this.sel.lang].text.trim();
+            }
+            for (var i = this.sel.line + 1; i < linesStore.length - 1; i++) {
+                linesStore[i - 1][this.sel.lang] = linesStore[i][this.sel.lang];
+            }
+            linesStore[linesStore.length - 1][this.sel.lang] = new Text(0, 0, '');
+
+            var prevLine = this.lines[this.sel.line - 1][this.sel.lang];
+            if (prevLine.words.length === 1 && prevLine.words[0].value.trim() === '') {
+                this.sel.pos = 0;
+            }
+            else {
+                this.sel.pos = prevLine.words.length;
+            }
+            if (append) {
+                this.sel.line--;
+            }
+            else {
+                this.sel.pos = 0;
+            }
+            this.forceUpdate();
+        }
+
+        setLineWhenUpDown(isUp = false) {
+            if (this.sel.lang == 'en') {
+                if (isUp) {
+                    if (this.sel.line == 0) {
+                        return;
+                    }
+                    this.sel.line--;
+                }
+                this.sel.lang = 'ru';
+            }
+            else {
+                if (this.sel.line == this.lines.length - 1) {
+                    return;
+                }
+                this.sel.lang = 'en';
+                if (!isUp) {
+                    this.sel.line++;
+                }
+            }
+        }
+
+        setPosToClosestNextWord(currentWord:HTMLElement) {
+            if (this.sel.leftOffset == -1) {
+                this.sel.leftOffset = currentWord.offsetLeft;
+            }
+            var closest = -1;
+            var closestDiff = Infinity;
+            var nextWords = document.querySelectorAll('[data-line="' + this.sel.line + '"] .' + this.sel.lang + ' span');
+            var closestNode:HTMLElement;
+            for (var i = 0; i < nextWords.length; i++) {
+                var nextWord = <HTMLElement>nextWords[i];
+                var diff = Math.abs(this.sel.leftOffset - nextWord.offsetLeft);
+                if (diff < closestDiff) {
+                    closestDiff = diff;
+                    closestNode = nextWord;
+                    closest = i;
+                }
+            }
+            if (closest > -1) {
+                this.sel.pos = closest;
+            }
+            return closestNode;
+        }
+
+        moveCaretUpDown(isUp = false) {
+            var currentLineWords = document.querySelectorAll('[data-line="' + this.sel.line + '"] .' + this.sel.lang + ' span');
+            var currentWord = <HTMLElement>currentLineWords[this.sel.pos];
+            if (currentWord) {
+                this.setLineWhenUpDown(isUp);
+                var closestWord = this.setPosToClosestNextWord(currentWord);
+                var scrollTop = document.body.scrollTop;
+                var scrollBottom = scrollTop + window.innerHeight;
+                var wordOffsetTop = currentWord.offsetTop;
+                if (isUp && wordOffsetTop < scrollTop + 70) {
+                    window.scrollTo(0, scrollTop - wordOffsetTop + closestWord.offsetTop);
+                }
+                if (!isUp && wordOffsetTop > scrollBottom - 70) {
+                    window.scrollTo(0, scrollTop + closestWord.offsetTop - wordOffsetTop);
+                }
+            }
+            this.forceUpdate();
+        }
+
+        leftRight(left = false) {
+            if (left && this.sel.pos > 0) {
+                this.sel.pos--;
+                this.sel.leftOffset = -1;
+            }
+            var lineLen = this.lines[this.sel.line][this.sel.lang].words.length;
+            if (!left && this.sel.pos < lineLen - 1) {
+                this.sel.pos++;
+                this.sel.leftOffset = -1;
+            }
+            this.forceUpdate();
+        }
+
+        wordClick(node:HTMLElement) {
+            var langEl = <HTMLElement>node.parentNode;
+            this.sel.lang = langEl.dataset['lang'];
+            var lineEl = <HTMLElement>langEl.parentNode;
+            this.sel.line = +lineEl.dataset['line'];
+            var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
+            this.sel.pos = arr.indexOf(node);
+            this.forceUpdate();
+        }
+
+        componentDidMount() {
             var el = React.findDOMNode(this);
             el.addEventListener('click', (e) => {
                 var node = <HTMLElement>e.target;
-                if (node.tagName === 'SPAN'){
-                    var langEl = <HTMLElement>node.parentNode;
-                    this.sel.lang = langEl.dataset['lang'];
-                    var lineEl = <HTMLElement>langEl.parentNode;
-                    this.sel.line = +lineEl.dataset['line'];
-                    var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
-                    this.sel.pos = arr.indexOf(node);
-                    //e.preventDefault();
-                    this.forceUpdate();
+                if (node.tagName === 'SPAN') {
+                    this.wordClick(node);
                 }
             });
 
             document.addEventListener("keydown", (e:KeyboardEvent) => {
-                //e.preventDefault();
                 var key = new Key(e);
-                if (key.left && this.sel.pos > 0) {
-                    this.sel.pos--;
-                    this.left = -1;
+                if ((key.left || key.right) && key.noMod) {
+                    this.leftRight(key.left);
                     e.preventDefault();
-                    this.forceUpdate();
                 }
 
-                var lineLen = this.lines[this.sel.line][this.sel.lang].words.length;
-                if (key.right && this.sel.pos < lineLen - 1) {
-                    this.sel.pos++;
-                    this.left = -1;
+                if (key.enter && !key.shiftMod && !key.altMod && !key.ctrlMod) {
+                    this.insertLine(!key.metaMod);
                     e.preventDefault();
-                    this.forceUpdate();
                 }
 
-                if (key.enter) {
-                    //linesStore.splice(this.currentSelection.line, 0, new Line(new Text(), new Text()));
-                    linesStore[linesStore.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
-                    for (var i = linesStore.length - 1; i >= this.sel.line; i--) {
-                        var line = linesStore[i];
-                        linesStore[i + 1][this.sel.lang] = linesStore[i][this.sel.lang];
-                    }
-                    var firstText = '';
-                    var nextText = this.lines[this.sel.line][this.sel.lang].text;
-                    if (!key.shiftMod) {
-                        for (var i = 0; i < this.sel.pos; i++) {
-                            firstText += this.lines[this.sel.line][this.sel.lang].words[i].value;
-                        }
-                        var nextText = '';
-                        for (var i = this.sel.pos; i < this.lines[this.sel.line][this.sel.lang].words.length; i++) {
-                            nextText += this.lines[this.sel.line][this.sel.lang].words[i].value;
-                        }
-                    }
-                    var nextT = linesStore[this.sel.line + 1][this.sel.lang];
-                    nextT.text = nextText;
-                    linesStore[this.sel.line][this.sel.lang] = new Text(nextT.start, nextT.end, firstText);
-
-                    linesStore.length++;
-                    this.sel.line++;
-                    this.sel.pos = 0;
+                if (key.backspace && !key.shiftMod && !key.altMod && !key.ctrlMod) {
+                    this.removeLine(!key.metaMod);
                     e.preventDefault();
-                    this.forceUpdate();
-                }
-
-                if (key.backspace) {
-                    linesStore[this.sel.line - 1][this.sel.lang].text += ' ' + linesStore[this.sel.line][this.sel.lang].text;
-                    for (var i = this.sel.line + 1; i < linesStore.length - 1; i++) {
-                        var line = linesStore[i];
-                        linesStore[i - 1][this.sel.lang] = linesStore[i][this.sel.lang];
-                    }
-                    linesStore[linesStore.length - 1][this.sel.lang] = new Text(0, 0, '');
-
-                    var prevLine = this.lines[this.sel.line - 1][this.sel.lang];
-                    if (prevLine.words.length === 1 && prevLine.words[0].value.trim() === '') {
-                        this.sel.pos = 0;
-                    }
-                    else {
-                        this.sel.pos = prevLine.words.length;
-                    }
-                    this.sel.line--;
-                    e.preventDefault();
-                    this.forceUpdate();
                 }
 
                 if ((key.down || key.up) && !key.metaMod) {
-                    var spaces = document.querySelectorAll('[data-line="' + this.sel.line + '"] .' + this.sel.lang + ' span');
-                    var space = <HTMLElement>spaces[this.sel.pos];
-                    if (space) {
-                        var up = document.body.scrollTop;
-                        var wH = window.innerHeight;
-                        var bottom = up + window.innerHeight;
-                        var offsetTop = space.offsetTop;
-
-
-                        if (this.left == -1) {
-                            this.left = space.offsetLeft;
-                        }
-
-                        var closest = -1;
-                        var closestDiff = Infinity;
-                        var currLang = this.sel.lang;
-                        var currLine = this.sel.line;
-                        if (this.sel.lang == 'en') {
-                            if (key.up) {
-                                if (this.sel.line == 0) {
-                                    return;
-                                }
-                                this.sel.line--;
-                            }
-                            this.sel.lang = 'ru';
-                        }
-                        else {
-                            if (this.sel.line == this.lines.length - 1) {
-                                return;
-                            }
-                            this.sel.lang = 'en';
-                            if (key.down) {
-                                this.sel.line++;
-                            }
-                        }
-
-                        console.log(currLang, currLine, this.sel);
-
-                        var nextSpaces = document.querySelectorAll('[data-line="' + this.sel.line + '"] .' + this.sel.lang + ' span');
-                        var nextFirstSpace = <HTMLElement>nextSpaces[0];
-                        for (var i = 0; i < nextSpaces.length; i++) {
-                            var sp = nextSpaces[i];
-                            var diff = Math.abs(this.left - (<HTMLElement>sp).offsetLeft);
-                            if (diff < closestDiff) {
-                                closestDiff = diff;
-                                closest = i;
-                            }
-                        }
-
-
-                        if (key.up && offsetTop < up + 70) {
-                            window.scrollTo(0,  up - offsetTop + nextFirstSpace.offsetTop);
-                            //smoothScroll(offsetTop - wH + 100);
-                            //smoothScroll(document.body, offsetTop - wH, 500);
-                        }
-                        if (key.down && offsetTop > bottom - 70) {
-                            window.scrollTo(0, up + nextFirstSpace.offsetTop - offsetTop);
-                            //smoothScroll(offsetTop - 30);
-                            //smoothScroll(offsetTop - 100, 500);
-                        }
-                        console.log("offsetTop", offsetTop, "up", up, "bottom", bottom);
-
-
-                        if (closest > -1) {
-                            //this.currentSelection.line += (key.down ? 1 : -1);
-                            this.sel.pos = closest;
-                        }
-                    }
+                    this.moveCaretUpDown(key.up);
                     e.preventDefault();
-                    this.forceUpdate();
                 }
             });
         }
@@ -300,8 +235,14 @@ module ag {
             return div(null,
                 this.lines.map(
                     (line, i) =>
-                        div({className: 'line', 'data-line': i},
-                            div({className: 'en lng', 'data-lang': 'en'},
+                        div({className: cx({line: true, 'current': i === this.sel.line}), 'data-line': i},
+                            div({
+                                    className: cx({
+                                        lng: true,
+                                        en: true,
+                                        'current': i === this.sel.line && 'en' === this.sel.lang
+                                    }), 'data-lang': 'en'
+                                },
                                 line.en.words.map((block)=>
                                         span({
                                             className: cx({
@@ -310,7 +251,13 @@ module ag {
                                         }, block.value)
                                 )
                             ),
-                            div({className: 'ru lng', 'data-lang': 'ru'},
+                            div({
+                                    className: cx({
+                                        lng: true,
+                                        ru: true,
+                                        'current': i === this.sel.line && 'ru' === this.sel.lang
+                                    }), 'data-lang': 'ru'
+                                },
                                 line.ru.words.map((block)=>
                                         span({
                                             className: cx({
