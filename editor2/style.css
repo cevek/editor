@@ -1,4 +1,4 @@
-body{font-family: Tahoma;}
+body{font-family: Tahoma; cursor: default}
 .line { padding: 10px; text-align: center; }
 .lng::before { content: '\00a0'; }
 .line span{padding: 2px 2px 1px 2px;}

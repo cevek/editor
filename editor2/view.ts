@@ -111,6 +111,21 @@ module ag {
         }
 
         componentDidMount(node:HTMLElement) {
+            var el = React.findDOMNode(this);
+            el.addEventListener('click', (e) => {
+                var node = <HTMLElement>e.target;
+                if (node.tagName === 'SPAN'){
+                    var langEl = <HTMLElement>node.parentNode;
+                    this.sel.lang = langEl.dataset['lang'];
+                    var lineEl = <HTMLElement>langEl.parentNode;
+                    this.sel.line = +lineEl.dataset['line'];
+                    var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
+                    this.sel.pos = arr.indexOf(node);
+                    //e.preventDefault();
+                    this.forceUpdate();
+                }
+            });
+
             document.addEventListener("keydown", (e:KeyboardEvent) => {
                 //e.preventDefault();
                 var key = new Key(e);
@@ -178,7 +193,7 @@ module ag {
                     this.forceUpdate();
                 }
 
-                if (key.down || key.up) {
+                if ((key.down || key.up) && !key.metaMod) {
                     var spaces = document.querySelectorAll('[data-line="' + this.sel.line + '"] .' + this.sel.lang + ' span');
                     var space = <HTMLElement>spaces[this.sel.pos];
                     if (space) {
@@ -187,17 +202,6 @@ module ag {
                         var bottom = up + window.innerHeight;
                         var offsetTop = space.offsetTop;
 
-                        if (key.up && offsetTop < up + 100) {
-                            window.scrollTo(0,  offsetTop - wH + 100);
-                            //smoothScroll(offsetTop - wH + 100);
-                            //smoothScroll(document.body, offsetTop - wH, 500);
-                        }
-                        if (key.down && offsetTop > bottom - 100) {
-                            window.scrollTo(0, offsetTop - 30);
-                            //smoothScroll(offsetTop - 30);
-                            //smoothScroll(offsetTop - 100, 500);
-                        }
-                        console.log("offsetTop", offsetTop, "up", up, "bottom", bottom);
 
                         if (this.left == -1) {
                             this.left = space.offsetLeft;
@@ -229,6 +233,7 @@ module ag {
                         console.log(currLang, currLine, this.sel);
 
                         var nextSpaces = document.querySelectorAll('[data-line="' + this.sel.line + '"] .' + this.sel.lang + ' span');
+                        var nextFirstSpace = <HTMLElement>nextSpaces[0];
                         for (var i = 0; i < nextSpaces.length; i++) {
                             var sp = nextSpaces[i];
                             var diff = Math.abs(this.left - (<HTMLElement>sp).offsetLeft);
@@ -237,6 +242,20 @@ module ag {
                                 closest = i;
                             }
                         }
+
+
+                        if (key.up && offsetTop < up + 70) {
+                            window.scrollTo(0,  up - offsetTop + nextFirstSpace.offsetTop);
+                            //smoothScroll(offsetTop - wH + 100);
+                            //smoothScroll(document.body, offsetTop - wH, 500);
+                        }
+                        if (key.down && offsetTop > bottom - 70) {
+                            window.scrollTo(0, up + nextFirstSpace.offsetTop - offsetTop);
+                            //smoothScroll(offsetTop - 30);
+                            //smoothScroll(offsetTop - 100, 500);
+                        }
+                        console.log("offsetTop", offsetTop, "up", up, "bottom", bottom);
+
 
                         if (closest > -1) {
                             //this.currentSelection.line += (key.down ? 1 : -1);
@@ -282,7 +301,7 @@ module ag {
                 this.lines.map(
                     (line, i) =>
                         div({className: 'line', 'data-line': i},
-                            div({className: 'en lng'},
+                            div({className: 'en lng', 'data-lang': 'en'},
                                 line.en.words.map((block)=>
                                         span({
                                             className: cx({
@@ -291,7 +310,7 @@ module ag {
                                         }, block.value)
                                 )
                             ),
-                            div({className: 'ru lng'},
+                            div({className: 'ru lng', 'data-lang': 'ru'},
                                 line.ru.words.map((block)=>
                                         span({
                                             className: cx({
