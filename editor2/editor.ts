@@ -24,7 +24,7 @@ module ag {
             }
         }
 
-        removeLine(append:boolean, line: number, lang: string){
+        removeLine(append:boolean, line:number, lang:string) {
             if (append) {
                 this[line - 1][lang].text += ' ' + this[line][lang].text.trim();
             }
@@ -34,7 +34,7 @@ module ag {
             this[this.length - 1][lang] = new Text(0, 0, '');
         }
 
-        insertLine(cut: boolean, cutPos: number, line:number, lang:string, pos: number) {
+        insertLine(cut:boolean, cutPos:number, line:number, lang:string, pos:number) {
             this[this.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
             for (var i = this.length - 1; i >= line; i--) {
                 this[i + 1][lang] = this[i][lang];
@@ -45,6 +45,23 @@ module ag {
             nextT.text = nextText;
             this[line][lang] = new Text(nextT.start, nextT.end, firstText);
             this.length++;
+        }
+
+        undo(change:Change) {
+            this[change.change.line][change.lang].text = change.change.prevText;
+            if (change.insert) {
+                for (var i = change.insert.line + 1; i < this.length - 1; i++) {
+                    this[i - 1][change.lang] = this[i][change.lang];
+                }
+                this[this.length - 1][change.lang].text = '';
+            }
+            if (change.remove) {
+                this[this.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
+                for (var i = this.length - 1; i >= change.remove.line; i--) {
+                    this[i + 1][change.lang] = this[i][change.lang];
+                }
+                this[change.remove.line][change.lang] = new Text(0, 0, change.remove.prevText);
+            }
         }
 
         parseSrt(subtitle:string) {

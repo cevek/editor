@@ -3,6 +3,7 @@
 ///<reference path="HTTP.ts"/>
 ///<reference path="Store.ts"/>
 ///<reference path="ReactDOM.ts"/>
+///<reference path="HistoryService.ts"/>
 ///<reference path="editor.ts"/>
 ///<reference path="KeyManager.ts"/>
 ///<reference path="view.ts"/>

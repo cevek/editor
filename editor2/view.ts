@@ -5,12 +5,13 @@ module ag {
         }
     }
 
-    class Selection {
+    export class Selection {
         line = 0;
         pos = 0;
         lang = 'en';
         leftOffset = -1;
     }
+    export var selection = new Selection();
 
     class LineView extends Line {
     [lang:string]:TextView;
@@ -33,16 +34,40 @@ module ag {
         }
 
         insertLine(cut = false) {
-            var cutPos = this.lines[this.sel.line][this.sel.lang].words.slice(0, this.sel.pos).map(w=>w.value).join("").length;
+            var line = this.sel.line;
+            var lang = this.sel.lang;
+            var pos = this.sel.pos;
+            var prevText = this.lines[line][lang].text;
+
+            var cutPos = this.lines[this.sel.line][this.sel.lang].words.slice(0, this.sel.pos).map(
+                    w=>w.value).join("").length;
+            var nextText = this.lines[line][lang].text.substr(cutPos);
             linesStore.insertLine(cut, cutPos, this.sel.line, this.sel.lang, this.sel.pos);
             this.sel.line++;
             this.sel.pos = 0;
+
+            var change = new Change(lang,
+                new LineChange(line, prevText, this.lines[line][lang].text),
+                new LineChange(line + 1, '', nextText),
+                null,
+                {line: line, pos: pos},
+                {line: this.sel.line, pos: this.sel.pos}
+            );
+            historyService.push(change);
+
             this.forceUpdate();
         }
 
         removeLine(append = false) {
-            linesStore.removeLine(append, this.sel.line, this.sel.lang);
-            var prevLine = this.lines[this.sel.line - 1][this.sel.lang];
+            var line = this.sel.line;
+            var lang = this.sel.lang;
+            var pos = this.sel.pos;
+            var prevText1 = this.lines[line - 1][lang].text;
+            var prevText2 = this.lines[line][lang].text;
+
+            linesStore.removeLine(append, line, lang);
+
+            var prevLine = this.lines[line - 1][lang];
             if (prevLine.words.length === 1 && prevLine.words[0].value.trim() === '') {
                 this.sel.pos = 0;
             }
@@ -55,6 +80,16 @@ module ag {
             else {
                 this.sel.pos = 0;
             }
+
+            var change = new Change(lang,
+                new LineChange(line - 1, prevText1, this.lines[line - 1][lang].text),
+                null,
+                new LineChange(line, prevText2, ''),
+                {line: line, pos: pos},
+                {line: this.sel.line, pos: this.sel.pos}
+            );
+
+            historyService.push(change);
             this.forceUpdate();
         }
 
@@ -144,6 +179,18 @@ module ag {
             this.forceUpdate();
         }
 
+        undo() {
+            var change = <Change>historyService.pop();
+            if (change) {
+                linesStore.undo(change);
+                this.sel.line = change.cursorBefore.line;
+                this.sel.pos = change.cursorBefore.pos;
+                this.sel.leftOffset = -1;
+                this.sel.lang = change.lang;
+                this.forceUpdate();
+            }
+        }
+
         componentDidMount() {
             var el = React.findDOMNode(this);
             el.addEventListener('click', (e) => {
@@ -157,6 +204,11 @@ module ag {
                 var key = new Key(e);
                 if ((key.left || key.right) && key.noMod) {
                     this.leftRight(key.left);
+                    e.preventDefault();
+                }
+
+                if (key.z && key.metaMod && !key.shiftMod && !key.altMod && !key.ctrlMod) {
+                    this.undo();
                     e.preventDefault();
                 }
 
