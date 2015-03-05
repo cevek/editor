@@ -1,49 +1,68 @@
-module ag {
+class LineChange {
+    line:number;
+    prevText:string;
+    nextText:string;
 
-    export class LineChange {
-        line:number;
-        prevText:string;
-        nextText:string;
+    constructor(line:number, prevText:string, nextText:string) {
+        this.line = line;
+        this.prevText = prevText;
+        this.nextText = nextText;
+    }
+}
+class Cursor {
+    line:number;
+    pos:number
+}
+class Change {
+    lang:string;
+    change:LineChange;
+    insert:LineChange;
+    remove:LineChange;
+    cursorBefore:Cursor;
+    cursorAfter:Cursor;
 
-        constructor(line:number, prevText:string, nextText:string) {
-            this.line = line;
-            this.prevText = prevText;
-            this.nextText = nextText;
+    constructor(lang:string,
+                change:LineChange,
+                insert:LineChange,
+                remove:LineChange,
+                cursorBefore:Cursor,
+                cursorAfter:Cursor) {
+        this.lang = lang;
+        this.change = change;
+        this.insert = insert;
+        this.remove = remove;
+        this.cursorBefore = cursorBefore;
+        this.cursorAfter = cursorAfter;
+    }
+}
+class HistoryService extends List<Change> {
+    private index = 0;
+
+    add(change:Change) {
+        if (this.length > this.index) {
+            this.splice(this.index);
         }
+        this.push(change);
+        this.index++;
     }
-    export class Cursor {
-        line:number;
-        pos:number
-    }
-    export class Change {
-        lang:string;
-        change:LineChange;
-        insert:LineChange;
-        remove:LineChange;
-        cursorBefore:Cursor;
-        cursorAfter:Cursor;
 
-        constructor(lang:string,
-                    change:LineChange,
-                    insert:LineChange,
-                    remove:LineChange,
-                    cursorBefore:Cursor,
-                    cursorAfter:Cursor) {
-            this.lang = lang;
-            this.change = change;
-            this.insert = insert;
-            this.remove = remove;
-            this.cursorBefore = cursorBefore;
-            this.cursorAfter = cursorAfter;
+    forward():Change {
+        if (this.index < this.length) {
+            this.index++;
+            return this[this.index - 1];
         }
+        return null;
     }
-    export class HistoryService extends List<Change> {
-        last() {
-            return this[this.length - 1];
+
+    back():Change {
+        if (this.index > 0) {
+            this.index--;
+
+            return this[this.index];
         }
-
+        return null;
     }
-
-    export var historyService = new HistoryService();
 
 }
+
+var historyService = new HistoryService();

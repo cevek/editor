@@ -1,6 +1,4 @@
-module ag{
-    export var div = React.createFactory('div');
-    export var span = React.createFactory('span');
-    export var a = React.createFactory('a');
-    export var cx = (<any>React).addons.classSet;
-}
+var div = React.createFactory('div');
+var span = React.createFactory('span');
+var a = React.createFactory('a');
+var cx = (<any>React).addons.classSet;
