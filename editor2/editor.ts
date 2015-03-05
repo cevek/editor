@@ -1,14 +1,23 @@
 module ag {
     export class Line {
-    [lang:string]:Text;
-        constructor(public en:Text, public ru:Text) {}
+    [lang:string]:TextLine;
+        en: TextLine;
+        ru: TextLine;
+        constructor(en:TextLine, ru:TextLine) {
+            this.en = en;
+            this.ru = ru;
+        }
     }
 
-    export class Text {
-        duration:number;
+    export class TextLine {
+        start: number;
+        end: number;
+        text: string;
 
-        constructor(public start:number, public end:number, public text:string) {
-            this.duration = end - start;
+        constructor(start:number, end:number, text:string) {
+            this.start = start;
+            this.end = end;
+            this.text = text;
         }
     }
 
@@ -19,7 +28,7 @@ module ag {
             var ruLines = this.parseSrt(ru);
             var max = Math.max(enLines.length, ruLines.length);
             for (var i = 0; i < max; i++) {
-                var line = new Line(enLines[i] || new Text(0, 0, ''), ruLines[i] || new Text(0, 0, ''));
+                var line = new Line(enLines[i] || new TextLine(0, 0, ''), ruLines[i] || new TextLine(0, 0, ''));
                 this.push(line);
             }
         }
@@ -31,11 +40,11 @@ module ag {
             for (var i = line + 1; i < this.length - 1; i++) {
                 this[i - 1][lang] = this[i][lang];
             }
-            this[this.length - 1][lang] = new Text(0, 0, '');
+            this[this.length - 1][lang] = new TextLine(0, 0, '');
         }
 
         insertLine(cut:boolean, cutPos:number, line:number, lang:string, pos:number) {
-            this[this.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
+            this[this.length] = new Line(new TextLine(0, 0, ''), new TextLine(0, 0, ''));
             for (var i = this.length - 1; i >= line; i--) {
                 this[i + 1][lang] = this[i][lang];
             }
@@ -43,24 +52,25 @@ module ag {
             var nextText = this[line][lang].text.substr(cutPos);
             var nextT = this[line + 1][lang];
             nextT.text = nextText;
-            this[line][lang] = new Text(nextT.start, nextT.end, firstText);
+            this[line][lang] = new TextLine(nextT.start, nextT.end, firstText);
             this.length++;
         }
 
         undo(change:Change) {
-            this[change.change.line][change.lang].text = change.change.prevText;
+            var lang = change.lang;
+            this[change.change.line][lang].text = change.change.prevText;
             if (change.insert) {
                 for (var i = change.insert.line + 1; i < this.length - 1; i++) {
-                    this[i - 1][change.lang] = this[i][change.lang];
+                    this[i - 1][lang] = this[i][lang];
                 }
-                this[this.length - 1][change.lang].text = '';
+                this[this.length - 1][lang].text = '';
             }
             if (change.remove) {
-                this[this.length] = new Line(new Text(0, 0, ''), new Text(0, 0, ''));
+                this[this.length] = new Line(new TextLine(0, 0, ''), new TextLine(0, 0, ''));
                 for (var i = this.length - 1; i >= change.remove.line; i--) {
-                    this[i + 1][change.lang] = this[i][change.lang];
+                    this[i + 1][lang] = this[i][lang];
                 }
-                this[change.remove.line][change.lang] = new Text(0, 0, change.remove.prevText);
+                this[change.remove.line][lang] = new TextLine(0, 0, change.remove.prevText);
             }
         }
 
@@ -76,7 +86,7 @@ module ag {
                 for (var i = 0; i < bb.length; i++) {
                     var t = bb[i].trim();
                     if (t) {
-                        subs.push(new Text(start, end, t));
+                        subs.push(new TextLine(start, end, t));
                     }
                 }
             }

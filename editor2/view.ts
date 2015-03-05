@@ -1,25 +1,18 @@
 module ag {
-    class TextPiece {
-        constructor(public value:string, public selected = false) {
-
-        }
-    }
-
-    export class Selection {
+    export class WordSelection {
         line = 0;
         pos = 0;
         lang = 'en';
         leftOffset = -1;
     }
-    export var selection = new Selection();
 
     class LineView extends Line {
     [lang:string]:TextView;
         en:TextView;
         ru:TextView;
     }
-    class TextView extends Text {
-        constructor(text:Text, public words:TextPiece[]) {
+    class TextView extends TextLine {
+        constructor(text:TextLine, public words:string[]) {
             super(text.start, text.end, text.text);
             copy(text, this);
         }
@@ -27,7 +20,7 @@ module ag {
 
     export class EditorView extends React.Component<any,any> {
         lines:List<LineView>;
-        sel = new Selection();
+        sel = new WordSelection();
 
         constructor() {
             super(null, null);
@@ -39,8 +32,7 @@ module ag {
             var pos = this.sel.pos;
             var prevText = this.lines[line][lang].text;
 
-            var cutPos = this.lines[this.sel.line][this.sel.lang].words.slice(0, this.sel.pos).map(
-                    w=>w.value).join("").length;
+            var cutPos = this.lines[this.sel.line][this.sel.lang].words.slice(0, this.sel.pos).join("").length;
             var nextText = this.lines[line][lang].text.substr(cutPos);
             linesStore.insertLine(cut, cutPos, this.sel.line, this.sel.lang, this.sel.pos);
             this.sel.line++;
@@ -68,7 +60,7 @@ module ag {
             linesStore.removeLine(append, line, lang);
 
             var prevLine = this.lines[line - 1][lang];
-            if (prevLine.words.length === 1 && prevLine.words[0].value.trim() === '') {
+            if (prevLine.words.length === 1 && prevLine.words[0].trim() === '') {
                 this.sel.pos = 0;
             }
             else {
@@ -241,16 +233,13 @@ module ag {
             var regexp = /(\s*?([-–—][ \t]+)?[\wа-яА-Я'`]+[^\s]*)/g;
             var m = [];
             var pos = 0;
-            var block:TextPiece[] = [];
+            var block:string[] = [];
             while (m = regexp.exec(str)) {
-                var selected = this.sel.line === lineN && pos === this.sel.pos && lang === this.sel.lang;
-                block.push(new TextPiece(m[1], selected));
+                block.push(m[1]);
                 pos++;
-
             }
             if (pos === 0) {
-                var selected = this.sel.line === lineN && pos === this.sel.pos && lang === this.sel.lang;
-                block.push(new TextPiece(' ', selected));
+                block.push(' ');
             }
             return block;
         }
@@ -269,12 +258,12 @@ module ag {
                                         'current': i === this.sel.line && 'en' === this.sel.lang
                                     }), 'data-lang': 'en'
                                 },
-                                line.en.words.map((block)=>
+                                line.en.words.map((block, pos)=>
                                         span({
                                             className: cx({
-                                                selected: block.selected
+                                                selected: i === this.sel.line && 'en' === this.sel.lang && pos === this.sel.pos
                                             })
-                                        }, block.value)
+                                        }, block)
                                 )
                             ),
                             div({
@@ -284,12 +273,12 @@ module ag {
                                         'current': i === this.sel.line && 'ru' === this.sel.lang
                                     }), 'data-lang': 'ru'
                                 },
-                                line.ru.words.map((block)=>
+                                line.ru.words.map((block, pos)=>
                                         span({
                                             className: cx({
-                                                selected: block.selected
+                                                selected: i === this.sel.line && 'ru' === this.sel.lang && pos === this.sel.pos
                                             })
-                                        }, block.value)
+                                        }, block)
                                 )
                             )
                         )
