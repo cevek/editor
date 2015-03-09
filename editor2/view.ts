@@ -55,17 +55,18 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
-        var prevText1 = this.lines[line - 1][lang].text;
-        var prevText2 = this.lines[line][lang].text;
-
         linesStore.removeLine(append, line, lang);
 
-        var prevLine = this.lines[line - 1][lang];
-        if (prevLine.words.length === 1 && prevLine.words[0].trim() === '') {
-            this.sel.pos = 0;
-        }
-        else {
-            this.sel.pos = prevLine.words.length;
+        var prevText2 = this.lines[line][lang].text;
+        var prevLine = this.lines[line - 1] ? this.lines[line - 1][lang] : null;
+        if (prevLine) {
+            var prevText1 = prevLine.text;
+            if (prevLine.words.length === 1 && prevLine.words[0].trim() === '') {
+                this.sel.pos = 0;
+            }
+            else {
+                this.sel.pos = prevLine.words.length;
+            }
         }
         if (append) {
             this.sel.line--;
@@ -75,7 +76,7 @@ class EditorView extends React.Component<any,any> {
         }
 
         var change = new Change(lang,
-            new LineChange(line - 1, prevText1, linesStore[line - 1][lang].text),
+            append ? new LineChange(line - 1, prevText1, linesStore[line - 1][lang].text) : null,
             null,
             new LineChange(line, prevText2, ''),
             {line: line, pos: pos},

@@ -60,7 +60,9 @@ class LinesStore extends List<Line> implements ILinesStore{
 
     undo(change:Change) {
         var lang = change.lang;
-        this[change.change.line][lang].text = change.change.prevText;
+        if (change.change){
+            this[change.change.line][lang].text = change.change.prevText;
+        }
         if (change.insert) {
             for (var i = change.insert.line + 1; i < this.length - 1; i++) {
                 this[i - 1][lang] = this[i][lang];
@@ -78,7 +80,9 @@ class LinesStore extends List<Line> implements ILinesStore{
 
     redo(change:Change) {
         var lang = change.lang;
-        this[change.change.line][lang].text = change.change.nextText;
+        if (change.change){
+            this[change.change.line][lang].text = change.change.nextText;
+        }
         if (change.remove) {
             for (var i = change.remove.line + 1; i < this.length - 1; i++) {
                 this[i - 1][lang] = this[i][lang];
