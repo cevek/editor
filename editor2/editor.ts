@@ -21,7 +21,9 @@ class TextLine {
     }
 }
 
-class LinesStore extends List<Line> {
+
+interface ILinesStore {[n: number]: Line}
+class LinesStore extends List<Line> implements ILinesStore{
 
     parse(en:string, ru:string) {
         var enLines = this.parseSrt(en);

@@ -35,7 +35,8 @@ class Change {
         this.cursorAfter = cursorAfter;
     }
 }
-class HistoryService extends List<Change> {
+interface IHistoryService {[n: number]: Change}
+class HistoryService extends List<Change> implements IHistoryService {
     private index = 0;
 
     add(change:Change) {
@@ -64,5 +65,4 @@ class HistoryService extends List<Change> {
     }
 
 }
-
 var historyService = new HistoryService();

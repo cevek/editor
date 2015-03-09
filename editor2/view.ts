@@ -5,7 +5,8 @@ class WordSelection {
     leftOffset = -1;
 }
 
-class LineView extends Line {
+interface ILineView {[n: string]: TextView}
+class LineView extends Line implements ILineView {
 [lang:string]:TextView;
     en:TextView;
     ru:TextView;
@@ -18,7 +19,7 @@ class TextView extends TextLine {
 }
 
 class EditorView extends React.Component<any,any> {
-    lines:List<LineView>;
+    lines:LineView[];
     sel = new WordSelection();
 
     constructor() {
@@ -86,24 +87,26 @@ class EditorView extends React.Component<any,any> {
     }
 
     setLineWhenUpDown(isUp = false) {
+        var isDown = !isUp;
         if (this.sel.lang == 'en') {
             if (isUp) {
                 if (this.sel.line == 0) {
-                    return;
+                    return false;
                 }
                 this.sel.line--;
             }
             this.sel.lang = 'ru';
         }
         else {
-            if (this.sel.line == this.lines.length - 1) {
-                return;
-            }
-            this.sel.lang = 'en';
-            if (!isUp) {
+            if (isDown) {
+                if (this.sel.line == this.lines.length - 1) {
+                    return false;
+                }
                 this.sel.line++;
             }
+            this.sel.lang = 'en';
         }
+        return true;
     }
 
     setPosToClosestNextWord(currentWord:HTMLElement) {
@@ -239,16 +242,16 @@ class EditorView extends React.Component<any,any> {
     }
 
     prepareData(linesStore:LinesStore) {
-        this.lines = new List(linesStore.map((line, i)=> new LineView(
-                new TextView(line.en, this.parse(line.en && line.en.text, i, 'en')),
-                new TextView(line.ru, this.parse(line.ru && line.ru.text, i, 'ru'))
+        this.lines = linesStore.map((line, i)=> new LineView(
+                new TextView(line.en, this.parse(line.en && line.en.text)),
+                new TextView(line.ru, this.parse(line.ru && line.ru.text))
             )
-        ));
+        );
     }
 
-    parse(str:string, lineN:number, lang:string) {
+    parse(str:string) {
         var regexp = /(\s*?([-–—][ \t]+)?[\wа-яА-Я'`]+[^\s]*)/g;
-        var m = [];
+        var m:string[];
         var pos = 0;
         var block:string[] = [];
         while (m = regexp.exec(str)) {
@@ -268,6 +271,8 @@ class EditorView extends React.Component<any,any> {
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, 'current': i === this.sel.line}), 'data-line': i},
+                        div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}}),
+                        div({className: 'audio-ru'}),
                         div({
                                 className: cx({
                                     lng: true,
