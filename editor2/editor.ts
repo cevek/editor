@@ -41,6 +41,27 @@ class LinesStore extends List<Line> implements ILinesStore {
         this.sync();
     }
 
+    private _removeLine(line:number, lang:string) {
+        for (var i = line + 1; i < this.length; i++) {
+            this[i - 1][lang] = this[i][lang];
+        }
+        this[this.length - 1][lang] = new TextLine();
+        if (this.lastLineIsEmpty('en') && this.lastLineIsEmpty('ru')) {
+            this.pop();
+        }
+    }
+
+    private _insertLine(line:number, lang:string, textLine:TextLine) {
+        if (!this.lastLineIsEmpty(lang)) {
+            this[this.length] = new Line(new TextLine(), new TextLine());
+            this.length++;
+        }
+        for (var i = this.length - 2; i >= line; i--) {
+            this[i + 1][lang] = this[i][lang];
+        }
+        this[line][lang] = textLine;
+    }
+
     removeLine(append:boolean, line:number, lang:string) {
         var prevText2 = this[line][lang].text;
 
@@ -49,10 +70,7 @@ class LinesStore extends List<Line> implements ILinesStore {
             this[line - 1][lang].text += ' ' + this[line][lang].text.trim();
             var change = new LineChange(line - 1, prevText1, this[line - 1][lang].text);
         }
-        for (var i = line + 1; i < this.length - 1; i++) {
-            this[i - 1][lang] = this[i][lang];
-        }
-        this[this.length - 1][lang] = new TextLine();
+        this._removeLine(line, lang);
 
         return {
             change: change,
@@ -62,31 +80,22 @@ class LinesStore extends List<Line> implements ILinesStore {
     }
 
     insertLine(cut:boolean, cutPos:number, line:number, lang:string, pos:number) {
-        this[this.length] = new Line(new TextLine(), new TextLine());
+        var currText = this[line][lang];
+        var prevText = currText.text;
+        var firstText = currText.text.substr(0, cutPos);
+        var nextText = currText.text.substr(cutPos);
+        currText.text = firstText;
+        this._insertLine(line + 1, lang, new TextLine({start: currText.start, end: currText.end, text: nextText}));
 
-        for (var i = this.length - 1; i >= line; i--) {
-            this[i + 1][lang] = this[i][lang];
-        }
-
-        var removedLine = null;
-        for (var i = line; i < this.length; i++) {
+        //remove next empty line if exists
+        for (var i = line + 1; i < this.length - 1; i++) {
             if (this[i][lang].isEmpty()) {
-                removedLine = new LineChange(i, '', '');
-                for (var j = i + 1; j < this.length - 1; j++) {
-                    this[j - 1][lang] = this[j][lang];
-                }
-                this[this.length - 1][lang] = new TextLine();
+                var removedLine = new LineChange(i - 1, '', '');
+                this._removeLine(i, lang);
                 break;
             }
         }
 
-        var prevText = this[line][lang].text;
-        var firstText = this[line][lang].text.substr(0, cutPos);
-        var nextText = this[line][lang].text.substr(cutPos);
-        var nextT = this[line + 1][lang];
-        nextT.text = nextText;
-        this[line][lang] = new TextLine({start: nextT.start, end: nextT.end, text: firstText});
-        this.length++;
         return {
             change: new LineChange(line, prevText, firstText),
             insert: new LineChange(line + 1, '', nextText),
@@ -100,17 +109,11 @@ class LinesStore extends List<Line> implements ILinesStore {
             this[change.change.line][lang].text = change.change.prevText;
         }
         if (change.insert) {
-            for (var i = change.insert.line + 1; i < this.length - 1; i++) {
-                this[i - 1][lang] = this[i][lang];
-            }
-            this[this.length - 1][lang].text = '';
+            this._removeLine(change.insert.line, lang);
         }
         if (change.remove) {
-            this[this.length] = new Line(new TextLine(), new TextLine());
-            for (var i = this.length - 1; i >= change.remove.line; i--) {
-                this[i + 1][lang] = this[i][lang];
-            }
-            this[change.remove.line][lang] = new TextLine({start: 0, end: 0, text: change.remove.prevText});
+            var insertLine = new TextLine({start: 0, end: 0, text: change.remove.prevText});
+            this._insertLine(change.remove.line, lang, insertLine);
         }
     }
 
@@ -120,17 +123,11 @@ class LinesStore extends List<Line> implements ILinesStore {
             this[change.change.line][lang].text = change.change.nextText;
         }
         if (change.remove) {
-            for (var i = change.remove.line + 1; i < this.length - 1; i++) {
-                this[i - 1][lang] = this[i][lang];
-            }
-            this[this.length - 1][lang].text = '';
+            this._removeLine(change.remove.line, lang);
         }
         if (change.insert) {
-            this[this.length] = new Line(new TextLine(), new TextLine());
-            for (var i = this.length - 1; i >= change.insert.line; i--) {
-                this[i + 1][lang] = this[i][lang];
-            }
-            this[change.insert.line][lang] = new TextLine({start: 0, end: 0, text: change.insert.nextText});
+            var insertLine = new TextLine({start: 0, end: 0, text: change.insert.nextText});
+            this._insertLine(change.insert.line, lang, insertLine);
         }
     }
 
@@ -157,6 +154,7 @@ class LinesStore extends List<Line> implements ILinesStore {
         var lines = new LinesStore();
         var enLines = <TextLine[]>[];
         var ruLines = <TextLine[]>[];
+
         for (var i = 0; i < this.length; i++) {
             if (this[i].en && this[i].en.start) {
                 enLines.push(this[i].en);
@@ -192,12 +190,16 @@ class LinesStore extends List<Line> implements ILinesStore {
                 l++;
             }
 
-            for (var k = startJ + 1; k < j; k++) {
+            for (var k = startJ; k < j - 1; k++) {
                 var ruLine2 = ruLines[k];
+                //console.log("insert empty ru", k);
                 var line = new Line(new TextLine(), ruLine2);
                 lines.push(line);
             }
 
+            if (ruLine) {
+                //console.log("insert ru", j);
+            }
             var line = new Line(enLine, ruLine || new TextLine());
             lines.push(line);
         }
@@ -209,6 +211,37 @@ class LinesStore extends List<Line> implements ILinesStore {
         }
 
         this.replace(lines);
+/*
+
+
+//tests
+        var insertEn = 0;
+        var insertRu = 0;
+        var dupsRu = [];
+        var dubsRuCount = 0;
+        for (var i = 0; i < this.length; i++) {
+            var line = this[i];
+            if (!line.en.isEmpty()) {
+                insertEn++;
+            }
+            if (!line.ru.isEmpty()) {
+                if (dupsRu.indexOf(line.ru) > -1) {
+                    console.log("dup ru", line.ru);
+                    dubsRuCount++;
+                }
+                dupsRu.push(line.ru);
+                insertRu++;
+            }
+        }
+        console.log(enLines.length, insertEn, ruLines.length, insertRu, dubsRuCount);
+        console.log(ruLines);
+*/
+
+    }
+
+    lastLineIsEmpty(lang) {
+        var line = this[this.length - 1];
+        return line[lang].isEmpty();
     }
 }
 

@@ -7,6 +7,7 @@
 ///<reference path="editor.ts"/>
 ///<reference path="KeyManager.ts"/>
 ///<reference path="view.ts"/>
+///<reference path="test/LinesStore.spec.ts"/>
 
 
 
