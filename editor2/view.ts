@@ -47,6 +47,9 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
+        if (line === 0) {
+            return;
+        }
         var h = linesStore.removeLine(append, line, lang);
 
         var prevLine = this.lines[line - 1] ? this.lines[line - 1][lang] : null;
