@@ -13,7 +13,7 @@ class LineView extends Line implements ILineView {
 }
 class TextView extends TextLine {
     constructor(text:TextLine, public words:string[]) {
-        super(text.start, text.end, text.text);
+        super({start: text.start, end: text.end, text: text.text});
         copy(text, this);
     }
 }
@@ -30,24 +30,16 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
-        var prevText = this.lines[line][lang].text;
-
-        var cutPos = this.lines[this.sel.line][this.sel.lang].words.slice(0, this.sel.pos).join("").length;
-        var nextText1 = this.lines[line][lang].text.substr(0, cutPos);
-        var nextText2 = this.lines[line][lang].text.substr(cutPos);
-        linesStore.insertLine(cut, cutPos, this.sel.line, this.sel.lang, this.sel.pos);
+        var cutPos = this.lines[line][lang].words.slice(0, pos).join("").length;
+        var h = linesStore.insertLine(cut, cutPos, line, lang, pos);
         this.sel.line++;
         this.sel.pos = 0;
 
-        var change = new Change(lang,
-            new LineChange(line, prevText, nextText1),
-            new LineChange(line + 1, '', nextText2),
-            null,
+        var change = new Change(lang, h.change, h.insert, h.remove,
             {line: line, pos: pos},
             {line: this.sel.line, pos: this.sel.pos}
         );
         historyService.add(change);
-
         this.forceUpdate();
     }
 
@@ -55,13 +47,11 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
-        linesStore.removeLine(append, line, lang);
+        var h = linesStore.removeLine(append, line, lang);
 
-        var prevText2 = this.lines[line][lang].text;
         var prevLine = this.lines[line - 1] ? this.lines[line - 1][lang] : null;
         if (prevLine) {
-            var prevText1 = prevLine.text;
-            if (prevLine.words.length === 1 && prevLine.words[0].trim() === '') {
+            if (prevLine.isEmpty()) {
                 this.sel.pos = 0;
             }
             else {
@@ -76,9 +66,9 @@ class EditorView extends React.Component<any,any> {
         }
 
         var change = new Change(lang,
-            append ? new LineChange(line - 1, prevText1, linesStore[line - 1][lang].text) : null,
-            null,
-            new LineChange(line, prevText2, ''),
+            h.change,
+            h.insert,
+            h.remove,
             {line: line, pos: pos},
             {line: this.sel.line, pos: this.sel.pos}
         );
