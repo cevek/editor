@@ -21,9 +21,8 @@ class TextLine {
     }
 }
 
-
 interface ILinesStore {[n: number]: Line}
-class LinesStore extends List<Line> implements ILinesStore{
+class LinesStore extends List<Line> implements ILinesStore {
 
     parse(en:string, ru:string) {
         var enLines = this.parseSrt(en);
@@ -33,6 +32,8 @@ class LinesStore extends List<Line> implements ILinesStore{
             var line = new Line(enLines[i] || new TextLine(0, 0, ''), ruLines[i] || new TextLine(0, 0, ''));
             this.push(line);
         }
+
+        this.sync();
     }
 
     removeLine(append:boolean, line:number, lang:string) {
@@ -60,7 +61,7 @@ class LinesStore extends List<Line> implements ILinesStore{
 
     undo(change:Change) {
         var lang = change.lang;
-        if (change.change){
+        if (change.change) {
             this[change.change.line][lang].text = change.change.prevText;
         }
         if (change.insert) {
@@ -80,7 +81,7 @@ class LinesStore extends List<Line> implements ILinesStore{
 
     redo(change:Change) {
         var lang = change.lang;
-        if (change.change){
+        if (change.change) {
             this[change.change.line][lang].text = change.change.nextText;
         }
         if (change.remove) {
@@ -115,6 +116,64 @@ class LinesStore extends List<Line> implements ILinesStore{
             }
         }
         return subs;
+    }
+
+    sync() {
+        var lines = new LinesStore();
+        var enLines = <TextLine[]>[];
+        var ruLines = <TextLine[]>[];
+        for (var i = 0; i < this.length; i++) {
+            if (this[i].en && this[i].en.start) {
+                enLines.push(this[i].en);
+            }
+            if (this[i].ru && this[i].ru.start) {
+                ruLines.push(this[i].ru);
+            }
+        }
+
+        for (var i = 0, j = 0; i < enLines.length; i++) {
+            var enLine = enLines[i];
+            var enMiddle = enLine.start + (enLine.end - enLine.start) / 2;
+            var l = j;
+            var startJ = j;
+            var prevDiff = Infinity;
+            var ruLine:TextLine = null;
+            while (true) {
+                ruLine = ruLines[l];
+                if (!ruLine) {
+                    break;
+                }
+                var ruMiddle = ruLine.start + (ruLine.end - ruLine.start) / 2;
+                var diff = Math.abs(enMiddle - ruMiddle);
+                if (diff < 1000) {
+                    j = l + 1;
+                    break;
+                }
+                if (prevDiff < diff) {
+                    ruLine = null;
+                    break;
+                }
+                prevDiff = diff;
+                l++;
+            }
+
+            for (var k = startJ + 1; k < j; k++) {
+                var ruLine2 = ruLines[k];
+                var line = new Line(new TextLine(0, 0, ''), ruLine2);
+                lines.push(line);
+            }
+
+            var line = new Line(enLine, ruLine || new TextLine(0, 0, ''));
+            lines.push(line);
+        }
+
+        for (var k = j; k < ruLines.length; k++) {
+            var ruLine2 = ruLines[k];
+            var line = new Line(new TextLine(0, 0, ''), ruLine2);
+            lines.push(line);
+        }
+
+        this.replace(lines);
     }
 }
 
