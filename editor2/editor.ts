@@ -52,17 +52,22 @@ class LinesStore extends List<Line> implements ILinesStore {
     }
 
     private _insertLine(line:number, lang:string, textLine:TextLine) {
-        if (!this.lastLineIsEmpty(lang)) {
-            this[this.length] = new Line(new TextLine(), new TextLine());
-            this.length++;
-        }
+        this[this.length] = new Line(new TextLine(), new TextLine());
+        this.length++;
         for (var i = this.length - 2; i >= line; i--) {
             this[i + 1][lang] = this[i][lang];
         }
         this[line][lang] = textLine;
+        if (this.lastLineIsEmpty('en') && this.lastLineIsEmpty('ru')) {
+            this.pop();
+        }
     }
 
     removeLine(append:boolean, line:number, lang:string) {
+        if (line < 0 || line >= this.length || (append && line === 0)) {
+            return null;
+        }
+
         var prevText2 = this[line][lang].text;
 
         if (append) {
@@ -211,31 +216,31 @@ class LinesStore extends List<Line> implements ILinesStore {
         }
 
         this.replace(lines);
-/*
+        /*
 
 
-//tests
-        var insertEn = 0;
-        var insertRu = 0;
-        var dupsRu = [];
-        var dubsRuCount = 0;
-        for (var i = 0; i < this.length; i++) {
-            var line = this[i];
-            if (!line.en.isEmpty()) {
-                insertEn++;
-            }
-            if (!line.ru.isEmpty()) {
-                if (dupsRu.indexOf(line.ru) > -1) {
-                    console.log("dup ru", line.ru);
-                    dubsRuCount++;
+        //tests
+                var insertEn = 0;
+                var insertRu = 0;
+                var dupsRu = [];
+                var dubsRuCount = 0;
+                for (var i = 0; i < this.length; i++) {
+                    var line = this[i];
+                    if (!line.en.isEmpty()) {
+                        insertEn++;
+                    }
+                    if (!line.ru.isEmpty()) {
+                        if (dupsRu.indexOf(line.ru) > -1) {
+                            console.log("dup ru", line.ru);
+                            dubsRuCount++;
+                        }
+                        dupsRu.push(line.ru);
+                        insertRu++;
+                    }
                 }
-                dupsRu.push(line.ru);
-                insertRu++;
-            }
-        }
-        console.log(enLines.length, insertEn, ruLines.length, insertRu, dubsRuCount);
-        console.log(ruLines);
-*/
+                console.log(enLines.length, insertEn, ruLines.length, insertRu, dubsRuCount);
+                console.log(ruLines);
+        */
 
     }
 

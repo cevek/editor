@@ -30,54 +30,60 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
-        var cutPos = this.lines[line][lang].words.slice(0, pos).join("").length;
-        var h = linesStore.insertLine(cut, cutPos, line, lang, pos);
-        this.sel.line++;
-        this.sel.pos = 0;
+        if (this.lines[line] && this.lines[line][lang]) {
+            var cutPos = this.lines[line][lang].words.slice(0, pos).join("").length;
+            var h = linesStore.insertLine(cut, cutPos, line, lang, pos);
+            if (h) {
+                this.sel.line++;
+                this.sel.pos = 0;
 
-        var change = new Change(lang, h.change, h.insert, h.remove,
-            {line: line, pos: pos},
-            {line: this.sel.line, pos: this.sel.pos}
-        );
-        historyService.add(change);
-        this.forceUpdate();
+                var change = new Change(lang, h.change, h.insert, h.remove,
+                    {line: line, pos: pos},
+                    {line: this.sel.line, pos: this.sel.pos}
+                );
+                historyService.add(change);
+                this.forceUpdate();
+            }
+        }
     }
 
     removeLine(append = false) {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
-        if (line === 0) {
-            return;
-        }
         var h = linesStore.removeLine(append, line, lang);
-
-        var prevLine = this.lines[line - 1] ? this.lines[line - 1][lang] : null;
-        if (prevLine) {
-            if (prevLine.isEmpty()) {
-                this.sel.pos = 0;
+        if (h) {
+            var prevLine = this.lines[line - 1] ? this.lines[line - 1][lang] : null;
+            if (prevLine) {
+                if (prevLine.isEmpty()) {
+                    this.sel.pos = 0;
+                }
+                else {
+                    this.sel.pos = prevLine.words.length;
+                }
+            }
+            if (append) {
+                this.sel.line--;
             }
             else {
-                this.sel.pos = prevLine.words.length;
+                if (this.sel.line === this.lines.length - 1) {
+                    this.sel.line--;
+                }
+                this.sel.pos = 0;
             }
-        }
-        if (append) {
-            this.sel.line--;
-        }
-        else {
-            this.sel.pos = 0;
+
+            var change = new Change(lang,
+                h.change,
+                h.insert,
+                h.remove,
+                {line: line, pos: pos},
+                {line: this.sel.line, pos: this.sel.pos}
+            );
+
+            historyService.add(change);
+            this.forceUpdate();
         }
 
-        var change = new Change(lang,
-            h.change,
-            h.insert,
-            h.remove,
-            {line: line, pos: pos},
-            {line: this.sel.line, pos: this.sel.pos}
-        );
-
-        historyService.add(change);
-        this.forceUpdate();
     }
 
     setLineWhenUpDown(isUp = false) {
