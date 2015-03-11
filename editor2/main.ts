@@ -1,5 +1,6 @@
 //--<reference path="Atomic/lib/Argentum.ts"/>
 ///<reference path="react.d.ts" />
+///<reference path="DOM.ts" />
 ///<reference path="HTTP.ts"/>
 ///<reference path="Store.ts"/>
 ///<reference path="ReactDOM.ts"/>
