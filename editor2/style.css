@@ -1,6 +1,6 @@
 * { box-sizing: border-box }
 body { font-family: Tahoma; cursor: default }
-.line { padding: 10px; height: 50px; text-align: center; }
+.line { p1adding: 10px; height: 50px; text-align: center; }
 .lng::before { content: '\00a0'; }
 .lng.current { background: lightyellow }
 .line span { padding: 2px 2px 1px 2px; }
@@ -10,3 +10,4 @@ body { font-family: Tahoma; cursor: default }
 .line .selected { /*margin: 0 -15px 0 -5px; padding: 0 3px 0 15px;*/ background: #6CE6FF; border-radius: 3px;
     position: relative }
 .audio-en { float: left; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
+#svg{position: absolute; left: 50px;}

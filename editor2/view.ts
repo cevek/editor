@@ -26,6 +26,57 @@ class EditorView extends React.Component<any,any> {
         super(null, null);
     }
 
+    syncAudioLines() {
+        var timeX = 50;
+        var svgC = '';
+        var lineHeight = 50;
+        var firstTime = 0;
+        for (var i = 0; i < this.lines.length; i++) {
+            var line = this.lines[i];
+            var end = line.en.end / 100;
+            var start = line.en.start / 100;
+            var dur = (end - start);
+            if (!line.en.isEmpty()) {
+                svgC += '<path onclick="play(' + start + ',' + dur + ')" d="' +
+                this.pathGenerator(start * timeX, dur * timeX,
+                    i * lineHeight, lineHeight / 2, 50) +
+                '" stroke="transparent" fill="hsla(' + (start * 77 | 0) + ', 50%,60%, 1)"/>';
+            }
+        }
+        setTimeout(function () {
+            document.getElementById('svg').innerHTML = svgC;
+        });
+    }
+
+    play(from, dur) {
+        /*from = from - (12 * 60 + .5);
+        console.log(from, dur);
+        audio.play();
+        audio.currentTime = from;
+        audio.playbackRate = .8;
+        setTimeout(function () {
+            audio.pause();
+        }, dur * 1250);*/
+
+    }
+
+    pathGenerator(topLeft, leftHeight, topRight, rightHeight, width) {
+        var bx = width / 2 | 0;
+        var path = '';
+        path += 'M0,' + topLeft + ' ';
+
+        path += 'C' + bx + ',' + topLeft + ' ';
+        path += bx + ',' + topRight + ' ';
+        path += width + ',' + topRight + ' ';
+
+        path += 'L' + width + ',' + (topRight + rightHeight) + ' ';
+
+        path += 'C' + bx + ',' + (topRight + rightHeight) + ' ';
+        path += bx + ',' + (topLeft + leftHeight) + ' ';
+        path += '0,' + (topLeft + leftHeight) + 'Z';
+        return path;
+    }
+
     insertLine(cut = false) {
         var line = this.sel.line;
         var lang = this.sel.lang;
@@ -247,6 +298,8 @@ class EditorView extends React.Component<any,any> {
                 new TextView(line.ru, this.parse(line.ru && line.ru.text))
             )
         );
+
+        this.syncAudioLines();
     }
 
     parse(str:string) {
@@ -268,10 +321,11 @@ class EditorView extends React.Component<any,any> {
         this.prepareData(linesStore);
 
         return div(null,
+            React.DOM.svg({id: "svg", width: 50, height: 10000}),
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, 'current': i === this.sel.line}), 'data-line': i},
-                        div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}}),
+                        div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + (-i + 6) * 50 + 'px'}}),
                         div({className: 'audio-ru'}),
                         div({
                                 className: cx({

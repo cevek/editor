@@ -137,12 +137,15 @@ class LinesStore extends List<Line> implements ILinesStore {
     }
 
     parseSrt(subtitle:string) {
+        var shift = 240700;
         var re = /\d+\s+(-?)(\d{2}):(\d{2}):(\d{2})[,.](\d{3}) --> (-?)(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s+([\S\s]*?)(?=\d+\s+-?\d{2}:\d{2}:\d{2}|$)/g;
         var res;
         var subs = [];
         while (res = re.exec(subtitle)) {
             var start = (res[1] ? -1 : 1) * (res[2] * 360000 + res[3] * 6000 + res[4] * 100 + res[5] / 10 | 0);
             var end = (res[6] ? -1 : 1) * (res[7] * 360000 + res[8] * 6000 + res[9] * 100 + res[10] / 10 | 0);
+            start = start - shift;
+            end = end - shift;
             var text = res[11].trim();
             var bb = text.split(/[-–—][\t ]+/);
             for (var i = 0; i < bb.length; i++) {
@@ -169,6 +172,7 @@ class LinesStore extends List<Line> implements ILinesStore {
             }
         }
 
+        var lastEnLine:TextLine;
         for (var i = 0, j = 0; i < enLines.length; i++) {
             var enLine = enLines[i];
             var enMiddle = enLine.start + (enLine.end - enLine.start) / 2;
@@ -205,6 +209,17 @@ class LinesStore extends List<Line> implements ILinesStore {
             if (ruLine) {
                 //console.log("insert ru", j);
             }
+
+            if (lastEnLine) {
+                while (true) {
+                    if ((lines.length) * 50 > enLine.start / 100 * 50) {
+                        break;
+                    }
+                    var line = new Line(new TextLine(), new TextLine());
+                    lines.push(line);
+                }
+            }
+            lastEnLine = enLine;
             var line = new Line(enLine, ruLine || new TextLine());
             lines.push(line);
         }
@@ -256,7 +271,7 @@ Promise.all([
     HTTP.get<string>('../data/ruSub.srt', true)
 ]).then((values) => {
     linesStore.parse(values[0], values[1]);
-    //React.render(React.createElement(EditorView), document.body);
+    React.render(React.createElement(EditorView), document.body);
 });
 
 

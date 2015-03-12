@@ -303,7 +303,7 @@ function foreachUpdate(newArray:any[]) {
     (<any>fragment).__values = newValues;
 
     var dur = Date.now() - startTime;
-    console.log("foreachUpdate, created nodes: "+ createdNodes+ ", "+dur + 'ms');
+    console.log("foreachUpdate, created nodes: " + createdNodes + ", " + dur + 'ms');
 }
 
 var ff = foreach([1, [2, [3]], 3, 3, 3, [[4], [[5]], [6, [7]], [8, [9], 0]]], (item)=>b({}, item));
