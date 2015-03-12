@@ -113,7 +113,7 @@ function dom(tag:string, children:any[]) {
     var node = <HTMLElement>document.createElement(tag);
     var children = flatArray(children);
     var firstChild = children[0];
-    if (firstChild && typeof firstChild === 'object') {
+    if (firstChild && typeof firstChild === 'object' && !(firstChild instanceof Node)) {
         children.shift();
         var attrKeys = Object.keys(firstChild);
         for (var i = 0; i < attrKeys.length; i++) {
@@ -148,7 +148,7 @@ function flatArray(array:any[]) {
     return nodes;
 }
 
-function flatNodes(node:Node) {
+function flatNodes(node:Node):Node[] {
     var nodes = [];
     if (node instanceof DocumentFragment) {
         var childNodes = node.childNodes;
@@ -168,13 +168,50 @@ function flatNodes(node:Node) {
     return nodes;
 }
 
-function IF(condition:boolean, callback:()=>Node) {
+function IF(condition:boolean, callback:()=>Node, elseCallback:()=>Node) {
     var node:Node;
     if (condition) {
         node = render(callback());
     }
+    else {
+        if (elseCallback) {
+            node = render(elseCallback());
+        }
+        else {
+            node = document.createTextNode('');
+        }
+    }
     var nodes = flatNodes(node);
     return node;
+}
+
+function ifChanged(condition:boolean, callback:()=>Node, elseCallback:()=>Node, nodes:Node[]) {
+    var lastChild = nodes[nodes.length - 1];
+    var parent = lastChild.parentNode;
+    var afterLastChild = lastChild.nextSibling;
+    var newNodes = <Node[]>[];
+
+    if (condition) {
+        newNodes = flatNodes(render(callback()));
+    }
+    else {
+        if (elseCallback) {
+            newNodes = flatNodes(render(elseCallback()));
+        }
+        else {
+            newNodes = [document.createTextNode('')];
+        }
+    }
+    if (parent) {
+        for (var i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            parent.removeChild(node);
+        }
+        for (var i = 0; i < newNodes.length; i++) {
+            var node = newNodes[i];
+            parent.insertBefore(node, afterLastChild);
+        }
+    }
 }
 
 function foreach<T>(array:T[], callback:(item:T, i:number)=>Node) {
@@ -206,6 +243,9 @@ function render(node:any) {
 }
 
 function foreachUpdate(newArray:any[]) {
+    var createdNodes = 0;
+    var startTime = Date.now();
+
     var nodes = this.__nodes;
     var values = this.__values;
     var callback = this.__callback;
@@ -217,13 +257,23 @@ function foreachUpdate(newArray:any[]) {
     var found = <{[index:number]:boolean}>{};
     for (var i = 0; i < newArray.length; i++) {
         var item = newArray[i];
-        var index = values.indexOf(item);
+        var _index = 0;
+        var index = -1;
+        while (true) {
+            _index = values.indexOf(item, _index);
+            if (!found[_index] || _index === -1) {
+                index = _index;
+                break;
+            }
+        }
         newValues.push(item);
         if (index > -1) {
+            values[index] = null;
             newNodes.push(nodes[index]);
             found[index] = true;
         }
         else {
+            createdNodes++;
             var node = render(callback(item, i));
             newNodes.push(flatNodes(node));
         }
@@ -251,9 +301,12 @@ function foreachUpdate(newArray:any[]) {
 
     (<any>fragment).__nodes = newNodes;
     (<any>fragment).__values = newValues;
+
+    var dur = Date.now() - startTime;
+    console.log("foreachUpdate, created nodes: "+ createdNodes+ ", "+dur + 'ms');
 }
 
-var ff = foreach([1, [2, [3]], [[4], [[5]], [6, [7]], [8, [9], 0]]], (item)=>b({}, item));
+var ff = foreach([1, [2, [3]], 3, 3, 3, [[4], [[5]], [6, [7]], [8, [9], 0]]], (item)=>b({}, item));
 document.body.appendChild(ff);
-(<any>ff).update(["hello", i(0, false, "", null, void 0, 1 / 0, 1 / +"adsf", "pikapika")]);
+(<any>ff).update([1, 4, 4, 3, 3, 3]);
 //console.log(ff);
