@@ -1,136 +1,259 @@
-type BaseChild0 = string | number | Node;
-type BaseChild1 = string | number | Node | BaseChild0[];
-type BaseChild2 = string | number | Node | BaseChild1[];
-type BaseChild3 = string | number | Node | BaseChild2[];
-type Child = string | number | Node | BaseChild3[];
-
-function a(attrs:Object, ...children:Child[]) {return dom('a', attrs, children)}
-function abbr(attrs:Object, ...children:Child[]) {return dom('abbr', attrs, children)}
-function address(attrs:Object, ...children:Child[]) {return dom('address', attrs, children)}
-function area(attrs:Object, ...children:Child[]) {return dom('area', attrs, children)}
-function article(attrs:Object, ...children:Child[]) {return dom('article', attrs, children)}
-function aside(attrs:Object, ...children:Child[]) {return dom('aside', attrs, children)}
-function audio(attrs:Object, ...children:Child[]) {return dom('audio', attrs, children)}
-function b(attrs:Object, ...children:Child[]) {return dom('b', attrs, children)}
-function base(attrs:Object, ...children:Child[]) {return dom('base', attrs, children)}
-function bdi(attrs:Object, ...children:Child[]) {return dom('bdi', attrs, children)}
-function bdo(attrs:Object, ...children:Child[]) {return dom('bdo', attrs, children)}
-function big(attrs:Object, ...children:Child[]) {return dom('big', attrs, children)}
-function blockquote(attrs:Object, ...children:Child[]) {return dom('blockquote', attrs, children)}
-function body(attrs:Object, ...children:Child[]) {return dom('body', attrs, children)}
-function br(attrs:Object, ...children:Child[]) {return dom('br', attrs, children)}
-function button(attrs:Object, ...children:Child[]) {return dom('button', attrs, children)}
-function canvas(attrs:Object, ...children:Child[]) {return dom('canvas', attrs, children)}
-function caption(attrs:Object, ...children:Child[]) {return dom('caption', attrs, children)}
-function cite(attrs:Object, ...children:Child[]) {return dom('cite', attrs, children)}
-function code(attrs:Object, ...children:Child[]) {return dom('code', attrs, children)}
-function col(attrs:Object, ...children:Child[]) {return dom('col', attrs, children)}
-function colgroup(attrs:Object, ...children:Child[]) {return dom('colgroup', attrs, children)}
-function data(attrs:Object, ...children:Child[]) {return dom('data', attrs, children)}
-function datalist(attrs:Object, ...children:Child[]) {return dom('datalist', attrs, children)}
-function dd(attrs:Object, ...children:Child[]) {return dom('dd', attrs, children)}
-function del(attrs:Object, ...children:Child[]) {return dom('del', attrs, children)}
-function details(attrs:Object, ...children:Child[]) {return dom('details', attrs, children)}
-function dfn(attrs:Object, ...children:Child[]) {return dom('dfn', attrs, children)}
-function dialog(attrs:Object, ...children:Child[]) {return dom('dialog', attrs, children)}
-function div(attrs:Object, ...children:Child[]) {return dom('div', attrs, children)}
-function dl(attrs:Object, ...children:Child[]) {return dom('dl', attrs, children)}
-function dt(attrs:Object, ...children:Child[]) {return dom('dt', attrs, children)}
-function em(attrs:Object, ...children:Child[]) {return dom('em', attrs, children)}
-function embed(attrs:Object, ...children:Child[]) {return dom('embed', attrs, children)}
-function fieldset(attrs:Object, ...children:Child[]) {return dom('fieldset', attrs, children)}
-function figcaption(attrs:Object, ...children:Child[]) {return dom('figcaption', attrs, children)}
-function figure(attrs:Object, ...children:Child[]) {return dom('figure', attrs, children)}
-function footer(attrs:Object, ...children:Child[]) {return dom('footer', attrs, children)}
-function form(attrs:Object, ...children:Child[]) {return dom('form', attrs, children)}
-function h1(attrs:Object, ...children:Child[]) {return dom('h1', attrs, children)}
-function h2(attrs:Object, ...children:Child[]) {return dom('h2', attrs, children)}
-function h3(attrs:Object, ...children:Child[]) {return dom('h3', attrs, children)}
-function h4(attrs:Object, ...children:Child[]) {return dom('h4', attrs, children)}
-function h5(attrs:Object, ...children:Child[]) {return dom('h5', attrs, children)}
-function h6(attrs:Object, ...children:Child[]) {return dom('h6', attrs, children)}
-function head(attrs:Object, ...children:Child[]) {return dom('head', attrs, children)}
-function header(attrs:Object, ...children:Child[]) {return dom('header', attrs, children)}
-function hr(attrs:Object, ...children:Child[]) {return dom('hr', attrs, children)}
-function html(attrs:Object, ...children:Child[]) {return dom('html', attrs, children)}
-function i(attrs:Object, ...children:Child[]) {return dom('i', attrs, children)}
-function iframe(attrs:Object, ...children:Child[]) {return dom('iframe', attrs, children)}
-function img(attrs:Object, ...children:Child[]) {return dom('img', attrs, children)}
-function input(attrs:Object, ...children:Child[]) {return dom('input', attrs, children)}
-function ins(attrs:Object, ...children:Child[]) {return dom('ins', attrs, children)}
-function kbd(attrs:Object, ...children:Child[]) {return dom('kbd', attrs, children)}
-function keygen(attrs:Object, ...children:Child[]) {return dom('keygen', attrs, children)}
-function label(attrs:Object, ...children:Child[]) {return dom('label', attrs, children)}
-function legend(attrs:Object, ...children:Child[]) {return dom('legend', attrs, children)}
-function li(attrs:Object, ...children:Child[]) {return dom('li', attrs, children)}
-function link(attrs:Object, ...children:Child[]) {return dom('link', attrs, children)}
-function main(attrs:Object, ...children:Child[]) {return dom('main', attrs, children)}
-function map(attrs:Object, ...children:Child[]) {return dom('map', attrs, children)}
-function mark(attrs:Object, ...children:Child[]) {return dom('mark', attrs, children)}
-function menu(attrs:Object, ...children:Child[]) {return dom('menu', attrs, children)}
-function menuitem(attrs:Object, ...children:Child[]) {return dom('menuitem', attrs, children)}
-function meta(attrs:Object, ...children:Child[]) {return dom('meta', attrs, children)}
-function meter(attrs:Object, ...children:Child[]) {return dom('meter', attrs, children)}
-function nav(attrs:Object, ...children:Child[]) {return dom('nav', attrs, children)}
-function noscript(attrs:Object, ...children:Child[]) {return dom('noscript', attrs, children)}
-function object(attrs:Object, ...children:Child[]) {return dom('object', attrs, children)}
-function ol(attrs:Object, ...children:Child[]) {return dom('ol', attrs, children)}
-function optgroup(attrs:Object, ...children:Child[]) {return dom('optgroup', attrs, children)}
-function option(attrs:Object, ...children:Child[]) {return dom('option', attrs, children)}
-function output(attrs:Object, ...children:Child[]) {return dom('output', attrs, children)}
-function p(attrs:Object, ...children:Child[]) {return dom('p', attrs, children)}
-function param(attrs:Object, ...children:Child[]) {return dom('param', attrs, children)}
-function picture(attrs:Object, ...children:Child[]) {return dom('picture', attrs, children)}
-function pre(attrs:Object, ...children:Child[]) {return dom('pre', attrs, children)}
-function progress(attrs:Object, ...children:Child[]) {return dom('progress', attrs, children)}
-function q(attrs:Object, ...children:Child[]) {return dom('q', attrs, children)}
-function rp(attrs:Object, ...children:Child[]) {return dom('rp', attrs, children)}
-function rt(attrs:Object, ...children:Child[]) {return dom('rt', attrs, children)}
-function ruby(attrs:Object, ...children:Child[]) {return dom('ruby', attrs, children)}
-function s(attrs:Object, ...children:Child[]) {return dom('s', attrs, children)}
-function samp(attrs:Object, ...children:Child[]) {return dom('samp', attrs, children)}
-function script(attrs:Object, ...children:Child[]) {return dom('script', attrs, children)}
-function section(attrs:Object, ...children:Child[]) {return dom('section', attrs, children)}
-function select(attrs:Object, ...children:Child[]) {return dom('select', attrs, children)}
-function small(attrs:Object, ...children:Child[]) {return dom('small', attrs, children)}
-function source(attrs:Object, ...children:Child[]) {return dom('source', attrs, children)}
-function span(attrs:Object, ...children:Child[]) {return dom('span', attrs, children)}
-function strong(attrs:Object, ...children:Child[]) {return dom('strong', attrs, children)}
-function style(attrs:Object, ...children:Child[]) {return dom('style', attrs, children)}
-function sub(attrs:Object, ...children:Child[]) {return dom('sub', attrs, children)}
-function summary(attrs:Object, ...children:Child[]) {return dom('summary', attrs, children)}
-function sup(attrs:Object, ...children:Child[]) {return dom('sup', attrs, children)}
-function table(attrs:Object, ...children:Child[]) {return dom('table', attrs, children)}
-function tbody(attrs:Object, ...children:Child[]) {return dom('tbody', attrs, children)}
-function td(attrs:Object, ...children:Child[]) {return dom('td', attrs, children)}
-function textarea(attrs:Object, ...children:Child[]) {return dom('textarea', attrs, children)}
-function tfoot(attrs:Object, ...children:Child[]) {return dom('tfoot', attrs, children)}
-function th(attrs:Object, ...children:Child[]) {return dom('th', attrs, children)}
-function thead(attrs:Object, ...children:Child[]) {return dom('thead', attrs, children)}
-function time(attrs:Object, ...children:Child[]) {return dom('time', attrs, children)}
-function title(attrs:Object, ...children:Child[]) {return dom('title', attrs, children)}
-function tr(attrs:Object, ...children:Child[]) {return dom('tr', attrs, children)}
-function track(attrs:Object, ...children:Child[]) {return dom('track', attrs, children)}
-function u(attrs:Object, ...children:Child[]) {return dom('u', attrs, children)}
-function ul(attrs:Object, ...children:Child[]) {return dom('ul', attrs, children)}
-function video(attrs:Object, ...children:Child[]) {return dom('video', attrs, children)}
-function wbr(attrs:Object, ...children:Child[]) {return dom('wbr', attrs, children)}
-function dom(tag:string, attrs:Object, children:Child[]) {
+//function a(...children:Child[]) {return dom('a', children)}
+function abbr(...children:any[]) {return dom('abbr', children)}
+function address(...children:any[]) {return dom('address', children)}
+function area(...children:any[]) {return dom('area', children)}
+function article(...children:any[]) {return dom('article', children)}
+function aside(...children:any[]) {return dom('aside', children)}
+function audio(...children:any[]) {return dom('audio', children)}
+function b(...children:any[]) {return dom('b', children)}
+function base(...children:any[]) {return dom('base', children)}
+function bdi(...children:any[]) {return dom('bdi', children)}
+function bdo(...children:any[]) {return dom('bdo', children)}
+function big(...children:any[]) {return dom('big', children)}
+function blockquote(...children:any[]) {return dom('blockquote', children)}
+function body(...children:any[]) {return dom('body', children)}
+function br(...children:any[]) {return dom('br', children)}
+function button(...children:any[]) {return dom('button', children)}
+function canvas(...children:any[]) {return dom('canvas', children)}
+function caption(...children:any[]) {return dom('caption', children)}
+function cite(...children:any[]) {return dom('cite', children)}
+function code(...children:any[]) {return dom('code', children)}
+function col(...children:any[]) {return dom('col', children)}
+function colgroup(...children:any[]) {return dom('colgroup', children)}
+function data(...children:any[]) {return dom('data', children)}
+function datalist(...children:any[]) {return dom('datalist', children)}
+function dd(...children:any[]) {return dom('dd', children)}
+function del(...children:any[]) {return dom('del', children)}
+function details(...children:any[]) {return dom('details', children)}
+function dfn(...children:any[]) {return dom('dfn', children)}
+function dialog(...children:any[]) {return dom('dialog', children)}
+//function div(...children:Child[]) {return dom('div', children)}
+function dl(...children:any[]) {return dom('dl', children)}
+function dt(...children:any[]) {return dom('dt', children)}
+function em(...children:any[]) {return dom('em', children)}
+function embed(...children:any[]) {return dom('embed', children)}
+function fieldset(...children:any[]) {return dom('fieldset', children)}
+function figcaption(...children:any[]) {return dom('figcaption', children)}
+function figure(...children:any[]) {return dom('figure', children)}
+function footer(...children:any[]) {return dom('footer', children)}
+function form(...children:any[]) {return dom('form', children)}
+function h1(...children:any[]) {return dom('h1', children)}
+function h2(...children:any[]) {return dom('h2', children)}
+function h3(...children:any[]) {return dom('h3', children)}
+function h4(...children:any[]) {return dom('h4', children)}
+function h5(...children:any[]) {return dom('h5', children)}
+function h6(...children:any[]) {return dom('h6', children)}
+function head(...children:any[]) {return dom('head', children)}
+function header(...children:any[]) {return dom('header', children)}
+function hr(...children:any[]) {return dom('hr', children)}
+function html(...children:any[]) {return dom('html', children)}
+function i(...children:any[]) {return dom('i', children)}
+function iframe(...children:any[]) {return dom('iframe', children)}
+function img(...children:any[]) {return dom('img', children)}
+function input(...children:any[]) {return dom('input', children)}
+function ins(...children:any[]) {return dom('ins', children)}
+function kbd(...children:any[]) {return dom('kbd', children)}
+function keygen(...children:any[]) {return dom('keygen', children)}
+function label(...children:any[]) {return dom('label', children)}
+function legend(...children:any[]) {return dom('legend', children)}
+function li(...children:any[]) {return dom('li', children)}
+function link(...children:any[]) {return dom('link', children)}
+function main(...children:any[]) {return dom('main', children)}
+function map(...children:any[]) {return dom('map', children)}
+function mark(...children:any[]) {return dom('mark', children)}
+function menu(...children:any[]) {return dom('menu', children)}
+function menuitem(...children:any[]) {return dom('menuitem', children)}
+function meta(...children:any[]) {return dom('meta', children)}
+function meter(...children:any[]) {return dom('meter', children)}
+function nav(...children:any[]) {return dom('nav', children)}
+function noscript(...children:any[]) {return dom('noscript', children)}
+function object(...children:any[]) {return dom('object', children)}
+function ol(...children:any[]) {return dom('ol', children)}
+function optgroup(...children:any[]) {return dom('optgroup', children)}
+function option(...children:any[]) {return dom('option', children)}
+function output(...children:any[]) {return dom('output', children)}
+function p(...children:any[]) {return dom('p', children)}
+function param(...children:any[]) {return dom('param', children)}
+function picture(...children:any[]) {return dom('picture', children)}
+function pre(...children:any[]) {return dom('pre', children)}
+function progress(...children:any[]) {return dom('progress', children)}
+function q(...children:any[]) {return dom('q', children)}
+function rp(...children:any[]) {return dom('rp', children)}
+function rt(...children:any[]) {return dom('rt', children)}
+function ruby(...children:any[]) {return dom('ruby', children)}
+function s(...children:any[]) {return dom('s', children)}
+function samp(...children:any[]) {return dom('samp', children)}
+function script(...children:any[]) {return dom('script', children)}
+function section(...children:any[]) {return dom('section', children)}
+function select(...children:any[]) {return dom('select', children)}
+function small(...children:any[]) {return dom('small', children)}
+function source(...children:any[]) {return dom('source', children)}
+//function span(...children:Child[]) {return dom('span', children)}
+function strong(...children:any[]) {return dom('strong', children)}
+function style(...children:any[]) {return dom('style', children)}
+function sub(...children:any[]) {return dom('sub', children)}
+function summary(...children:any[]) {return dom('summary', children)}
+function sup(...children:any[]) {return dom('sup', children)}
+function table(...children:any[]) {return dom('table', children)}
+function tbody(...children:any[]) {return dom('tbody', children)}
+function td(...children:any[]) {return dom('td', children)}
+function textarea(...children:any[]) {return dom('textarea', children)}
+function tfoot(...children:any[]) {return dom('tfoot', children)}
+function th(...children:any[]) {return dom('th', children)}
+function thead(...children:any[]) {return dom('thead', children)}
+function time(...children:any[]) {return dom('time', children)}
+function title(...children:any[]) {return dom('title', children)}
+function tr(...children:any[]) {return dom('tr', children)}
+function track(...children:any[]) {return dom('track', children)}
+function u(...children:any[]) {return dom('u', children)}
+function ul(...children:any[]) {return dom('ul', children)}
+function video(...children:any[]) {return dom('video', children)}
+function wbr(...children:any[]) {return dom('wbr', children)}
+function dom(tag:string, children:any[]) {
     var node = <HTMLElement>document.createElement(tag);
-    var attrKeys = Object.keys(attrs);
-    for (var i = 0; i < attrKeys.length; i++) {
-        var attr = attrKeys[i];
-        node.setAttribute(attr, attrs[attr]);
+    var children = flatArray(children);
+    var firstChild = children[0];
+    if (firstChild && typeof firstChild === 'object') {
+        children.shift();
+        var attrKeys = Object.keys(firstChild);
+        for (var i = 0; i < attrKeys.length; i++) {
+            var attr = attrKeys[i];
+            node.setAttribute(attr, firstChild[attr]);
+        }
     }
     for (var i = 0; i < children.length; i++) {
         var child = children[i];
-        if (typeof child === 'string' || typeof child === 'number') {
-            var textNode = document.createTextNode(child + '');
-            node.appendChild(textNode);
+        if (child instanceof Node) {
+            node.appendChild(<Node>child);
         }
         else {
-            node.appendChild(<Node>child);
+            var textNode = render(child);
+            node.appendChild(textNode);
         }
     }
     return node;
 }
+
+function flatArray(array:any[]) {
+    var nodes = [];
+    for (var i = 0; i < array.length; i++) {
+        var child = array[i];
+        if (child instanceof Array) {
+            nodes = nodes.concat(flatArray(child));
+        }
+        else {
+            nodes.push(child);
+        }
+    }
+    return nodes;
+}
+
+function flatNodes(node:Node) {
+    var nodes = [];
+    if (node instanceof DocumentFragment) {
+        var childNodes = node.childNodes;
+        for (var i = 0; i < childNodes.length; i++) {
+            var child = childNodes[i];
+            if (child instanceof DocumentFragment) {
+                nodes = nodes.concat(flatNodes(child));
+            }
+            else {
+                nodes.push(child);
+            }
+        }
+    }
+    else {
+        nodes.push(node);
+    }
+    return nodes;
+}
+
+function IF(condition:boolean, callback:()=>Node) {
+    var node:Node;
+    if (condition) {
+        node = render(callback());
+    }
+    var nodes = flatNodes(node);
+    return node;
+}
+
+function foreach<T>(array:T[], callback:(item:T, i:number)=>Node) {
+    var nodes = [];
+    var values = [];
+    array = flatArray(array);
+    var fragment = document.createDocumentFragment();
+    for (var i = 0; i < array.length; i++) {
+        var item = array[i];
+        var node = render(callback(item, i));
+        fragment.appendChild(node);
+        nodes.push(flatNodes(node));
+        values.push(item);
+    }
+    (<any>fragment).__nodes = nodes;
+    (<any>fragment).__values = values;
+    (<any>fragment).__callback = callback;
+    (<any>fragment).update = foreachUpdate;
+    return fragment;
+}
+
+function render(node:any) {
+    if (!(node instanceof Node)) {
+        node = (typeof node === 'number' && node != +node) ? '' : node;
+        node = (node === null || node === void 0) ? '' : node;
+        node = document.createTextNode(node);
+    }
+    return node;
+}
+
+function foreachUpdate(newArray:any[]) {
+    var nodes = this.__nodes;
+    var values = this.__values;
+    var callback = this.__callback;
+    var fragment = <DocumentFragment>this;
+
+    var newArray = flatArray(newArray);
+    var newValues = [];
+    var newNodes = [];
+    var found = <{[index:number]:boolean}>{};
+    for (var i = 0; i < newArray.length; i++) {
+        var item = newArray[i];
+        var index = values.indexOf(item);
+        newValues.push(item);
+        if (index > -1) {
+            newNodes.push(nodes[index]);
+            found[index] = true;
+        }
+        else {
+            var node = render(callback(item, i));
+            newNodes.push(flatNodes(node));
+        }
+    }
+
+    var lastChild = <Node>nodes[nodes.length - 1][0];
+    var afterLastChild = lastChild.nextSibling;
+    var parent = lastChild.parentNode;
+    if (parent) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (!found[i]) {
+                for (var j = 0; j < nodes[i].length; j++) {
+                    var node = nodes[i][j];
+                    parent.removeChild(node);
+                }
+            }
+        }
+        for (var i = 0; i < newNodes.length; i++) {
+            for (var j = 0; j < newNodes[i].length; j++) {
+                var node = newNodes[i][j];
+                parent.insertBefore(node, afterLastChild);
+            }
+        }
+    }
+
+    (<any>fragment).__nodes = newNodes;
+    (<any>fragment).__values = newValues;
+}
+
+var ff = foreach([1, [2, [3]], [[4], [[5]], [6, [7]], [8, [9], 0]]], (item)=>b({}, item));
+document.body.appendChild(ff);
+(<any>ff).update(["hello", i(0, false, "", null, void 0, 1 / 0, 1 / +"adsf", "pikapika")]);
+//console.log(ff);

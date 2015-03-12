@@ -256,7 +256,7 @@ Promise.all([
     HTTP.get<string>('../data/ruSub.srt', true)
 ]).then((values) => {
     linesStore.parse(values[0], values[1]);
-    React.render(React.createElement(EditorView), document.body);
+    //React.render(React.createElement(EditorView), document.body);
 });
 
 
