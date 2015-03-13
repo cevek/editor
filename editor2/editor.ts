@@ -38,7 +38,7 @@ class LinesStore extends List<Line> implements ILinesStore {
             this.push(line);
         }
 
-        this.sync();
+        this.sync2();
     }
 
     private _removeLine(line:number, lang:string) {
@@ -76,6 +76,9 @@ class LinesStore extends List<Line> implements ILinesStore {
             var change = new LineChange(line - 1, prevText1, this[line - 1][lang].text);
         }
         this._removeLine(line, lang);
+        if (append) {
+            this._insertLine(line, lang, new TextLine());
+        }
 
         return {
             change: change,
@@ -257,6 +260,41 @@ class LinesStore extends List<Line> implements ILinesStore {
                 console.log(ruLines);
         */
 
+    }
+
+    createLinesUntil(k:number) {
+        for (var i = this.length; i <= k; i++) {
+            this.push(new Line(new TextLine(), new TextLine()));
+        }
+    }
+
+    sync2() {
+        var lines = new LinesStore();
+        var enLines = <TextLine[]>[];
+        var ruLines = <TextLine[]>[];
+
+        var lastUsedLineEn = -1;
+        var lastUsedLineRu = -1;
+
+        for (var i = 0; i < this.length; i++) {
+            if (this[i].en && this[i].en.start) {
+                enLines.push(this[i].en);
+                var enMiddle = (this[i].en.start + (this[i].en.end - this[i].en.start) / 2) / 100;
+                var k = Math.max(Math.round(enMiddle), lastUsedLineEn + 1);
+                lastUsedLineEn = k;
+                lines.createLinesUntil(k);
+                lines[k].en = this[i].en;
+            }
+            if (this[i].ru && this[i].ru.start) {
+                ruLines.push(this[i].ru);
+                var ruMiddle = (this[i].ru.start + (this[i].ru.end - this[i].ru.start) / 2) / 100;
+                var k = Math.max(Math.round(ruMiddle), lastUsedLineRu + 1);
+                lastUsedLineRu = k;
+                lines.createLinesUntil(k);
+                lines[k].ru = this[i].ru;
+            }
+        }
+        this.replace(lines);
     }
 
     lastLineIsEmpty(lang) {

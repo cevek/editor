@@ -320,8 +320,8 @@ class EditorView extends React.Component<any,any> {
     render() {
         this.prepareData(linesStore);
 
-        return div(null,
-            React.DOM.svg({id: "svg", width: 50, height: 10000}),
+        return div({className: 'editor'},
+            React.DOM.svg({id: "svg", width: 50, height: 30000}),
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, 'current': i === this.sel.line}), 'data-line': i},

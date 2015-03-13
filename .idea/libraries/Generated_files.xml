@@ -1,0 +1,31 @@
+<component name="libraryTable">
+  <library name="Generated files" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/editor2/KeyManager.js" />
+        <item url="file://$PROJECT_DIR$/editor2/test/LinesStore.spec.js" />
+        <item url="file://$PROJECT_DIR$/editor2/editor.js" />
+        <item url="file://$PROJECT_DIR$/editor2/HistoryService.js" />
+        <item url="file://$PROJECT_DIR$/editor2/view.js" />
+        <item url="file://$PROJECT_DIR$/editor2/ReactDOM.js" />
+        <item url="file://$PROJECT_DIR$/editor2/DOM.js" />
+        <item url="file://$PROJECT_DIR$/editor2/Store.js" />
+        <item url="file://$PROJECT_DIR$/editor2/HTTP.js" />
+        <item url="file://$PROJECT_DIR$/editor2/main.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/editor2/KeyManager.js" />
+      <root url="file://$PROJECT_DIR$/editor2/test/LinesStore.spec.js" />
+      <root url="file://$PROJECT_DIR$/editor2/editor.js" />
+      <root url="file://$PROJECT_DIR$/editor2/HistoryService.js" />
+      <root url="file://$PROJECT_DIR$/editor2/view.js" />
+      <root url="file://$PROJECT_DIR$/editor2/ReactDOM.js" />
+      <root url="file://$PROJECT_DIR$/editor2/DOM.js" />
+      <root url="file://$PROJECT_DIR$/editor2/Store.js" />
+      <root url="file://$PROJECT_DIR$/editor2/main.js" />
+      <root url="file://$PROJECT_DIR$/editor2/HTTP.js" />
+    </CLASSES>
+    <SOURCES />
+  </library>
+</component>
