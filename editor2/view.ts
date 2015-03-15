@@ -5,18 +5,14 @@ class WordSelection {
     leftOffset = -1;
 }
 
-interface ILineView {[n: string]: TextView}
-class LineView extends Line implements ILineView {
-[lang:string]:TextView;
-    en:TextView;
-    ru:TextView;
-}
 class TextView extends TextLine {
     constructor(text:TextLine, public words:string[]) {
         super({start: text.start, end: text.end, text: text.text});
         copy(text, this);
     }
 }
+
+class LineView extends ALine<TextView>{}
 
 class EditorView extends React.Component<any,any> {
     lines:LineView[];

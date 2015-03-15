@@ -1,14 +1,15 @@
-interface ILine {[lang:string]:TextLine;}
-class Line implements ILine {
-[lang:string]:TextLine;
-    en:TextLine;
-    ru:TextLine;
-
-    constructor(en:TextLine, ru:TextLine) {
+interface ILine<T> {[lang:string]:T;}
+class ALine<T> implements ILine<T> {
+[lang:string]:T;
+    en:T;
+    ru:T;
+    constructor(en:T, ru:T) {
         this.en = en;
         this.ru = ru;
     }
 }
+class Line extends ALine<TextLine>{}
+
 
 class TextLine {
     start:number;
