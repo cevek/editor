@@ -1,4 +1,5 @@
 class KeyPress {
+[index: string]:boolean;
     noMod = true;
     shiftMod = false;
     shiftLeftMod = false;
@@ -15,6 +16,7 @@ class KeyPress {
     backspace = false;
     tab = false;
     enter = false;
+    space = false;
     shift = false;
     ctrl = false;
     alt = false;
@@ -110,7 +112,7 @@ class KeyPress {
     x = false;
     y = false;
     z = false;
-    static keys = {
+    static keys = <{[index: number]:string}>{
         8: 'backspace',
         9: 'tab',
         13: 'enter',
@@ -120,6 +122,7 @@ class KeyPress {
         19: 'pauseBreak',
         20: 'capsLock',
         27: 'escape',
+        32: 'space',
         33: 'pageUp',
         34: 'pageDown',
         35: 'end',
@@ -216,7 +219,7 @@ class KeyPress {
     static metaLeft = false;
 
     constructor(e:KeyboardEvent) {
-        this[KeyPress.keys[e.keyCode]] = true;
+        (<any>this)[KeyPress.keys[e.keyCode]] = true;
         if (this.metaLeft) {
             KeyPress.metaLeft = true;
             return;

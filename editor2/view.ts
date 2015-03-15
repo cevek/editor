@@ -5,14 +5,15 @@ class WordSelection {
     leftOffset = -1;
 }
 
-class TextView extends TextLine {
-    constructor(text:TextLine, public words:string[]) {
-        super({start: text.start, end: text.end, text: text.text});
-        copy(text, this);
+class LineView {
+    model:Line;
+    words:{[index: string]: string[]; en: string[]; ru: string[]};
+
+    constructor(model:Line, en:string[], ru:string[]) {
+        this.model = model;
+        this.words = {en: en, ru: ru};
     }
 }
-
-class LineView extends ALine<TextView>{}
 
 class EditorView extends React.Component<any,any> {
     lines:LineView[];
@@ -29,22 +30,24 @@ class EditorView extends React.Component<any,any> {
         var firstTime = 0;
         for (var i = 0; i < this.lines.length; i++) {
             var line = this.lines[i];
-            var end = line.lang.en.end / 100;
-            var start = line.lang.en.start / 100;
+            var end = line.model.lang.en.end / 100;
+            var start = line.model.lang.en.start / 100;
             var dur = (end - start);
-            if (!line.lang.en.isEmpty()) {
-                svgC += '<path onclick="play(' + start + ',' + dur + ')" d="' +
+            if (!line.model.lang.en.isEmpty()) {
+                // onclick="play(' + start + ',' + dur + ')"
+                svgC += '<path d="' +
                 this.pathGenerator(start * timeX, dur * timeX,
-                    i * lineHeight, lineHeight / 2, 50) +
+                    i * lineHeight, lineHeight, 50) +
                 '" stroke="transparent" fill="hsla(' + (start * 77 | 0) + ', 50%,60%, 1)"/>';
             }
         }
-        setTimeout(function () {
-            document.getElementById('svg').innerHTML = svgC;
-        });
+        var svg = document.getElementById('svg');
+        if (svg) {
+            svg.innerHTML = svgC;
+        }
     }
 
-    play(from, dur) {
+    play(from:number, dur:number) {
         /*from = from - (12 * 60 + .5);
         console.log(from, dur);
         audio.play();
@@ -56,7 +59,12 @@ class EditorView extends React.Component<any,any> {
 
     }
 
-    pathGenerator(topLeft, leftHeight, topRight, rightHeight, width) {
+    pathGenerator(topLeft:number, leftHeight:number, topRight:number, rightHeight:number, width:number) {
+        topLeft = Math.round(topLeft);
+        leftHeight = Math.round(leftHeight);
+        topRight = Math.round(topRight);
+        rightHeight = Math.round(rightHeight);
+        width = Math.round(width);
         var bx = width / 2 | 0;
         var path = '';
         path += 'M0,' + topLeft + ' ';
@@ -77,8 +85,8 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
-        if (this.lines[line] && this.lines[line][lang]) {
-            var cutPos = this.lines[line][lang].words.slice(0, pos).join("").length;
+        if (this.lines[line] && this.lines[line].model.lang[lang]) {
+            var cutPos = this.lines[line].words[lang].slice(0, pos).join("").length;
             var h = linesStore.insertLine(cut, cutPos, line, lang, pos);
             if (h) {
                 this.sel.line++;
@@ -98,15 +106,16 @@ class EditorView extends React.Component<any,any> {
         var line = this.sel.line;
         var lang = this.sel.lang;
         var pos = this.sel.pos;
+        var prevLine = this.lines[line - 1];
+        var prevLineIsEmpty = prevLine ? prevLine.model.lang[lang].isEmpty() : false;
         var h = linesStore.removeLine(append, line, lang);
         if (h) {
-            var prevLine = this.lines[line - 1] ? this.lines[line - 1][lang] : null;
             if (prevLine) {
-                if (prevLine.isEmpty()) {
+                if (prevLineIsEmpty) {
                     this.sel.pos = 0;
                 }
                 else {
-                    this.sel.pos = prevLine.words.length;
+                    this.sel.pos = prevLine.words[lang].length;
                 }
             }
             if (append) {
@@ -203,7 +212,7 @@ class EditorView extends React.Component<any,any> {
             this.sel.pos--;
             this.sel.leftOffset = -1;
         }
-        var lineLen = this.lines[this.sel.line][this.sel.lang].words.length;
+        var lineLen = this.lines[this.sel.line].words[this.sel.lang].length;
         if (!left && this.sel.pos < lineLen - 1) {
             this.sel.pos++;
             this.sel.leftOffset = -1;
@@ -213,9 +222,9 @@ class EditorView extends React.Component<any,any> {
 
     wordClick(node:HTMLElement) {
         var langEl = <HTMLElement>node.parentNode;
-        this.sel.lang = langEl.dataset['lang'];
+        this.sel.lang = (<any>langEl.dataset)['lang'];
         var lineEl = <HTMLElement>langEl.parentNode;
-        this.sel.line = +lineEl.dataset['line'];
+        this.sel.line = +(<any>lineEl.dataset)['line'];
         var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
         this.sel.pos = arr.indexOf(node);
         this.forceUpdate();
@@ -245,12 +254,35 @@ class EditorView extends React.Component<any,any> {
         }
     }
 
+    linkedNegate() {
+        //console.log("linked");
+        this.lines[this.sel.line].model.linked = !this.lines[this.sel.line].model.linked;
+        this.forceUpdate();
+    }
+
     componentDidMount() {
         var el = React.findDOMNode(this);
         el.addEventListener('click', (e) => {
-            var node = <HTMLElement>e.target;
-            if (node.tagName === 'SPAN') {
-                this.wordClick(node);
+            var parents = <HTMLElement[]>[];
+            var target = <HTMLElement>e.target;
+            var node = target;
+            while (node = <HTMLElement>node.parentNode) {
+                parents.push(node);
+            }
+            if (target.tagName === 'SPAN') {
+                this.wordClick(target);
+                return;
+            }
+
+            for (var i = 0; i < parents.length; i++) {
+                var node = parents[i];
+                if (node.dataset && node.dataset['line']) {
+                    this.sel.lang = 'en';
+                    this.sel.line = +node.dataset['line'];
+                    this.sel.pos = 0;
+                    this.forceUpdate();
+                    return;
+                }
             }
         });
 
@@ -276,6 +308,16 @@ class EditorView extends React.Component<any,any> {
                 e.preventDefault();
             }
 
+            if (key.enter && key.shiftMod && !key.altMod && !key.ctrlMod && !key.metaMod) {
+                this.linkedNegate();
+                e.preventDefault();
+            }
+
+            if (key.space && key.noMod) {
+                this.linkedNegate();
+                e.preventDefault();
+            }
+
             if (key.backspace && !key.shiftMod && !key.altMod && !key.ctrlMod) {
                 this.removeLine(!key.metaMod);
                 e.preventDefault();
@@ -289,12 +331,11 @@ class EditorView extends React.Component<any,any> {
     }
 
     prepareData(linesStore:LinesStore) {
-        this.lines = linesStore.map((line, i)=> new LineView(
-                new TextView(line.lang.en, this.parse(line.lang.en && line.lang.en.text)),
-                new TextView(line.lang.ru, this.parse(line.lang.ru && line.lang.ru.text))
+        this.lines = linesStore.map((line, i)=> new LineView(line,
+                this.parse(line.lang.en && line.lang.en.text),
+                this.parse(line.lang.ru && line.lang.ru.text)
             )
         );
-
         this.syncAudioLines();
     }
 
@@ -320,7 +361,10 @@ class EditorView extends React.Component<any,any> {
             React.DOM.svg({id: "svg", width: 50, height: 30000}),
             this.lines.map(
                 (line, i) =>
-                    div({className: cx({line: true, 'current': i === this.sel.line}), 'data-line': i},
+                    div({
+                            className: cx({line: true, 'current': i === this.sel.line, linked: line.model.linked}),
+                            'data-line': i
+                        },
                         div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + (-i + 6) * 50 + 'px'}}),
                         div({className: 'audio-ru'}),
                         div({
@@ -330,7 +374,7 @@ class EditorView extends React.Component<any,any> {
                                     'current': i === this.sel.line && 'en' === this.sel.lang
                                 }), 'data-lang': 'en'
                             },
-                            line.lang.en.words.map((block, pos)=>
+                            line.words.en.map((block, pos)=>
                                     span({
                                         className: cx({
                                             selected: i === this.sel.line && 'en' === this.sel.lang && pos === this.sel.pos
@@ -345,7 +389,7 @@ class EditorView extends React.Component<any,any> {
                                     'current': i === this.sel.line && 'ru' === this.sel.lang
                                 }), 'data-lang': 'ru'
                             },
-                            line.lang.ru.words.map((block, pos)=>
+                            line.words.ru.map((block, pos)=>
                                     span({
                                         className: cx({
                                             selected: i === this.sel.line && 'ru' === this.sel.lang && pos === this.sel.pos

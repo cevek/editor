@@ -12,7 +12,7 @@
 
 
 
-function copy(obj, to) {
+function copy(obj:any, to:any) {
     if (obj) {
         var keys = Object.keys(obj);
         for (var i = 0; i < keys.length; i++) {

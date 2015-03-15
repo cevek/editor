@@ -2,7 +2,7 @@
 <project version="4">
   <component name="TypeScriptCompiler">
     <option name="isCompilerEnabled" value="true" />
-    <option name="typeScriptCompilerParams" value="--target es5 --out editor2/compiled/script.js        " />
+    <option name="typeScriptCompilerParams" value="--target es5 --noImplicitAny --out editor2/compiled/script.js        " />
     <option name="nodeInterpreterTextField" value="/usr/local/bin/node            " />
   </component>
 </project>
