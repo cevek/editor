@@ -53,18 +53,6 @@ class LinesStore extends List<Line> implements ILinesStore {
         }
     }
 
-    private _insertLine(line:number, lang:string, textLine:LangItem) {
-        this[this.length] = new Line(new LangItem(), new LangItem());
-        this.length++;
-        for (var i = this.length - 2; i >= line; i--) {
-            this[i + 1].lang[lang] = this[i].lang[lang];
-        }
-        this[line].lang[lang] = textLine;
-        if (this.lastLineIsEmpty('en') && this.lastLineIsEmpty('ru')) {
-            this.pop();
-        }
-    }
-
     removeLine(append:boolean, line:number, lang:string) {
         if (line < 0 || line >= this.length || (append && line === 0)) {
             return null;
@@ -89,6 +77,67 @@ class LinesStore extends List<Line> implements ILinesStore {
         };
     }
 
+    _removeNextEmptyLine(line:number, lang:string) {
+        return -1;
+        var nextEmptyLine = -1;
+        for (var i = line + 1; i < this.length - 1; i++) {
+            if (this[i].lang[lang].isEmpty()) {
+                nextEmptyLine = i;
+                break;
+            }
+        }
+        if (nextEmptyLine > -1) {
+            this._removeLine(nextEmptyLine, lang);
+        }
+        return nextEmptyLine;
+    }
+
+    _firstLinked(line:number) {
+        var firstLinked = this.length;
+        for (var i = line + 1; i < this.length - 1; i++) {
+            if (this[i].linked) {
+                firstLinked = i;
+                break;
+            }
+        }
+        return firstLinked;
+    }
+
+    private _insertLine(line:number, lang:string, textLine:LangItem) {
+        var en = lang == 'en' ? textLine : new LangItem();
+        var ru = lang == 'ru' ? textLine : new LangItem();
+        var negateLang = lang == 'en' ? 'ru' : 'en';
+
+        this.splice(line, 0, new Line(en, ru));
+
+        var firstLinked = this._firstLinked(line);
+        for (var i = line; i < firstLinked - 1; i++) {
+            this[i].lang[negateLang] = this[i + 1].lang[negateLang];
+        }
+      /*  this[i].lang[firstLinked - 1] = new LangItem();
+        this[this.length] = new Line(new LangItem(), new LangItem());
+        this.length++;
+
+        var firstLinked = this._firstLinked(line);
+        var to = Math.max(firstLinked, line);
+        for (var i = this.length - 2; i >= to; i--) {
+            /!*
+                        if (this[i].linked) {
+                            var en = lang == 'en' ? textLine : new LangItem();
+                            var ru = lang == 'ru' ? textLine : new LangItem();
+                            this.splice(i, 0, new Line(new LangItem(), new LangItem()));
+                            return;
+                            break;
+                        }
+            *!/
+            this[i + 1].lang[lang] = this[i].lang[lang];
+        }
+        this[line].lang[lang] = textLine;
+        if (this.lastLineIsEmpty('en') && this.lastLineIsEmpty('ru')) {
+            this.pop();
+        }*/
+    }
+
     insertLine(cut:boolean, cutPos:number, line:number, lang:string, pos:number) {
         var currText = this[line].lang[lang];
         var prevText = currText.text;
@@ -96,20 +145,12 @@ class LinesStore extends List<Line> implements ILinesStore {
         var nextText = currText.text.substr(cutPos);
         currText.text = firstText;
         this._insertLine(line + 1, lang, new LangItem({start: currText.start, end: currText.end, text: nextText}));
-
-        //remove next empty line if exists
-        for (var i = line + 1; i < this.length - 1; i++) {
-            if (this[i].lang[lang].isEmpty()) {
-                var removedLine = new LineChange(i - 1, '', '');
-                this._removeLine(i, lang);
-                break;
-            }
-        }
+        var nextEmptyLine = this._removeNextEmptyLine(line, lang);
 
         return {
             change: new LineChange(line, prevText, firstText),
             insert: new LineChange(line + 1, '', nextText),
-            remove: removedLine
+            remove: new LineChange(nextEmptyLine - 1, '', '')
         };
     }
 
