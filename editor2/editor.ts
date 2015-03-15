@@ -1,15 +1,14 @@
-interface ILine<T> {[lang:string]:T;}
-class ALine<T> implements ILine<T> {
-[lang:string]:T;
-    en:T;
-    ru:T;
+interface ILang<T> {[lang:string]:T;en:T;ru:T;}
+class ALine<T> {
+    lang:ILang<T>;
+
     constructor(en:T, ru:T) {
-        this.en = en;
-        this.ru = ru;
+        this.lang = {en: null, ru: null};
+        this.lang.en = en;
+        this.lang.ru = ru;
     }
 }
-class Line extends ALine<TextLine>{}
-
+class Line extends ALine<TextLine> {}
 
 class TextLine {
     start:number;
@@ -168,11 +167,11 @@ class LinesStore extends List<Line> implements ILinesStore {
         var ruLines = <TextLine[]>[];
 
         for (var i = 0; i < this.length; i++) {
-            if (this[i].en && this[i].en.start) {
-                enLines.push(this[i].en);
+            if (this[i].lang.en && this[i].lang.en.start) {
+                enLines.push(this[i].lang.en);
             }
-            if (this[i].ru && this[i].ru.start) {
-                ruLines.push(this[i].ru);
+            if (this[i].lang.ru && this[i].lang.ru.start) {
+                ruLines.push(this[i].lang.ru);
             }
         }
 
@@ -278,21 +277,21 @@ class LinesStore extends List<Line> implements ILinesStore {
         var lastUsedLineRu = -1;
 
         for (var i = 0; i < this.length; i++) {
-            if (this[i].en && this[i].en.start) {
-                enLines.push(this[i].en);
-                var enMiddle = (this[i].en.start + (this[i].en.end - this[i].en.start) / 2) / 100;
+            if (this[i].lang.en && this[i].lang.en.start) {
+                enLines.push(this[i].lang.en);
+                var enMiddle = (this[i].lang.en.start + (this[i].lang.en.end - this[i].lang.en.start) / 2) / 100;
                 var k = Math.max(Math.round(enMiddle), lastUsedLineEn + 1);
                 lastUsedLineEn = k;
                 lines.createLinesUntil(k);
-                lines[k].en = this[i].en;
+                lines[k].lang.en = this[i].lang.en;
             }
-            if (this[i].ru && this[i].ru.start) {
-                ruLines.push(this[i].ru);
-                var ruMiddle = (this[i].ru.start + (this[i].ru.end - this[i].ru.start) / 2) / 100;
+            if (this[i].lang.ru && this[i].lang.ru.start) {
+                ruLines.push(this[i].lang.ru);
+                var ruMiddle = (this[i].lang.ru.start + (this[i].lang.ru.end - this[i].lang.ru.start) / 2) / 100;
                 var k = Math.max(Math.round(ruMiddle), lastUsedLineRu + 1);
                 lastUsedLineRu = k;
                 lines.createLinesUntil(k);
-                lines[k].ru = this[i].ru;
+                lines[k].lang.ru = this[i].lang.ru;
             }
         }
         this.replace(lines);

@@ -29,10 +29,10 @@ class EditorView extends React.Component<any,any> {
         var firstTime = 0;
         for (var i = 0; i < this.lines.length; i++) {
             var line = this.lines[i];
-            var end = line.en.end / 100;
-            var start = line.en.start / 100;
+            var end = line.lang.en.end / 100;
+            var start = line.lang.en.start / 100;
             var dur = (end - start);
-            if (!line.en.isEmpty()) {
+            if (!line.lang.en.isEmpty()) {
                 svgC += '<path onclick="play(' + start + ',' + dur + ')" d="' +
                 this.pathGenerator(start * timeX, dur * timeX,
                     i * lineHeight, lineHeight / 2, 50) +
@@ -290,8 +290,8 @@ class EditorView extends React.Component<any,any> {
 
     prepareData(linesStore:LinesStore) {
         this.lines = linesStore.map((line, i)=> new LineView(
-                new TextView(line.en, this.parse(line.en && line.en.text)),
-                new TextView(line.ru, this.parse(line.ru && line.ru.text))
+                new TextView(line.lang.en, this.parse(line.lang.en && line.lang.en.text)),
+                new TextView(line.lang.ru, this.parse(line.lang.ru && line.lang.ru.text))
             )
         );
 
@@ -330,7 +330,7 @@ class EditorView extends React.Component<any,any> {
                                     'current': i === this.sel.line && 'en' === this.sel.lang
                                 }), 'data-lang': 'en'
                             },
-                            line.en.words.map((block, pos)=>
+                            line.lang.en.words.map((block, pos)=>
                                     span({
                                         className: cx({
                                             selected: i === this.sel.line && 'en' === this.sel.lang && pos === this.sel.pos
@@ -345,7 +345,7 @@ class EditorView extends React.Component<any,any> {
                                     'current': i === this.sel.line && 'ru' === this.sel.lang
                                 }), 'data-lang': 'ru'
                             },
-                            line.ru.words.map((block, pos)=>
+                            line.lang.ru.words.map((block, pos)=>
                                     span({
                                         className: cx({
                                             selected: i === this.sel.line && 'ru' === this.sel.lang && pos === this.sel.pos
