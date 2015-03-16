@@ -94,7 +94,7 @@ class LinesStore extends List<Line> implements ILinesStore {
 
     _firstLinked(line:number) {
         var firstLinked = this.length;
-        for (var i = line + 1; i < this.length - 1; i++) {
+        for (var i = line; i < this.length - 1; i++) {
             if (this[i].linked) {
                 firstLinked = i;
                 break;
@@ -108,34 +108,33 @@ class LinesStore extends List<Line> implements ILinesStore {
         var ru = lang == 'ru' ? textLine : new LangItem();
         var negateLang = lang == 'en' ? 'ru' : 'en';
 
-        this.splice(line, 0, new Line(en, ru));
-
         var firstLinked = this._firstLinked(line);
-        for (var i = line; i < firstLinked - 1; i++) {
-            this[i].lang[negateLang] = this[i + 1].lang[negateLang];
+        var nextEmptyLine = this.length;
+        for (var i = line; i < this.length - 1; i++) {
+            if (this[i].lang[lang].isEmpty()) {
+                nextEmptyLine = i;
+                break;
+            }
         }
-      /*  this[i].lang[firstLinked - 1] = new LangItem();
-        this[this.length] = new Line(new LangItem(), new LangItem());
-        this.length++;
 
-        var firstLinked = this._firstLinked(line);
-        var to = Math.max(firstLinked, line);
-        for (var i = this.length - 2; i >= to; i--) {
-            /!*
-                        if (this[i].linked) {
-                            var en = lang == 'en' ? textLine : new LangItem();
-                            var ru = lang == 'ru' ? textLine : new LangItem();
-                            this.splice(i, 0, new Line(new LangItem(), new LangItem()));
-                            return;
-                            break;
-                        }
-            *!/
-            this[i + 1].lang[lang] = this[i].lang[lang];
+        if (nextEmptyLine < firstLinked) {
+            for (var i = nextEmptyLine - 1; i >= line; i--) {
+                this[i + 1].lang[lang] = this[i].lang[lang];
+            }
+            this[line].lang[lang] = textLine;
         }
-        this[line].lang[lang] = textLine;
-        if (this.lastLineIsEmpty('en') && this.lastLineIsEmpty('ru')) {
-            this.pop();
-        }*/
+        else {
+            for (var i = firstLinked - 1; i >= line; i--) {
+                this[i + 1].lang[lang] = this[i].lang[lang];
+            }
+            this[line].lang[lang] = textLine;
+            for (var i = firstLinked + 1; i < this.length; i++) {
+                if (this[i].lang[lang].isEmpty() && this[i].lang[negateLang].isEmpty()) {
+                    this.splice(i, 1);
+                    break;
+                }
+            }
+        }
     }
 
     insertLine(cut:boolean, cutPos:number, line:number, lang:string, pos:number) {
