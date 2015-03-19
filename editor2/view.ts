@@ -88,17 +88,17 @@ class EditorView extends React.Component<any,any> {
         if (this.lines[line] && this.lines[line].model.lang[lang]) {
             var cutPos = this.lines[line].words[lang].slice(0, pos).join("").length;
             var h = linesStore.insertLine(cut, cutPos, line, lang, pos);
-            if (h) {
-                this.sel.line++;
-                this.sel.pos = 0;
+            this.sel.line++;
+            this.sel.pos = 0;
 
-                var change = new Change(lang, h.change, h.insert, h.remove,
-                    {line: line, pos: pos},
-                    {line: this.sel.line, pos: this.sel.pos}
-                );
-                historyService.add(change);
-                this.forceUpdate();
-            }
+            /*
+                            var change = new Change(lang, h.change, h.insert, h.remove,
+                                {line: line, pos: pos},
+                                {line: this.sel.line, pos: this.sel.pos}
+                            );
+                            historyService.add(change);
+            */
+            this.forceUpdate();
         }
     }
 
@@ -109,36 +109,37 @@ class EditorView extends React.Component<any,any> {
         var prevLine = this.lines[line - 1];
         var prevLineIsEmpty = prevLine ? prevLine.model.lang[lang].isEmpty() : false;
         var h = linesStore.removeLine(append, line, lang);
-        if (h) {
-            if (prevLine) {
-                if (prevLineIsEmpty) {
-                    this.sel.pos = 0;
-                }
-                else {
-                    this.sel.pos = prevLine.words[lang].length;
-                }
-            }
-            if (append) {
-                this.sel.line--;
-            }
-            else {
-                if (this.sel.line === this.lines.length - 1) {
-                    this.sel.line--;
-                }
+        if (prevLine) {
+            if (prevLineIsEmpty) {
                 this.sel.pos = 0;
             }
-
-            var change = new Change(lang,
-                h.change,
-                h.insert,
-                h.remove,
-                {line: line, pos: pos},
-                {line: this.sel.line, pos: this.sel.pos}
-            );
-
-            historyService.add(change);
-            this.forceUpdate();
+            else {
+                this.sel.pos = prevLine.words[lang].length;
+            }
         }
+        if (append) {
+            this.sel.line--;
+        }
+        else {
+            if (this.sel.line === this.lines.length - 1) {
+                this.sel.line--;
+            }
+            this.sel.pos = 0;
+        }
+
+        /*
+                    var change = new Change(lang,
+                        h.change,
+                        h.insert,
+                        h.remove,
+                        {line: line, pos: pos},
+                        {line: this.sel.line, pos: this.sel.pos}
+                    );
+
+                    historyService.add(change);
+        */
+        this.forceUpdate();
+        //}
 
     }
 
