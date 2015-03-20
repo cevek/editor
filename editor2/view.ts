@@ -27,7 +27,6 @@ class EditorView extends React.Component<any,any> {
         var timeX = 50;
         var svgC = '';
         var lineHeight = 50;
-        var firstTime = 0;
         for (var i = 0; i < this.lines.length; i++) {
             var line = this.lines[i];
             var end = line.model.lang.en.end / 100;
@@ -67,6 +66,7 @@ class EditorView extends React.Component<any,any> {
         width = Math.round(width);
         var bx = width / 2 | 0;
         var path = '';
+
         path += 'M0,' + topLeft + ' ';
 
         path += 'C' + bx + ',' + topLeft + ' ';
@@ -87,18 +87,15 @@ class EditorView extends React.Component<any,any> {
         var pos = this.sel.pos;
         if (this.lines[line] && this.lines[line].model.lang[lang]) {
             var cutPos = this.lines[line].words[lang].slice(0, pos).join("").length;
-            var h = linesStore.insertLine(cut, cutPos, line, lang, pos);
-            this.sel.line++;
-            this.sel.pos = 0;
-
-            /*
-                            var change = new Change(lang, h.change, h.insert, h.remove,
-                                {line: line, pos: pos},
-                                {line: this.sel.line, pos: this.sel.pos}
-                            );
-                            historyService.add(change);
-            */
-            this.forceUpdate();
+            var change = linesStore.insertLine(cutPos, line, lang);
+            if (change) {
+                this.sel.line++;
+                this.sel.pos = 0;
+                change.cursorBefore = {line: line, pos: pos};
+                change.cursorAfter = {line: this.sel.line, pos: this.sel.pos};
+                historyService.add(change);
+                this.forceUpdate();
+            }
         }
     }
 
@@ -108,39 +105,30 @@ class EditorView extends React.Component<any,any> {
         var pos = this.sel.pos;
         var prevLine = this.lines[line - 1];
         var prevLineIsEmpty = prevLine ? prevLine.model.lang[lang].isEmpty() : false;
-        var h = linesStore.removeLine(append, line, lang);
-        if (prevLine) {
-            if (prevLineIsEmpty) {
-                this.sel.pos = 0;
+        var change = linesStore.removeLine(append, line, lang);
+        if (change) {
+            if (prevLine) {
+                if (prevLineIsEmpty) {
+                    this.sel.pos = 0;
+                }
+                else {
+                    this.sel.pos = prevLine.words[lang].length;
+                }
             }
-            else {
-                this.sel.pos = prevLine.words[lang].length;
-            }
-        }
-        if (append) {
-            this.sel.line--;
-        }
-        else {
-            if (this.sel.line === this.lines.length - 1) {
+            if (append) {
                 this.sel.line--;
             }
-            this.sel.pos = 0;
+            else {
+                if (this.sel.line === this.lines.length - 1) {
+                    this.sel.line--;
+                }
+                this.sel.pos = 0;
+            }
+            change.cursorBefore = {line: line, pos: pos};
+            change.cursorAfter = {line: this.sel.line, pos: this.sel.pos};
+            historyService.add(change);
+            this.forceUpdate();
         }
-
-        /*
-                    var change = new Change(lang,
-                        h.change,
-                        h.insert,
-                        h.remove,
-                        {line: line, pos: pos},
-                        {line: this.sel.line, pos: this.sel.pos}
-                    );
-
-                    historyService.add(change);
-        */
-        this.forceUpdate();
-        //}
-
     }
 
     setLineWhenUpDown(isUp = false) {

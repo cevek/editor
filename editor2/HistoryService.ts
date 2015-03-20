@@ -14,26 +14,17 @@ class Cursor {
     pos:number
 }
 class Change {
-    lang:string;
-    change:LineChange;
-    insert:LineChange;
-    remove:LineChange;
     cursorBefore:Cursor;
     cursorAfter:Cursor;
-
-    constructor(lang:string,
-                change:LineChange,
-                insert:LineChange,
-                remove:LineChange,
-                cursorBefore:Cursor,
-                cursorAfter:Cursor) {
-        this.lang = lang;
-        this.change = change;
-        this.insert = insert;
-        this.remove = remove;
-        this.cursorBefore = cursorBefore;
-        this.cursorAfter = cursorAfter;
-    }
+    insertLang:number;
+    removeLang:number;
+    insertLine:number;
+    removeLine:number;
+    line:number;
+    pos:number;
+    lang:string;
+    command:string;
+    append:boolean;
 }
 interface IHistoryService {[n: number]: Change}
 class HistoryService extends List<Change> implements IHistoryService {

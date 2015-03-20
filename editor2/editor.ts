@@ -52,34 +52,41 @@ class LinesStore extends List<Line> implements ILinesStore {
             return null;
         }
 
+        var change = new Change();
+        change.command = 'remove';
+        change.lang = lang;
+        change.line = line;
+        change.append = append;
+
         var firstLinked = this._firstLinked(line);
 
         var prevText2 = this[line].lang[lang].text;
+        change.pos = prevText2.length;
 
         if (!this[line].linked && append) {
-            var prevText1 = this[line - 1].lang[lang].text;
-            this[line - 1].lang[lang].text += ' ' + this[line].lang[lang].text.trim();
-            var change = new LineChange(line - 1, prevText1, this[line - 1].lang[lang].text);
+            this[line - 1].lang[lang].text += ' ' + prevText2.trim();
         }
+        change.removeLang = firstLinked;
+        this.rm(line, firstLinked, lang);
+        if (this[firstLinked - 1].isEmpty()) {
+            change.removeLine = firstLinked - 1;
+            this.splice(firstLinked - 1, 1);
+            if (append) {
+                var ln = line === firstLinked ? firstLinked : firstLinked - 1;
+                change.insertLine = ln;
+                this.splice(ln, 0, new Line());
+            }
+        }
+        return change;
+    }
 
+    rm(line:number, firstLinked:number, lang:string) {
         for (var i = line + 1; i < firstLinked; i++) {
             this[i - 1].lang[lang] = this[i].lang[lang];
         }
         if (line < firstLinked) {
             this[firstLinked - 1].lang[lang] = new LangItem();
         }
-        if (this[firstLinked - 1].isEmpty()) {
-            this.splice(firstLinked - 1, 1);
-            if (append) {
-                this.splice(line === firstLinked ? firstLinked : firstLinked - 1, 0, new Line());
-            }
-        }
-
-        return {
-            change: change,
-            insert: <LineChange>null,
-            remove: new LineChange(line, prevText2, '')
-        };
     }
 
     _firstLinked(line:number) {
@@ -93,25 +100,23 @@ class LinesStore extends List<Line> implements ILinesStore {
         return firstLinked;
     }
 
-    insertLine(cut:boolean, cutPos:number, line:number, lang:string, pos:number) {
+    insertLine(cutPos:number, line:number, lang:string) {
         if (cutPos === 0) {
-            line--;
             var currText = new LangItem();
             var nextText = '';
         }
         else {
             var currText = this[line].lang[lang];
-            var prevText = currText.text;
             var firstText = currText.text.substr(0, cutPos);
             var nextText = currText.text.substr(cutPos);
             currText.text = firstText;
+            line++;
         }
 
         var textLine = new LangItem({start: currText.start, end: currText.end, text: nextText});
-        line++;
         var en = lang == 'en' ? textLine : new LangItem();
         var ru = lang == 'ru' ? textLine : new LangItem();
-        var negateLang = lang == 'en' ? 'ru' : 'en';
+        //var negateLang = lang == 'en' ? 'ru' : 'en';
 
         var firstLinked = this._firstLinked(line);
         var nextEmptyLine = this.length;
@@ -122,29 +127,50 @@ class LinesStore extends List<Line> implements ILinesStore {
             }
         }
 
+        var change = new Change;
+        change.lang = lang;
+        change.line = line;
+        change.pos = cutPos;
+        change.command = "insert";
+
         if (nextEmptyLine < firstLinked) {
-            for (var i = nextEmptyLine - 1; i >= line; i--) {
-                this[i + 1].lang[lang] = this[i].lang[lang];
-            }
-            this[line].lang[lang] = textLine;
+            this.ins(nextEmptyLine, line, lang, textLine);
+            change.insertLang = nextEmptyLine;
         }
         else {
+            change.removeLine = firstLinked;
             this.splice(firstLinked, 0, new Line());
             firstLinked++;
-            for (var i = firstLinked - 2; i >= line; i--) {
-                this[i + 1].lang[lang] = this[i].lang[lang];
-            }
-            this[line].lang[lang] = textLine;
+            change.insertLang = firstLinked;
+            this.ins(firstLinked, line, lang, textLine);
             for (var i = firstLinked + 1; i < this.length; i++) {
                 if (this[i].isEmpty()) {
+                    change.removeLine = i;
                     this.splice(i, 1);
                     break;
                 }
             }
         }
+        return change;
+    }
+
+    ins(from:number, line:number, lang:string, textLine:LangItem) {
+        for (var i = from - 2; i >= line; i--) {
+            this[i + 1].lang[lang] = this[i].lang[lang];
+        }
+        this[line].lang[lang] = textLine;
     }
 
     undo(change:Change) {
+        var line = 0;
+        var pos = 0;
+        var lang = 'en';
+
+        var currLine = this[line];
+        var nextLine = this[line + 1];
+        if (nextLine.isEmpty()) {
+            currLine.lang[lang].text += nextLine.lang[lang].text;
+        }
     }
 
     redo(change:Change) {
@@ -172,6 +198,7 @@ class LinesStore extends List<Line> implements ILinesStore {
         return subs;
     }
 
+/*
     sync() {
         var lines = new LinesStore();
         var enLines = <LangItem[]>[];
@@ -245,7 +272,7 @@ class LinesStore extends List<Line> implements ILinesStore {
         }
 
         this.replace(lines);
-        /*
+        /!*
 
 
         //tests
@@ -269,9 +296,10 @@ class LinesStore extends List<Line> implements ILinesStore {
                 }
                 console.log(enLines.length, insertEn, ruLines.length, insertRu, dubsRuCount);
                 console.log(ruLines);
-        */
+        *!/
 
     }
+*/
 
     createLinesUntil(k:number) {
         for (var i = this.length; i <= k; i++) {
@@ -306,11 +334,6 @@ class LinesStore extends List<Line> implements ILinesStore {
             }
         }
         this.replace(lines);
-    }
-
-    lastLineIsEmpty(lang:string) {
-        var line = this[this.length - 1];
-        return line.lang[lang].isEmpty();
     }
 }
 
