@@ -5,6 +5,7 @@ class WordSelection {
     leftOffset = -1;
 }
 
+
 class LineView {
     model:Line;
     words:{[index: string]: string[]; en: string[]; ru: string[]};
@@ -15,6 +16,7 @@ class LineView {
     }
 }
 
+
 class EditorView extends React.Component<any,any> {
     lines:LineView[];
     sel = new WordSelection();
@@ -22,11 +24,11 @@ class EditorView extends React.Component<any,any> {
     constructor() {
         super(null, null);
     }
-
     syncAudioLines() {
         var timeX = 50;
         var svgC = '';
         var lineHeight = 50;
+
         for (var i = 0; i < this.lines.length; i++) {
             var line = this.lines[i];
             var end = line.model.lang.en.end / 100;
@@ -247,6 +249,9 @@ class EditorView extends React.Component<any,any> {
         //console.log("linked");
         this.lines[this.sel.line].model.linked = !this.lines[this.sel.line].model.linked;
         this.forceUpdate();
+    }
+    forceUpdate(){
+        setTimeout(()=>super.forceUpdate());
     }
 
     componentDidMount() {

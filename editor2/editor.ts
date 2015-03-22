@@ -65,9 +65,12 @@ class LinesStore extends List<Line> implements ILinesStore {
 
         if (!this[line].linked && append) {
             this[line - 1].lang[lang].text += ' ' + prevText2.trim();
+            this[line].lang[lang] = new LangItem();
         }
-        change.removeLang = firstLinked;
-        this.rm(line, firstLinked, lang);
+        else {
+            change.removeLang = firstLinked;
+            this.rm(line, firstLinked, lang);
+        }
         if (this[firstLinked - 1].isEmpty()) {
             change.removeLine = firstLinked - 1;
             this.splice(firstLinked - 1, 1);
@@ -134,7 +137,7 @@ class LinesStore extends List<Line> implements ILinesStore {
         change.command = "insert";
 
         if (nextEmptyLine < firstLinked) {
-            this.ins(nextEmptyLine, line, lang, textLine);
+            this.ins(nextEmptyLine + 1, line, lang, textLine);
             change.insertLang = nextEmptyLine;
         }
         else {
@@ -198,108 +201,108 @@ class LinesStore extends List<Line> implements ILinesStore {
         return subs;
     }
 
-/*
-    sync() {
-        var lines = new LinesStore();
-        var enLines = <LangItem[]>[];
-        var ruLines = <LangItem[]>[];
+    /*
+        sync() {
+            var lines = new LinesStore();
+            var enLines = <LangItem[]>[];
+            var ruLines = <LangItem[]>[];
 
-        for (var i = 0; i < this.length; i++) {
-            if (this[i].lang.en && this[i].lang.en.start) {
-                enLines.push(this[i].lang.en);
-            }
-            if (this[i].lang.ru && this[i].lang.ru.start) {
-                ruLines.push(this[i].lang.ru);
-            }
-        }
-
-        var lastEnLine:LangItem;
-        for (var i = 0, j = 0; i < enLines.length; i++) {
-            var enLine = enLines[i];
-            var enMiddle = enLine.start + (enLine.end - enLine.start) / 2;
-            var l = j;
-            var startJ = j;
-            var prevDiff = Infinity;
-            var ruLine:LangItem = null;
-            while (true) {
-                ruLine = ruLines[l];
-                if (!ruLine) {
-                    break;
+            for (var i = 0; i < this.length; i++) {
+                if (this[i].lang.en && this[i].lang.en.start) {
+                    enLines.push(this[i].lang.en);
                 }
-                var ruMiddle = ruLine.start + (ruLine.end - ruLine.start) / 2;
-                var diff = Math.abs(enMiddle - ruMiddle);
-                if (diff < 1000) {
-                    j = l + 1;
-                    break;
+                if (this[i].lang.ru && this[i].lang.ru.start) {
+                    ruLines.push(this[i].lang.ru);
                 }
-                if (prevDiff < diff) {
-                    ruLine = null;
-                    break;
-                }
-                prevDiff = diff;
-                l++;
             }
 
-            for (var k = startJ; k < j - 1; k++) {
+            var lastEnLine:LangItem;
+            for (var i = 0, j = 0; i < enLines.length; i++) {
+                var enLine = enLines[i];
+                var enMiddle = enLine.start + (enLine.end - enLine.start) / 2;
+                var l = j;
+                var startJ = j;
+                var prevDiff = Infinity;
+                var ruLine:LangItem = null;
+                while (true) {
+                    ruLine = ruLines[l];
+                    if (!ruLine) {
+                        break;
+                    }
+                    var ruMiddle = ruLine.start + (ruLine.end - ruLine.start) / 2;
+                    var diff = Math.abs(enMiddle - ruMiddle);
+                    if (diff < 1000) {
+                        j = l + 1;
+                        break;
+                    }
+                    if (prevDiff < diff) {
+                        ruLine = null;
+                        break;
+                    }
+                    prevDiff = diff;
+                    l++;
+                }
+
+                for (var k = startJ; k < j - 1; k++) {
+                    var ruLine2 = ruLines[k];
+                    //console.log("insert empty ru", k);
+                    var line = new Line(new LangItem(), ruLine2);
+                    lines.push(line);
+                }
+
+                if (ruLine) {
+                    //console.log("insert ru", j);
+                }
+
+                if (lastEnLine) {
+                    while (true) {
+                        if ((lines.length) * 50 > enLine.start / 100 * 50) {
+                            break;
+                        }
+                        var line = new Line(new LangItem(), new LangItem());
+                        lines.push(line);
+                    }
+                }
+                lastEnLine = enLine;
+                var line = new Line(enLine, ruLine || new LangItem());
+                lines.push(line);
+            }
+
+            for (var k = j; k < ruLines.length; k++) {
                 var ruLine2 = ruLines[k];
-                //console.log("insert empty ru", k);
                 var line = new Line(new LangItem(), ruLine2);
                 lines.push(line);
             }
 
-            if (ruLine) {
-                //console.log("insert ru", j);
-            }
-
-            if (lastEnLine) {
-                while (true) {
-                    if ((lines.length) * 50 > enLine.start / 100 * 50) {
-                        break;
-                    }
-                    var line = new Line(new LangItem(), new LangItem());
-                    lines.push(line);
-                }
-            }
-            lastEnLine = enLine;
-            var line = new Line(enLine, ruLine || new LangItem());
-            lines.push(line);
-        }
-
-        for (var k = j; k < ruLines.length; k++) {
-            var ruLine2 = ruLines[k];
-            var line = new Line(new LangItem(), ruLine2);
-            lines.push(line);
-        }
-
-        this.replace(lines);
-        /!*
+            this.replace(lines);
+            /!*
 
 
-        //tests
-                var insertEn = 0;
-                var insertRu = 0;
-                var dupsRu = [];
-                var dubsRuCount = 0;
-                for (var i = 0; i < this.length; i++) {
-                    var line = this[i];
-                    if (!line.en.isEmpty()) {
-                        insertEn++;
-                    }
-                    if (!line.ru.isEmpty()) {
-                        if (dupsRu.indexOf(line.ru) > -1) {
-                            console.log("dup ru", line.ru);
-                            dubsRuCount++;
+            //tests
+                    var insertEn = 0;
+                    var insertRu = 0;
+                    var dupsRu = [];
+                    var dubsRuCount = 0;
+                    for (var i = 0; i < this.length; i++) {
+                        var line = this[i];
+                        if (!line.en.isEmpty()) {
+                            insertEn++;
                         }
-                        dupsRu.push(line.ru);
-                        insertRu++;
+                        if (!line.ru.isEmpty()) {
+                            if (dupsRu.indexOf(line.ru) > -1) {
+                                console.log("dup ru", line.ru);
+                                dubsRuCount++;
+                            }
+                            dupsRu.push(line.ru);
+                            insertRu++;
+                        }
                     }
-                }
-                console.log(enLines.length, insertEn, ruLines.length, insertRu, dubsRuCount);
-                console.log(ruLines);
-        *!/
+                    console.log(enLines.length, insertEn, ruLines.length, insertRu, dubsRuCount);
+                    console.log(ruLines);
+            *!/
 
-    }
-*/
+        }
+    */
 
     createLinesUntil(k:number) {
         for (var i = this.length; i <= k; i++) {
