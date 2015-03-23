@@ -32,6 +32,7 @@ class LangItem {
     }
 }
 
+var glob:any = {};
 interface ILinesStore {[n: number]: Line}
 class LinesStore extends List<Line> implements ILinesStore {
 
@@ -64,7 +65,13 @@ class LinesStore extends List<Line> implements ILinesStore {
         change.pos = prevText2.length;
 
         if (!this[line].linked && append) {
-            this[line - 1].lang[lang].text += ' ' + prevText2.trim();
+            if (this[line - 1].lang[lang].isEmpty()) {
+                this[line - 1].lang[lang] = this[line].lang[lang];
+            }
+            else {
+                this[line - 1].lang[lang].text += ' ' + prevText2.trim();
+                this[line - 1].lang[lang].end = this[line].lang[lang].end;
+            }
             this[line].lang[lang] = new LangItem();
         }
         else {
@@ -104,6 +111,7 @@ class LinesStore extends List<Line> implements ILinesStore {
     }
 
     insertLine(cutPos:number, line:number, lang:string) {
+        var realEnd = 0;
         if (cutPos === 0) {
             var currText = new LangItem();
             var nextText = '';
@@ -113,10 +121,16 @@ class LinesStore extends List<Line> implements ILinesStore {
             var firstText = currText.text.substr(0, cutPos);
             var nextText = currText.text.substr(cutPos);
             currText.text = firstText;
+            realEnd = currText.end;
+            currText.end = currText.start + (currText.end - currText.start) / 2;
             line++;
         }
 
-        var textLine = new LangItem({start: currText.start, end: currText.end, text: nextText});
+        var textLine = new LangItem({
+            start: currText.end,
+            end: realEnd,
+            text: nextText
+        });
         var en = lang == 'en' ? textLine : new LangItem();
         var ru = lang == 'ru' ? textLine : new LangItem();
         //var negateLang = lang == 'en' ? 'ru' : 'en';
