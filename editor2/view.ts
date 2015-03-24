@@ -326,7 +326,7 @@ class EditorView extends React.Component<any,any> {
     }
 
     prepareData(linesStore:LinesStore) {
-        this.lines = linesStore.map((line, i)=> new LineView(line,
+        this.lines = linesStore.data.map((line, i)=> new LineView(line,
                 this.parse(line.lang.en && line.lang.en.text),
                 this.parse(line.lang.ru && line.lang.ru.text)
             )
