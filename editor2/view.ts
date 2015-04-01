@@ -336,7 +336,7 @@ class EditorView extends React.Component<any,any> {
 
     parse(str:string) {
         var regexp = /([\s.]*?([-–—][ \t]+)?[\wа-яА-Я'`]+[^\s]*)/g;
-        var m:string[];
+        var m:RegExpExecArray;
         var pos = 0;
         var block:string[] = [];
         while (m = regexp.exec(str)) {
