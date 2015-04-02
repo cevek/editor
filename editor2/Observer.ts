@@ -31,11 +31,8 @@ function observe(obj:any, key:string) {
     }
 }
 
-interface Lis {
-    listen(fn:()=>void):void;
-}
 declare
-function Observer(...deps:any[]):Lis;
+function Observer(...deps:any[]):void;
 
 Object.defineProperty(window, 'Observer', {
     get: function () {
@@ -45,17 +42,20 @@ Object.defineProperty(window, 'Observer', {
             var args = Array.prototype.slice.call(arguments, 0);
             var stack = __observe_stack;
             __observe_stack = old_stack;
-            return {
-                listen: function (f:()=>any) {
-                    for (var i = 0; i < stack.length; i++) {
-                        var item = stack[i];
-                        var listeners = item[0][globalObserver][globalListeners];
-                        listeners[item[1]] = listeners[item[1]] || [];
-                        listeners[item[1]].push(f);
-                    }
-                    console.assert(stack.length === args.length, `Not all variables observed: ${stack.length} of ${args.length}`, stack);
-                }
-            };
+            var fn = args.pop();
+            if (typeof fn !== "function") {
+                throw new Error("last arg is not function");
+            }
+
+            for (var i = 0; i < stack.length; i++) {
+                var item = stack[i];
+                var listeners = item[0][globalObserver][globalListeners];
+                listeners[item[1]] = listeners[item[1]] || [];
+                listeners[item[1]].push(fn);
+            }
+            if (stack.length !== args.length) {
+                throw new Error(`Not all parameters observed: ${stack.length} of ${args.length}`);
+            }
         };
     }
 });
@@ -72,7 +72,7 @@ class CCC {
     index:number = 1;
 
     constructor() {
-        Observer(test.a, test.b).listen(()=> {
+        Observer(test.a, test.b, ()=> {
             console.log("observer launch", this.index);
         });
     }

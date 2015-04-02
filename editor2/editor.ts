@@ -34,7 +34,7 @@ class LangItem {
 
 var glob:any = {};
 class LinesStore {
-    data:Line[];
+    data:Line[] = [];
 
     add(v:Line) {
         this.data.push(v);
