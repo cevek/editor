@@ -195,7 +195,31 @@ class EditorView extends React.Component<any,any> {
                 window.scrollTo(0, scrollTop + closestWord.offsetTop - wordOffsetTop);
             }
         }
-        this.forceUpdate();
+        this.updateCursor();
+    }
+
+    updateCursor() {
+        var el = <HTMLElement>React.findDOMNode(this);
+        var selected = (<HTMLElement>el.querySelector('.selected'));
+        if (selected) {
+            selected.classList.remove('selected');
+        }
+        for (var current of <HTMLElement[]>[].slice.call(el.querySelectorAll('.current'))) {
+            current.classList.remove('current');
+        }
+
+        var line = <HTMLElement>el.querySelector(`[data-line="${this.sel.line}"]`);
+        if (line) {
+            var lng = <HTMLElement>line.querySelector(`.lng.${this.sel.lang}`);
+            if (lng) {
+                var span = <HTMLElement>lng.querySelectorAll(`span`)[this.sel.pos];
+                if (span) {
+                    line.classList.add('current');
+                    lng.classList.add('current');
+                    span.classList.add('selected');
+                }
+            }
+        }
     }
 
     leftRight(left = false) {
@@ -208,7 +232,7 @@ class EditorView extends React.Component<any,any> {
             this.sel.pos++;
             this.sel.leftOffset = -1;
         }
-        this.forceUpdate();
+        this.updateCursor();
     }
 
     wordClick(node:HTMLElement) {
@@ -255,7 +279,13 @@ class EditorView extends React.Component<any,any> {
         setTimeout(()=>super.forceUpdate());
     }
 
+    componentDidUpdate() {
+        this.updateCursor();
+    }
+
     componentDidMount() {
+        this.updateCursor();
+
         var el = React.findDOMNode(this);
         el.addEventListener('click', (e) => {
             var parents = <HTMLElement[]>[];
@@ -351,47 +381,19 @@ class EditorView extends React.Component<any,any> {
 
     render() {
         this.prepareData(linesStore);
-
         return div({className: 'editor'},
             React.DOM.svg({id: "svg", width: 50, height: 30000}),
             this.lines.map(
                 (line, i) =>
-                    div({
-                            className: cx({line: true, 'current': i === this.sel.line, linked: line.model.linked}),
-                            'data-line': i
-                        },
+                    div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
                         div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + (-i + 6) * 50 + 'px'}}),
                         div({className: 'audio-ru'}),
-                        div({
-                                className: cx({
-                                    lng: true,
-                                    en: true,
-                                    'current': i === this.sel.line && 'en' === this.sel.lang
-                                }), 'data-lang': 'en'
-                            },
+                        div({className: 'lng en', 'data-lang': 'en'},
                             line.words.en.map((block, pos)=>
-                                    span({
-                                        className: cx({
-                                            selected: i === this.sel.line && 'en' === this.sel.lang && pos === this.sel.pos
-                                        })
-                                    }, block)
-                            )
-                        ),
-                        div({
-                                className: cx({
-                                    lng: true,
-                                    ru: true,
-                                    'current': i === this.sel.line && 'ru' === this.sel.lang
-                                }), 'data-lang': 'ru'
-                            },
+                                span({}, block))),
+                        div({className: 'lng ru', 'data-lang': 'ru'},
                             line.words.ru.map((block, pos)=>
-                                    span({
-                                        className: cx({
-                                            selected: i === this.sel.line && 'ru' === this.sel.lang && pos === this.sel.pos
-                                        })
-                                    }, block)
-                            )
-                        )
+                                span({}, block)))
                     )
             ));
     }
