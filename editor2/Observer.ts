@@ -60,6 +60,7 @@ Object.defineProperty(window, 'Observer', {
     }
 });
 
+
 class Test {
     @observe a:string;
     @observe b:string;

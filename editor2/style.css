@@ -2,16 +2,16 @@
 body { font-family: Tahoma; cursor: default }
 .editor{width: 1000px; margin: auto;}
 .line { p1adding: 10px; height: 50px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.1);}
-.lng::before { content: '\00a0'; }
+.lng::before { content: '\00a0';  }
 .lng.current { background: rgba(255,255,0, 0.1) }
 .line span { padding: 2px 2px 1px 2px; }
 .en { font-size: 18px; }
 .ru { font-size: 14px; color: #951900 }
+.line .ru .selected { background: yellow; }
 .line:before{content: attr(data-line); position: absolute; font-size: 12px; color: silver; margin: 0 0 0 -400px;}
 .line.current { }
 .line .selected { /*margin: 0 -15px 0 -5px; padding: 0 3px 0 15px;*/ background: #6CE6FF; border-radius: 3px;
     position: relative }
 .audio-en { float: left; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
-#svg{position: absolute; margin: 0 0 0 30px}
-
+svg{float:left;}
 .line.linked{background: #DDF0FA; }

@@ -24,28 +24,33 @@ class EditorView extends React.Component<any,any> {
         glob.editor = this;
     }
 
-    syncAudioLines() {
+    generatePath(i:number) {
         var timeX = 50;
-        var svgC = '';
         var lineHeight = 50;
-
-        for (var i = 0; i < this.lines.length; i++) {
-            var line = this.lines[i];
-            var end = line.model.lang.en.end / 100;
-            var start = line.model.lang.en.start / 100;
-            var dur = (end - start);
-            if (!line.model.lang.en.isEmpty()) {
-                // onclick="play(' + start + ',' + dur + ')"
-                svgC += '<path d="' +
-                this.pathGenerator(start * timeX, dur * timeX,
-                    i * lineHeight, lineHeight, 50) +
-                '" stroke="transparent" fill="hsla(' + (start * 77 | 0) + ', 50%,60%, 1)"/>';
+        var arr:React.ReactSVGElement[] = [];
+        for (var j = 0; j < this.lines.length; j++) {
+            var line = this.lines[j];
+            if (line.model.lang.en.start) {
+                var end = line.model.lang.en.end / 100;
+                var start = line.model.lang.en.start / 100;
+                var dur = (end - start);
+                var leftTop = (start * timeX - lineHeight * i) | 0;
+                var leftHeight = dur * timeX | 0;
+                var rightTop = (j - i) * lineHeight;
+                var min = leftTop < rightTop ? leftTop : rightTop;
+                var max = (leftTop + leftHeight) > (rightTop + lineHeight) ? leftTop + leftHeight : rightTop + lineHeight;
+                if (min <= 0 && 0 <= max || min <= lineHeight && lineHeight <= max) {
+                    arr.push(
+                        React.DOM.path({
+                            stroke: "transparent",
+                            d: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, 50),
+                            fill: `hsla(${start * 77 | 0}, 50%,60%, 1)`
+                        })
+                    )
+                }
             }
         }
-        var svg = document.getElementById('svg');
-        if (svg) {
-            svg.innerHTML = svgC;
-        }
+        return arr;
     }
 
     play(from:number, dur:number) {
@@ -214,8 +219,8 @@ class EditorView extends React.Component<any,any> {
             if (lng) {
                 var span = <HTMLElement>lng.querySelectorAll(`span`)[this.sel.pos];
                 if (span) {
-                    line.classList.add('current');
-                    lng.classList.add('current');
+                    //line.classList.add('current');
+                    //lng.classList.add('current');
                     span.classList.add('selected');
                 }
             }
@@ -361,7 +366,7 @@ class EditorView extends React.Component<any,any> {
                 this.parse(line.lang.ru && line.lang.ru.text)
             )
         );
-        this.syncAudioLines();
+        //this.syncAudioLines();
     }
 
     parse(str:string) {
@@ -382,11 +387,11 @@ class EditorView extends React.Component<any,any> {
     render() {
         this.prepareData(linesStore);
         return div({className: 'editor'},
-            React.DOM.svg({id: "svg", width: 50, height: 30000}),
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
                         div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + (-i + 6) * 50 + 'px'}}),
+                        React.DOM.svg({width: 50, height: 50}, this.generatePath(i)),
                         div({className: 'audio-ru'}),
                         div({className: 'lng en', 'data-lang': 'en'},
                             line.words.en.map((block, pos)=>
