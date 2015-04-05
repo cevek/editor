@@ -43,6 +43,8 @@ class EditorView extends React.Component<any,any> {
                     arr.push(
                         React.DOM.path({
                             onClick: ()=>this.play(j),
+                            onMouseEnter: ()=>console.log("enter", j),
+                            onMouseLeave: ()=>console.log("leave", j),
                             stroke: "transparent",
                             d: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, 50),
                             fill: 'hsla(' + (start * 77 | 0) + ', 50%,60%, 1)'
@@ -72,13 +74,13 @@ class EditorView extends React.Component<any,any> {
                 var buff = this.audioContext.createBuffer(audioData.numberOfChannels, sliceChannel.length, audioData.sampleRate);
                 buff.getChannelData(0).set(sliceChannel);
 
-/*
-                this.playedFrames = 0;
-                this.playMaximumFrames = dur * audioData.sampleRate;
-                this.audio.play();
-                this.audio.currentTime = start;
+                /*
+                                this.playedFrames = 0;
+                                this.playMaximumFrames = dur * audioData.sampleRate;
+                                this.audio.play();
+                                this.audio.currentTime = start;
 
-*/
+                */
                 var source = this.audioContext.createBufferSource();
                 source.buffer = buff;
 
@@ -367,6 +369,18 @@ class EditorView extends React.Component<any,any> {
     //    //scriptNode.connect(this.audioContext.destination);
     //}
 
+    moveTime(isUp:boolean, isStartTime:boolean, isEndTime:boolean) {
+        var t = 30;
+        var line = this.lines[this.sel.line];
+        if (isStartTime) {
+            line.model.lang.en.start += isUp ? -t : t;
+        }
+        if (isEndTime) {
+            line.model.lang.en.end += isUp ? -t : t;
+        }
+        this.forceUpdate();
+    }
+
     componentDidMount() {
         var el = <HTMLElement>React.findDOMNode(this);
         this.updateCursor();
@@ -433,10 +447,17 @@ class EditorView extends React.Component<any,any> {
                 e.preventDefault();
             }
 
+            if ((key.down || key.up) && (key.shiftLeftMod || key.altLeftMod)) {
+                this.moveTime(key.up, key.shiftLeftMod, key.altLeftMod);
+                e.preventDefault();
+                return;
+            }
+
             if ((key.down || key.up) && !key.metaMod) {
                 this.moveCaretUpDown(key.up);
                 e.preventDefault();
             }
+
         });
     }
 

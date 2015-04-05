@@ -16,4 +16,3 @@ body { font-family: Tahoma; cursor: default }
 svg { float: left; }
 .line.linked { background: #DDF0FA; }
 .thumb { float: left; background: url('../data/thumbs.jpg') no-repeat; width: 200px; height: 50px; }
-audio{position: fixed;}
