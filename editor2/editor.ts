@@ -35,6 +35,9 @@ class LangItem {
 var glob:any = {};
 class LinesStore {
     data:Line[] = [];
+    shiftTime = 5037.3;
+    audioData:AudioBuffer;
+    audioSource:AudioBufferSourceNode;
 
     add(v:Line) {
         this.data.push(v);
@@ -220,7 +223,7 @@ class LinesStore {
     }
 
     parseSrt(subtitle:string) {
-        var shift = 240700;
+        var shift = this.shiftTime * 100;
         var re = /\d+\s+(-?)(\d{2}):(\d{2}):(\d{2})[,.](\d{3}) --> (-?)(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s+([\S\s]*?)(?=\d+\s+-?\d{2}:\d{2}:\d{2}|$)/g;
         var res:RegExpExecArray;
         var subs = <LangItem[]>[];
@@ -380,14 +383,47 @@ class LinesStore {
     }
 }
 
+/*function getData() {
+    source = audioCtx.createBufferSource();
+    request = new XMLHttpRequest();
+
+    request.open('GET', 'viper.ogg', true);
+
+    request.responseType = 'arraybuffer';
+
+    request.onload = function () {
+        var audioData = request.response;
+
+        audioCtx.decodeAudioData(audioData, function (buffer) {
+                source.buffer = buffer;
+
+                source.connect(audioCtx.destination);
+                source.loop = true;
+            },
+
+            function (e) {"Error with decoding audio data" + e.err});
+
+    }
+
+    request.send();
+}*/
+
 var linesStore = new LinesStore();
 Promise.all([
     HTTP.get<string>('../data/enSub.srt', true),
-    HTTP.get<string>('../data/ruSub.srt', true)]).then((values)=> {
-        linesStore.parse(values[0], values[1]);
-        React.render(React.createElement(EditorView), document.body);
-    }
-);
+    HTTP.get<string>('../data/ruSub.srt', true)
+]).then((values)=> {
+    console.log(values);
+
+    linesStore.parse(values[0], values[1]);
+    React.render(React.createElement(EditorView), document.getElementById('body'));
+});
+
+HTTP.get<ArrayBuffer>('../data/enAudio.mp3', true, 'arraybuffer')
+    .then((data)=>
+        new Promise<AudioBuffer>((resolve, reject)=>
+            new AudioContext().decodeAudioData(data, resolve, reject)))
+    .then((data)=>linesStore.audioData = data);
 
 
 

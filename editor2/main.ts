@@ -10,6 +10,7 @@
 ///<reference path="view.ts"/>
 ///<reference path="test/LinesStore.spec.ts"/>
 ///<reference path="Observer.ts"/>
+///<reference path="../typings/webaudioapi/waa.d.ts"/>
 
 
 function copy(obj:any, to:any) {

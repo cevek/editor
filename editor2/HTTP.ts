@@ -25,14 +25,17 @@ class HTTP {
         });
     }
 
-    static requestRaw(method:string, url:string, data?:any) {
-        return new Promise<string>((resolve, reject)=> {
+    static requestRaw<T>(method:string, url:string, data?:any, responseType?:string) {
+        return new Promise<T>((resolve, reject)=> {
             var req = new XMLHttpRequest();
             req.open(method, url, true);
+            if (responseType) {
+                req.responseType = responseType;
+            }
             req.onreadystatechange = function () {
                 if (req.readyState == 4) {
                     if (req.status == 200) {
-                        resolve(req.responseText);
+                        resolve(req.response);
                     } else {
                         reject(req);
                     }
@@ -42,7 +45,7 @@ class HTTP {
         });
     }
 
-    static get<T>(url:string, raw = false) {
-        return raw ? HTTP.requestRaw('GET', url) : HTTP.request<T>('GET', url);
+    static get<T>(url:string, raw = false, responseType?:string) {
+        return raw ? HTTP.requestRaw<T>('GET', url, null, responseType) : HTTP.request<T>('GET', url);
     }
 }

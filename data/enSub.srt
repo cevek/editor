@@ -1,451 +1,221 @@
 ﻿1
-00:40:06,698 --> 00:40:07,741
-dying of cholera?
+01:23:53,909 --> 01:23:54,827
+Walter?
 
 2
-00:40:07,825 --> 00:40:08,992
-No. All of the fluid goes out of you...
+01:23:58,288 --> 01:23:59,832
+Why didn't you break down that door...
 
 3
-00:40:09,076 --> 00:40:10,619
-...in the first 36 hours.
+01:23:59,957 --> 01:24:01,917
+...when you knew I was in there
+with Charlie?
 
 4
-00:40:10,869 --> 00:40:12,496
-You die of dehydration, actually.
+01:24:04,336 --> 01:24:06,630
+You might have at least tried
+to thrash him.
 
 5
-00:40:13,247 --> 00:40:15,249
-So, it's messy and very painful.
+01:24:08,799 --> 01:24:09,967
+He wasn't worth it.
 
 6
-00:40:16,583 --> 00:40:17,501
-But it is relatively quick.
+01:24:14,638 --> 01:24:16,306
+Or maybe I'm just too proud to fight.
 
 7
-00:40:20,337 --> 00:40:20,963
-Good night.
+01:24:18,058 --> 01:24:19,434
+I don't know about that.
 
 8
-00:40:48,282 --> 00:40:49,616
-It's rather unfortunate.
+01:24:23,188 --> 01:24:25,274
+(Bury corpses immediately.)
 
 9
-00:40:50,868 --> 00:40:52,035
-I thought perhaps that you and
-your wife...
+01:24:25,566 --> 01:24:28,402
+(Please don't take him away!)
 
 10
-00:40:52,119 --> 00:40:55,789
-...you'd like to take precautions in case
-you have to leave this place.
+01:24:28,485 --> 01:24:31,655
+(His spirit will never rest!)
 
 11
-00:40:55,998 --> 00:40:57,791
-Do you think all this is really necessary?
+01:24:47,504 --> 01:24:51,008
+I've told Mother Superior to keep her
+sisters inside the convent.
 
 12
-00:40:57,875 --> 00:40:58,917
-You can see the picture.
+01:24:51,550 --> 01:24:53,010
+I put a guard outside the gate.
 
 13
-00:40:59,626 --> 00:41:03,630
-I thought you'd like to put
-your wife's mind...
+01:24:54,052 --> 01:24:56,972
+I'd advise any Westerners
+to stay indoors.
 
 14
-00:41:03,714 --> 00:41:06,008
-...at rest from this situation.
+01:24:57,055 --> 01:24:57,931
+All right.
 
 15
-00:41:08,302 --> 00:41:10,596
-This is Colonel Yu.
-He's the KMT's man.
+01:25:06,565 --> 01:25:09,067
+Sister, has Mrs. Fane been
+at the convent today?
 
 16
-00:41:11,346 --> 00:41:13,724
-He's posting one of his men here
-at the house.
+01:25:09,193 --> 01:25:12,112
+Yes. But she, she has left
+a few minutes ago.
 
 17
-00:41:14,558 --> 00:41:15,392
-Am I a prisoner?
+01:25:20,204 --> 01:25:22,831
+(This is the work of the British devil!)
 
 18
-00:41:15,726 --> 00:41:17,895
-No. It was Mr. Waddington's
-idea actually.
+01:25:22,956 --> 01:25:25,667
+(Respect our traditions!)
 
 19
-00:41:18,812 --> 00:41:20,189
-He feels we should take precautions.
+01:25:40,057 --> 01:25:40,974
+Sung Ching.
 
 20
-00:41:20,731 --> 00:41:21,648
-Precautions against what?
+01:25:43,268 --> 01:25:44,228
+Let's go!
 
 21
-00:41:23,859 --> 00:41:26,320
-A few days ago,
-British troops opened fire...
+01:25:44,937 --> 01:25:45,562
+Let's go!
 
 22
-00:41:26,320 --> 00:41:29,656
-...on a group of Chinese workers who
-were demonstrating in Shanghai.
+01:25:47,105 --> 01:25:48,065
+Let's go!
 
 23
-00:41:30,407 --> 00:41:31,575
-Eleven were killed.
+01:26:19,138 --> 01:26:22,349
+Sung Ching. Where's Mrs. Fane?
+Where's Mrs. Fane?!
 
 24
-00:41:32,910 --> 00:41:34,161
-We've only just heard.
+01:26:39,158 --> 01:26:40,409
+I don't know what you're saying!
 
 25
-00:41:34,661 --> 00:41:36,580
-Those were plastered around
-the town last night.
+01:26:41,243 --> 01:26:42,494
+Get away from her.
 
 26
-00:41:36,663 --> 00:41:38,540
-(Death to foreign murderers!)
+01:26:43,328 --> 01:26:44,580
+- Are you all right?
+- Yes.
 
 27
-00:41:39,917 --> 00:41:40,918
-I shouldn't worry too much.
+01:27:01,680 --> 01:27:02,389
+Come on.
 
 28
-00:41:41,752 --> 00:41:43,545
-Even the Nationalists are afraid
-of cholera.
+01:27:28,707 --> 01:27:29,625
+We're out of whiskey.
 
 29
-00:42:42,062 --> 00:42:43,188
-Do they take that water from the well?
+01:28:03,283 --> 01:28:04,535
+Dr. Fane.
 
 30
-00:42:44,857 --> 00:42:46,650
-Colonel, can I see where they get
-their drinking water?
+01:28:05,494 --> 01:28:06,745
+Could I trouble you for a drink?
 
 31
-00:42:46,817 --> 00:42:47,651
-(Imperialist pig!)
+01:28:34,898 --> 01:28:35,732
+Hello, darling.
 
 32
-00:43:02,666 --> 00:43:03,959
-For starters,
-we've got to stop people from...
+01:28:54,001 --> 01:28:57,629
+I was stationed at Hankow
+during the revolution...
 
 33
-00:43:04,168 --> 00:43:05,919
-...using this well until I can test it.
+01:28:57,754 --> 01:28:59,840
+...when they were massacring
+all the Manchus.
 
 34
-00:43:13,427 --> 00:43:14,261
-Do you understand?
+01:29:01,175 --> 01:29:03,886
+I was able to help a particular family.
 
 35
-00:43:15,429 --> 00:43:17,181
-Yes, I understand, Dr. Fane.
+01:29:04,178 --> 01:29:05,971
+New documents, that sort of thing.
 
 36
-00:43:18,015 --> 00:43:20,517
-I received my military training
-in Moscow.
+01:29:07,014 --> 01:29:08,807
+She was the youngest of the daughters.
 
 37
-00:43:21,268 --> 00:43:22,603
-If you don't like English,
+01:29:10,976 --> 01:29:13,896
+I didn't pay her too much attention
+at first.
 
 38
-00:43:22,728 --> 00:43:23,770
-we can speak Russian.
+01:29:14,938 --> 01:29:17,941
+Well, more than I should have,
+I suppose.
 
 39
-00:43:25,105 --> 00:43:26,440
-English will be fine. Thank you.
+01:29:19,818 --> 01:29:23,405
+When I left Hankow, she followed me.
 
 40
-00:43:42,289 --> 00:43:43,040
-Here.
+01:29:24,865 --> 01:29:28,285
+I sent her back two, three times.
+But she...
 
 41
-00:43:43,874 --> 00:43:45,876
-You have seen cholera before,
-yes, Doctor?
+01:29:29,203 --> 01:29:30,454
+...she kept coming back.
 
 42
-00:43:45,959 --> 00:43:47,211
-At the laboratory, of course.
+01:29:36,710 --> 01:29:39,546
+I didn't realize you had so much
+affection for her.
 
 43
-00:43:47,294 --> 00:43:48,670
-No, I mean in a patient.
+01:29:39,963 --> 01:29:41,131
+What makes you think I do?
 
 44
-00:43:48,962 --> 00:43:50,756
-No. No, I haven't had the chance
+01:29:44,259 --> 01:29:46,345
+I can see it in your eyes.
 
 45
-00:43:55,552 --> 00:43:56,887
-Well, I'm not a clinician.
+01:29:50,307 --> 01:29:51,850
+Men are incalculable.
 
 46
-00:43:57,304 --> 00:43:58,388
-Did they not tell you?
+01:29:54,061 --> 01:29:56,021
+I thought you were just like
+everybody else...
 
 47
-00:43:58,680 --> 00:43:59,932
-I'm an infectious disease specialist.
+01:29:56,313 --> 01:29:58,941
+...now I feel I don't know the first thing
+about you.
 
 48
-00:44:04,102 --> 00:44:04,645
-Shall we?
+01:30:04,071 --> 01:30:05,614
+I wonder what she sees in you.
 
 49
-00:44:04,937 --> 00:44:06,897
-After you, Doctor.
+01:30:08,408 --> 01:30:09,159
+Wan Xi.
 
 50
-00:45:11,879 --> 00:45:13,338
-(Charlie)
+01:30:19,253 --> 01:30:21,588
+She says I'm a good man.
 
 51
-00:45:15,716 --> 00:45:21,805
-(without you it is intolerable)
-
-52
-00:45:31,690 --> 00:45:32,733
-I don't need you.
-
-53
-00:45:35,736 --> 00:45:36,570
-Go back!
-
-54
-00:45:45,454 --> 00:45:46,288
-Mr. Waddington?
-
-55
-00:45:51,502 --> 00:45:52,836
-I'm looking for Mr. Waddington.
-
-56
-00:46:06,725 --> 00:46:09,937
-Wait here. All right?
-
-57
-00:46:16,026 --> 00:46:16,860
-Hello?
-
-58
-00:46:17,569 --> 00:46:18,695
-Mr. Waddington?
-
-59
-00:46:29,248 --> 00:46:29,873
-Mrs. Fane?
-
-60
-00:46:31,750 --> 00:46:32,376
-Good morning.
-
-61
-00:46:38,298 --> 00:46:39,550
-What can I do for you, Mrs. Fane?
-
-62
-00:46:40,300 --> 00:46:42,177
-I found a record for you.
-
-63
-00:46:44,888 --> 00:46:45,931
-Stravinsky.
-
-64
-00:46:46,640 --> 00:46:48,433
-Very modern. Thank you.
-
-65
-00:46:51,645 --> 00:46:52,604
-Was there something else?
-
-66
-00:46:54,481 --> 00:46:56,358
-I was wondering if you could tell me...
-
-67
-00:46:56,483 --> 00:46:57,734
-...when the post comes through.
-
-68
-00:46:57,818 --> 00:46:58,735
-It's for Shanghai.
-
-69
-00:46:59,153 --> 00:47:00,737
-Unfortunately, since the cholera,
-
-70
-00:47:00,737 --> 00:47:02,823
-the cowards won't venture
-past the river port...
-
-71
-00:47:02,906 --> 00:47:04,575
-...but leave it with me.
-
-72
-00:47:05,409 --> 00:47:07,494
-A local trader I know is making the trip
-on Friday.
-
-73
-00:47:09,288 --> 00:47:10,330
-Townsend.
-
-74
-00:47:11,373 --> 00:47:12,207
-Charlie Townsend?
-
-75
-00:47:12,416 --> 00:47:14,585
-Yes. He's an acquaintance
-of my husband.
-
-76
-00:47:15,961 --> 00:47:17,212
-Do you know him?
-
-77
-00:47:17,504 --> 00:47:20,549
-Years ago. We were both assigned
-to the consulate in Shanghai.
-
-78
-00:47:22,092 --> 00:47:23,177
-Charming wife?
-
-79
-00:47:24,094 --> 00:47:25,679
-Yes. They're very popular, aren't they?
-
-80
-00:47:26,096 --> 00:47:27,848
-He'd made a science of popularity.
-
-81
-00:47:28,765 --> 00:47:30,017
-So, you know his family?
-
-82
-00:47:30,267 --> 00:47:32,519
-Well, well enough. I like Dorothy.
-
-83
-00:47:33,687 --> 00:47:36,190
-Yes, I understand they're quite
-the devoted couple.
-
-84
-00:47:37,357 --> 00:47:38,901
-Oh, he had his little flirtations.
-
-85
-00:47:40,569 --> 00:47:41,695
-Nothing serious.
-
-86
-00:47:43,489 --> 00:47:45,991
-I once heard her say that she found it
-most unflattering...
-
-87
-00:47:46,116 --> 00:47:47,534
-...that the women who fell
-for her husband...
-
-88
-00:47:47,659 --> 00:47:49,870
-...were so consistently second-rate.
-
-89
-00:47:56,418 --> 00:47:59,213
-Well, enjoy the record.
-
-90
-00:48:00,881 --> 00:48:01,715
-Mrs. Fane?
-
-91
-00:48:04,051 --> 00:48:04,968
-The letter.
-
-92
-00:48:06,720 --> 00:48:07,554
-Right.
-
-93
-00:48:08,305 --> 00:48:10,891
-Yes, it suddenly occurred to me that
-Friday's much too late.
-
-94
-00:48:11,725 --> 00:48:12,893
-Thanks all the same.
-
-95
-00:48:39,086 --> 00:48:40,504
-Can you pass the salt, please?
-
-96
-00:48:45,217 --> 00:48:46,176
-I'm sorry. Did you say something?
-
-97
-00:48:47,302 --> 00:48:48,554
-Could you pass the salt?
-
-98
-00:48:53,976 --> 00:48:54,601
-Thank you.
-
-99
-00:49:11,076 --> 00:49:12,452
-So, this is how it's going to be?
-
-100
-00:49:14,538 --> 00:49:17,207
-Passing her evenings in silence.
-
-101
-00:49:23,797 --> 00:49:24,631
-Walter.
-
-102
-00:49:27,551 --> 00:49:28,385
-Walter!
-
-103
-00:49:30,137 --> 00:49:32,139
-I wonder if you haven't gone insane.
-
-104
-00:49:40,689 --> 00:49:41,940
-- She's not cooking it.
-- Leave it.
-
-105
-00:49:43,484 --> 00:49:44,318
-Leave it.
-
-106
-00:49:45,694 --> 00:49:47,070
-Thank you.
-
-107
-00:49:56,330 --> 00:49:57,581
-Are you looking to kill yourself?
+01:30:31,348 --> 01:30:34,184
+As if a woman ever loved a man
+for his virtue.
 

@@ -18,6 +18,7 @@ class LineView {
 class EditorView extends React.Component<any,any> {
     lines:LineView[];
     sel = new WordSelection();
+    audio:HTMLAudioElement;
 
     constructor() {
         super(null, null);
@@ -28,8 +29,7 @@ class EditorView extends React.Component<any,any> {
         var timeX = 50;
         var lineHeight = 50;
         var arr:React.ReactSVGElement[] = [];
-        for (var j = 0; j < this.lines.length; j++) {
-            var line = this.lines[j];
+        this.lines.forEach((line, j)=> {
             if (line.model.lang.en.start) {
                 var end = line.model.lang.en.end / 100;
                 var start = line.model.lang.en.start / 100;
@@ -42,27 +42,66 @@ class EditorView extends React.Component<any,any> {
                 if (min <= 0 && 0 <= max || min <= lineHeight && lineHeight <= max) {
                     arr.push(
                         React.DOM.path({
+                            onClick: ()=>this.play(j),
                             stroke: "transparent",
                             d: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, 50),
-                            fill: `hsla(${start * 77 | 0}, 50%,60%, 1)`
+                            fill: 'hsla(' + (start * 77 | 0) + ', 50%,60%, 1)'
                         })
                     )
                 }
             }
-        }
+        });
         return arr;
     }
 
-    play(from:number, dur:number) {
-        /*from = from - (12 * 60 + .5);
-        console.log(from, dur);
-        audio.play();
-        audio.currentTime = from;
-        audio.playbackRate = .8;
-        setTimeout(function () {
-            audio.pause();
-        }, dur * 1250);*/
+    audioContext = new AudioContext();
+    playedFrames = 0;
+    playMaximumFrames = 0;
 
+    play(i:number) {
+        var audioData = linesStore.audioData;
+        if (audioData) {
+            var start = this.lines[i].model.lang.en.start / 100;
+            var end = this.lines[i].model.lang.en.end / 100;
+            var dur = end - start;
+            if (dur) {
+                console.log("play", start, end, dur);
+
+                var channel = audioData.getChannelData(0);
+                var sliceChannel = channel.subarray(start * audioData.sampleRate, end * audioData.sampleRate);
+                var buff = this.audioContext.createBuffer(audioData.numberOfChannels, sliceChannel.length, audioData.sampleRate);
+                buff.getChannelData(0).set(sliceChannel);
+
+/*
+                this.playedFrames = 0;
+                this.playMaximumFrames = dur * audioData.sampleRate;
+                this.audio.play();
+                this.audio.currentTime = start;
+
+*/
+                var source = this.audioContext.createBufferSource();
+                source.buffer = buff;
+
+                //source.buffer = linesStore.audioData.getChannelData(0);
+
+                source.connect(this.audioContext.destination);
+                source.start(0);
+                //source.stop(dur);
+
+                /*
+                        this.audio.play();
+                        this.audio.currentTime = start;
+                        this.audio.playbackRate = 1;
+                        setTimeout(()=> {
+                            this.audio.pause();
+                        }, (end - start) * 1000);
+                */
+            }
+        }
+        else {
+            console.log("audioData is not loaded yet");
+
+        }
     }
 
     pathGenerator(topLeft:number, leftHeight:number, topRight:number, rightHeight:number, width:number) {
@@ -288,10 +327,51 @@ class EditorView extends React.Component<any,any> {
         this.updateCursor();
     }
 
-    componentDidMount() {
-        this.updateCursor();
+    //prepareAudio() {
+    //    var el = <HTMLElement>React.findDOMNode(this);
+    //    this.audio = document.createElement('audio');
+    //    this.audio.src = '../data/enAudio.mp3';
+    //    this.audio.controls = true;
+    //    //document.body.insertBefore(this.audio, document.body.firstChild);
+    //
+    //    var source2 = this.audioContext.createMediaElementSource(this.audio);
+    //
+    //    var scriptNode = this.audioContext.createScriptProcessor(4096, 1, 1);
+    //    scriptNode.onaudioprocess = (audioProcessingEvent) => {
+    //        var inputBuffer = audioProcessingEvent.inputBuffer;
+    //        var outputBuffer = audioProcessingEvent.outputBuffer;
+    //        this.playedFrames += inputBuffer.length;
+    //        if (this.playMaximumFrames > this.playedFrames) {
+    //            this.playedFrames = 0;
+    //            this.playMaximumFrames = 0;
+    //            console.log("pause");
+    //            //this.audio.pause();
+    //        }
+    //        /*
+    //                            // Loop through the output channels (in this case there is only one)
+    //                            for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+    //                                var inputData = inputBuffer.getChannelData(channel);
+    //                                var outputData = outputBuffer.getChannelData(channel);
+    //
+    //                                // Loop through the 4096 samples
+    //                                for (var sample = 0; sample < inputBuffer.length; sample++) {
+    //                                    // make output equal to the same as the input
+    //                                    outputData[sample] = inputData[sample];
+    //
+    //                                    // add noise to each output sample
+    //                                    outputData[sample] += ((Math.random() * 2) - 1) * 0.2;
+    //                                }
+    //                            }*/
+    //    };
+    //    source2.connect(this.audioContext.destination);
+    //    //scriptNode.connect(this.audioContext.destination);
+    //}
 
-        var el = React.findDOMNode(this);
+    componentDidMount() {
+        var el = <HTMLElement>React.findDOMNode(this);
+        this.updateCursor();
+        //this.prepareAudio();
+
         el.addEventListener('click', (e) => {
             var parents = <HTMLElement[]>[];
             var target = <HTMLElement>e.target;
@@ -370,7 +450,7 @@ class EditorView extends React.Component<any,any> {
     }
 
     parse(str:string) {
-        var regexp = /([\s.]*?([-–—][ \t]+)?[\wа-яА-Я'`]+[^\s]*)/g;
+        var regexp = /([\s.]*?([-–—][ \t]+)?[\wа-яА-Я'\`]+[^\s]*)/g;
         var m:RegExpExecArray;
         var pos = 0;
         var block:string[] = [];
@@ -384,13 +464,20 @@ class EditorView extends React.Component<any,any> {
         return block;
     }
 
+    getThumbPos(i:number) {
+        var rounded = i % 2 * 50;
+        i = (i / 2 | 0) * 2;
+        return `${(-i % 20) * 243}px ${(-i / 20 | 0) * 100 - rounded}px`;
+    }
+
     render() {
         this.prepareData(linesStore);
         return div({className: 'editor'},
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
-                        div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + (-i + 6) * 50 + 'px'}}),
+                        div({className: 'thumb', style: {backgroundPosition: this.getThumbPos(i)}}),
+                        div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}}),
                         React.DOM.svg({width: 50, height: 50}, this.generatePath(i)),
                         div({className: 'audio-ru'}),
                         div({className: 'lng en', 'data-lang': 'en'},
