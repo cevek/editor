@@ -16,3 +16,4 @@ body { font-family: Tahoma; cursor: default }
 svg { float: left; }
 .line.linked { background: #DDF0FA; }
 .thumb { float: left; background: url('../data/thumbs.jpg') no-repeat; width: 200px; height: 50px; }
+.current-time { position: absolute; width: 30px; height: 10px; background: rgba(0, 255, 255, 0.3); margin: -5px 0 0 200px;  }

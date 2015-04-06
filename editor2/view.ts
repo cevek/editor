@@ -61,10 +61,21 @@ class EditorView extends React.Component<any,any> {
     playMaximumFrames = 0;
 
     play(i:number) {
+        var start = this.lines[i].model.lang.en.start / 100;
+        var end = this.lines[i].model.lang.en.end / 100;
+        this.playTime(start, end);
+    }
+
+    playRawLine(i:number) {
+        var start = i;
+        var end = (i + 1);
+        this.playTime(start, end);
+    }
+
+    playTime(start:number, end:number) {
         var audioData = linesStore.audioData;
+        var rate = .85;
         if (audioData) {
-            var start = this.lines[i].model.lang.en.start / 100;
-            var end = this.lines[i].model.lang.en.end / 100;
             var dur = end - start;
             if (dur) {
                 console.log("play", start, end, dur);
@@ -83,6 +94,14 @@ class EditorView extends React.Component<any,any> {
                 */
                 var source = this.audioContext.createBufferSource();
                 source.buffer = buff;
+                source.playbackRate.value = rate;
+                var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
+                currentTime.style.transition = '';
+                currentTime.style.transform = `translateY(${start * 50}px)`;
+                currentTime.offsetHeight; //force reflow
+                currentTime.style.transition = 'all linear';
+                currentTime.style.transform = `translateY(${end * 50}px)`;
+                currentTime.style.transitionDuration = dur / rate + 's';
 
                 //source.buffer = linesStore.audioData.getChannelData(0);
 
@@ -494,11 +513,12 @@ class EditorView extends React.Component<any,any> {
     render() {
         this.prepareData(linesStore);
         return div({className: 'editor'},
+            div({className: 'current-time', ref: 'currentTime'}),
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
-                        div({className: 'thumb', style: {backgroundPosition: this.getThumbPos(i)}}),
-                        div({className: 'audio-en', style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}}),
+                        div({className: 'thumb', onClick:()=>this.playRawLine(i), style: {backgroundPosition: this.getThumbPos(i)}}),
+                        div({className: 'audio-en', onClick:()=>this.playRawLine(i), style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}}),
                         React.DOM.svg({width: 50, height: 50}, this.generatePath(i)),
                         div({className: 'audio-ru'}),
                         div({className: 'lng en', 'data-lang': 'en'},
