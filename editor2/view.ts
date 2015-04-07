@@ -18,11 +18,34 @@ class LineView {
 class EditorView extends React.Component<any,any> {
     lines:LineView[];
     sel = new WordSelection();
-    audio:HTMLAudioElement;
+    audioContext = new AudioContext();
 
     constructor() {
         super(null, null);
         glob.editor = this;
+    }
+
+    pathGenerator(topLeft:number, leftHeight:number, topRight:number, rightHeight:number, width:number) {
+        topLeft = Math.round(topLeft);
+        leftHeight = Math.round(leftHeight);
+        topRight = Math.round(topRight);
+        rightHeight = Math.round(rightHeight);
+        width = Math.round(width);
+        var bx = width / 2 | 0;
+        var path = '';
+
+        path += 'M0,' + topLeft + ' ';
+
+        path += 'C' + bx + ',' + topLeft + ' ';
+        path += bx + ',' + topRight + ' ';
+        path += width + ',' + topRight + ' ';
+
+        path += 'L' + width + ',' + (topRight + rightHeight) + ' ';
+
+        path += 'C' + bx + ',' + (topRight + rightHeight) + ' ';
+        path += bx + ',' + (topLeft + leftHeight) + ' ';
+        path += '0,' + (topLeft + leftHeight) + 'Z';
+        return path;
     }
 
     generatePath(i:number) {
@@ -40,6 +63,7 @@ class EditorView extends React.Component<any,any> {
                 var min = leftTop < rightTop ? leftTop : rightTop;
                 var max = (leftTop + leftHeight) > (rightTop + lineHeight) ? leftTop + leftHeight : rightTop + lineHeight;
                 if (min <= 0 && 0 <= max || min <= lineHeight && lineHeight <= max) {
+                    //noinspection JSUnusedGlobalSymbols
                     arr.push(
                         React.DOM.path({
                             onClick: ()=>this.play(j),
@@ -55,10 +79,6 @@ class EditorView extends React.Component<any,any> {
         });
         return arr;
     }
-
-    audioContext = new AudioContext();
-    playedFrames = 0;
-    playMaximumFrames = 0;
 
     play(i:number) {
         var start = this.lines[i].model.lang.en.start / 100;
@@ -85,67 +105,25 @@ class EditorView extends React.Component<any,any> {
                 var buff = this.audioContext.createBuffer(audioData.numberOfChannels, sliceChannel.length, audioData.sampleRate);
                 buff.getChannelData(0).set(sliceChannel);
 
-                /*
-                                this.playedFrames = 0;
-                                this.playMaximumFrames = dur * audioData.sampleRate;
-                                this.audio.play();
-                                this.audio.currentTime = start;
-
-                */
                 var source = this.audioContext.createBufferSource();
                 source.buffer = buff;
                 source.playbackRate.value = rate;
                 var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
                 currentTime.style.transition = '';
                 currentTime.style.transform = `translateY(${start * 50}px)`;
+                //noinspection BadExpressionStatementJS
                 currentTime.offsetHeight; //force reflow
                 currentTime.style.transition = 'all linear';
                 currentTime.style.transform = `translateY(${end * 50}px)`;
                 currentTime.style.transitionDuration = dur / rate + 's';
 
-                //source.buffer = linesStore.audioData.getChannelData(0);
-
                 source.connect(this.audioContext.destination);
                 source.start(0);
-                //source.stop(dur);
-
-                /*
-                        this.audio.play();
-                        this.audio.currentTime = start;
-                        this.audio.playbackRate = 1;
-                        setTimeout(()=> {
-                            this.audio.pause();
-                        }, (end - start) * 1000);
-                */
             }
         }
         else {
             console.log("audioData is not loaded yet");
-
         }
-    }
-
-    pathGenerator(topLeft:number, leftHeight:number, topRight:number, rightHeight:number, width:number) {
-        topLeft = Math.round(topLeft);
-        leftHeight = Math.round(leftHeight);
-        topRight = Math.round(topRight);
-        rightHeight = Math.round(rightHeight);
-        width = Math.round(width);
-        var bx = width / 2 | 0;
-        var path = '';
-
-        path += 'M0,' + topLeft + ' ';
-
-        path += 'C' + bx + ',' + topLeft + ' ';
-        path += bx + ',' + topRight + ' ';
-        path += width + ',' + topRight + ' ';
-
-        path += 'L' + width + ',' + (topRight + rightHeight) + ' ';
-
-        path += 'C' + bx + ',' + (topRight + rightHeight) + ' ';
-        path += bx + ',' + (topLeft + leftHeight) + ' ';
-        path += '0,' + (topLeft + leftHeight) + 'Z';
-        return path;
     }
 
     insertLine(cut = false) {
@@ -263,30 +241,6 @@ class EditorView extends React.Component<any,any> {
         this.updateCursor();
     }
 
-    updateCursor() {
-        var el = <HTMLElement>React.findDOMNode(this);
-        var selected = (<HTMLElement>el.querySelector('.selected'));
-        if (selected) {
-            selected.classList.remove('selected');
-        }
-        for (var current of <HTMLElement[]>[].slice.call(el.querySelectorAll('.current'))) {
-            current.classList.remove('current');
-        }
-
-        var line = <HTMLElement>el.querySelector(`[data-line="${this.sel.line}"]`);
-        if (line) {
-            var lng = <HTMLElement>line.querySelector(`.lng.${this.sel.lang}`);
-            if (lng) {
-                var span = <HTMLElement>lng.querySelectorAll(`span`)[this.sel.pos];
-                if (span) {
-                    //line.classList.add('current');
-                    //lng.classList.add('current');
-                    span.classList.add('selected');
-                }
-            }
-        }
-    }
-
     leftRight(left = false) {
         if (left && this.sel.pos > 0) {
             this.sel.pos--;
@@ -298,16 +252,6 @@ class EditorView extends React.Component<any,any> {
             this.sel.leftOffset = -1;
         }
         this.updateCursor();
-    }
-
-    wordClick(node:HTMLElement) {
-        var langEl = <HTMLElement>node.parentNode;
-        this.sel.lang = (<any>langEl.dataset)['lang'];
-        var lineEl = <HTMLElement>langEl.parentNode;
-        this.sel.line = +(<any>lineEl.dataset)['line'];
-        var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
-        this.sel.pos = arr.indexOf(node);
-        this.forceUpdate();
     }
 
     undo() {
@@ -334,150 +278,129 @@ class EditorView extends React.Component<any,any> {
         }
     }
 
+    updateCursor() {
+        var el = <HTMLElement>React.findDOMNode(this);
+        var selected = (<HTMLElement>el.querySelector('.selected'));
+        if (selected) {
+            selected.classList.remove('selected');
+        }
+        for (var current of <HTMLElement[]>[].slice.call(el.querySelectorAll('.current'))) {
+            current.classList.remove('current');
+        }
+
+        var line = <HTMLElement>el.querySelector(`[data-line="${this.sel.line}"]`);
+        if (line) {
+            var lng = <HTMLElement>line.querySelector(`.lng.${this.sel.lang}`);
+            if (lng) {
+                var span = <HTMLElement>lng.querySelectorAll(`span`)[this.sel.pos];
+                if (span) {
+                    //line.classList.add('current');
+                    //lng.classList.add('current');
+                    span.classList.add('selected');
+                }
+            }
+        }
+    }
+
+    moveTime(isUp:boolean, isStartTime:boolean, isEndTime:boolean) {
+        var t = 30;
+        var line = this.lines[this.sel.line];
+        if (line.model.lang.en.start) {
+            if (isStartTime) {
+                line.model.lang.en.start += isUp ? -t : t;
+            }
+            if (isEndTime) {
+                line.model.lang.en.end += isUp ? -t : t;
+            }
+            this.forceUpdate();
+        }
+    }
+
     linkedNegate() {
         //console.log("linked");
         this.lines[this.sel.line].model.linked = !this.lines[this.sel.line].model.linked;
         this.forceUpdate();
     }
 
-    forceUpdate() {
-        setTimeout(()=>super.forceUpdate());
+    keyManager(key:KeyPress) {
+        if ((key.left || key.right) && key.noMod) {
+            this.leftRight(key.left);
+            return true;
+        }
+
+        if (key.z && key.metaMod && !key.shiftMod && !key.altMod && !key.ctrlMod) {
+            this.undo();
+            return true;
+        }
+
+        if (key.z && key.metaMod && key.shiftMod && !key.altMod && !key.ctrlMod) {
+            this.redo();
+            return true;
+        }
+
+        if (key.enter && !key.shiftMod && !key.altMod && !key.ctrlMod) {
+            this.insertLine(!key.metaMod);
+            return true;
+        }
+
+        if (key.enter && key.shiftMod && !key.altMod && !key.ctrlMod && !key.metaMod) {
+            this.linkedNegate();
+            return true;
+        }
+
+        if (key.space && key.noMod) {
+            this.linkedNegate();
+            return true;
+        }
+
+        if (key.backspace && !key.shiftMod && !key.altMod && !key.ctrlMod) {
+            this.removeLine(!key.metaMod);
+            return true;
+        }
+
+        if ((key.down || key.up) && (key.shiftLeftMod || key.altLeftMod)) {
+            this.moveTime(key.up, key.shiftLeftMod, key.altLeftMod);
+            return true;
+        }
+
+        if ((key.down || key.up) && !key.metaMod) {
+            this.moveCaretUpDown(key.up);
+            return true;
+        }
+        return false;
     }
 
-    componentDidUpdate() {
-        this.updateCursor();
-    }
-
-    //prepareAudio() {
-    //    var el = <HTMLElement>React.findDOMNode(this);
-    //    this.audio = document.createElement('audio');
-    //    this.audio.src = '../data/enAudio.mp3';
-    //    this.audio.controls = true;
-    //    //document.body.insertBefore(this.audio, document.body.firstChild);
-    //
-    //    var source2 = this.audioContext.createMediaElementSource(this.audio);
-    //
-    //    var scriptNode = this.audioContext.createScriptProcessor(4096, 1, 1);
-    //    scriptNode.onaudioprocess = (audioProcessingEvent) => {
-    //        var inputBuffer = audioProcessingEvent.inputBuffer;
-    //        var outputBuffer = audioProcessingEvent.outputBuffer;
-    //        this.playedFrames += inputBuffer.length;
-    //        if (this.playMaximumFrames > this.playedFrames) {
-    //            this.playedFrames = 0;
-    //            this.playMaximumFrames = 0;
-    //            console.log("pause");
-    //            //this.audio.pause();
-    //        }
-    //        /*
-    //                            // Loop through the output channels (in this case there is only one)
-    //                            for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
-    //                                var inputData = inputBuffer.getChannelData(channel);
-    //                                var outputData = outputBuffer.getChannelData(channel);
-    //
-    //                                // Loop through the 4096 samples
-    //                                for (var sample = 0; sample < inputBuffer.length; sample++) {
-    //                                    // make output equal to the same as the input
-    //                                    outputData[sample] = inputData[sample];
-    //
-    //                                    // add noise to each output sample
-    //                                    outputData[sample] += ((Math.random() * 2) - 1) * 0.2;
-    //                                }
-    //                            }*/
-    //    };
-    //    source2.connect(this.audioContext.destination);
-    //    //scriptNode.connect(this.audioContext.destination);
-    //}
-
-    moveTime(isUp:boolean, isStartTime:boolean, isEndTime:boolean) {
-        var t = 30;
-        var line = this.lines[this.sel.line];
-        if (isStartTime) {
-            line.model.lang.en.start += isUp ? -t : t;
-        }
-        if (isEndTime) {
-            line.model.lang.en.end += isUp ? -t : t;
-        }
+    wordClick(node:HTMLElement) {
+        var langEl = <HTMLElement>node.parentNode;
+        this.sel.lang = (<any>langEl.dataset)['lang'];
+        var lineEl = <HTMLElement>langEl.parentNode;
+        this.sel.line = +(<any>lineEl.dataset)['line'];
+        var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
+        this.sel.pos = arr.indexOf(node);
         this.forceUpdate();
     }
 
-    componentDidMount() {
-        var el = <HTMLElement>React.findDOMNode(this);
-        this.updateCursor();
-        //this.prepareAudio();
+    clickHandler(target:HTMLElement) {
+        var parents = <HTMLElement[]>[];
+        var node = target;
+        while (node = <HTMLElement>node.parentNode) {
+            parents.push(node);
+        }
+        if (target.tagName === 'SPAN') {
+            this.wordClick(target);
+            return;
+        }
 
-        el.addEventListener('click', (e) => {
-            var parents = <HTMLElement[]>[];
-            var target = <HTMLElement>e.target;
-            var node = target;
-            while (node = <HTMLElement>node.parentNode) {
-                parents.push(node);
-            }
-            if (target.tagName === 'SPAN') {
-                this.wordClick(target);
+        for (var i = 0; i < parents.length; i++) {
+            var node = parents[i];
+            if (node.dataset && node.dataset['line']) {
+                this.sel.lang = 'en';
+                this.sel.line = +node.dataset['line'];
+                this.sel.pos = 0;
+                this.forceUpdate();
                 return;
             }
-
-            for (var i = 0; i < parents.length; i++) {
-                var node = parents[i];
-                if (node.dataset && node.dataset['line']) {
-                    this.sel.lang = 'en';
-                    this.sel.line = +node.dataset['line'];
-                    this.sel.pos = 0;
-                    this.forceUpdate();
-                    return;
-                }
-            }
-        });
-
-        document.addEventListener("keydown", (e:KeyboardEvent) => {
-            var key = new KeyPress(e);
-            if ((key.left || key.right) && key.noMod) {
-                this.leftRight(key.left);
-                e.preventDefault();
-            }
-
-            if (key.z && key.metaMod && !key.shiftMod && !key.altMod && !key.ctrlMod) {
-                this.undo();
-                e.preventDefault();
-            }
-
-            if (key.z && key.metaMod && key.shiftMod && !key.altMod && !key.ctrlMod) {
-                this.redo();
-                e.preventDefault();
-            }
-
-            if (key.enter && !key.shiftMod && !key.altMod && !key.ctrlMod) {
-                this.insertLine(!key.metaMod);
-                e.preventDefault();
-            }
-
-            if (key.enter && key.shiftMod && !key.altMod && !key.ctrlMod && !key.metaMod) {
-                this.linkedNegate();
-                e.preventDefault();
-            }
-
-            if (key.space && key.noMod) {
-                this.linkedNegate();
-                e.preventDefault();
-            }
-
-            if (key.backspace && !key.shiftMod && !key.altMod && !key.ctrlMod) {
-                this.removeLine(!key.metaMod);
-                e.preventDefault();
-            }
-
-            if ((key.down || key.up) && (key.shiftLeftMod || key.altLeftMod)) {
-                this.moveTime(key.up, key.shiftLeftMod, key.altLeftMod);
-                e.preventDefault();
-                return;
-            }
-
-            if ((key.down || key.up) && !key.metaMod) {
-                this.moveCaretUpDown(key.up);
-                e.preventDefault();
-            }
-
-        });
+        }
     }
 
     prepareData(linesStore:LinesStore) {
@@ -510,6 +433,30 @@ class EditorView extends React.Component<any,any> {
         return `${(-i % 20) * 243}px ${(-i / 20 | 0) * 100 - rounded}px`;
     }
 
+    forceUpdate() {
+        setTimeout(()=>super.forceUpdate());
+    }
+
+    componentDidUpdate() {
+        this.updateCursor();
+    }
+
+    componentDidMount() {
+        var el = <HTMLElement>React.findDOMNode(this);
+        this.updateCursor();
+        //this.prepareAudio();
+        el.addEventListener('click', (e) => {
+            this.clickHandler(<HTMLElement>e.target);
+        });
+
+        document.addEventListener("keydown", (e:KeyboardEvent) => {
+            var key = new KeyPress(e);
+            if (this.keyManager(key)) {
+                e.preventDefault();
+            }
+        });
+    }
+
     render() {
         this.prepareData(linesStore);
         return div({className: 'editor'},
@@ -517,8 +464,16 @@ class EditorView extends React.Component<any,any> {
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
-                        div({className: 'thumb', onClick:()=>this.playRawLine(i), style: {backgroundPosition: this.getThumbPos(i)}}),
-                        div({className: 'audio-en', onClick:()=>this.playRawLine(i), style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}}),
+                        div({
+                            className: 'thumb',
+                            onClick: ()=>this.playRawLine(i),
+                            style: {backgroundPosition: this.getThumbPos(i)}
+                        }),
+                        div({
+                            className: 'audio-en',
+                            onClick: ()=>this.playRawLine(i),
+                            style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}
+                        }),
                         React.DOM.svg({width: 50, height: 50}, this.generatePath(i)),
                         div({className: 'audio-ru'}),
                         div({className: 'lng en', 'data-lang': 'en'},
