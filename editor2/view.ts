@@ -19,6 +19,10 @@ class EditorView extends React.Component<any,any> {
     lines:LineView[];
     sel = new WordSelection();
     audioContext = new AudioContext();
+    audioSelection = {start: 0, end: 0, selecting: false, selectionStart: 0};
+    el:HTMLElement;
+    offsetTop = 0;
+    playingSources:AudioBufferSourceNode[] = [];
 
     constructor() {
         super(null, null);
@@ -83,16 +87,25 @@ class EditorView extends React.Component<any,any> {
     play(i:number) {
         var start = this.lines[i].model.lang.en.start / 100;
         var end = this.lines[i].model.lang.en.end / 100;
-        this.playTime(start, end);
+        this.audioSelection.start = start;
+        this.audioSelection.end = end;
+        this.playTime();
+        this.updateAudioSelection();
     }
 
     playRawLine(i:number) {
         var start = i;
         var end = (i + 1);
-        this.playTime(start, end);
+        this.audioSelection.start = start;
+        this.audioSelection.end = end;
+        this.playTime();
+        this.updateAudioSelection();
     }
 
-    playTime(start:number, end:number) {
+    playTime() {
+        this.stopPlay();
+        var start = this.audioSelection.start;
+        var end = this.audioSelection.end;
         var audioData = linesStore.audioData;
         var rate = .85;
         if (audioData) {
@@ -119,11 +132,60 @@ class EditorView extends React.Component<any,any> {
 
                 source.connect(this.audioContext.destination);
                 source.start(0);
+                this.playingSources.push(source);
             }
         }
         else {
             console.log("audioData is not loaded yet");
         }
+    }
+
+    stopPlay() {
+        var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
+        currentTime.style.transition = '';
+        //currentTime.style.transform = '';
+
+        this.playingSources.forEach(source=>source.stop());
+        this.playingSources = [];
+    }
+
+    selectStart(e:MouseEvent) {
+        if ((<HTMLElement>e.target).classList.contains('audio')) {
+            this.audioSelection.selecting = true;
+            this.audioSelection.start = (e.pageY - this.offsetTop) / 50;
+            this.audioSelection.selectionStart = this.audioSelection.start;
+            this.audioSelection.end = this.audioSelection.start;
+            this.updateAudioSelection();
+            e.preventDefault();
+        }
+    }
+
+    selectMove(e:MouseEvent) {
+        if (this.audioSelection.selecting) {
+            var end = (e.pageY - this.offsetTop) / 50;
+            if (end <= this.audioSelection.selectionStart) {
+                this.audioSelection.start = end;
+                this.audioSelection.end = this.audioSelection.selectionStart;
+            }
+            else {
+                this.audioSelection.start = this.audioSelection.selectionStart;
+                this.audioSelection.end = end;
+            }
+            this.updateAudioSelection();
+        }
+    }
+
+    selectEnd(e:MouseEvent) {
+        if (this.audioSelection.selecting) {
+            this.audioSelection.selecting = false;
+            this.playTime();
+        }
+    }
+
+    updateAudioSelection() {
+        var el = (<HTMLElement>React.findDOMNode(this.refs['audioSelectionEl']));
+        el.style.top = this.audioSelection.start * 50 + 'px';
+        el.style.height = (this.audioSelection.end - this.audioSelection.start) * 50 + 'px';
     }
 
     insertLine(cut = false) {
@@ -353,6 +415,11 @@ class EditorView extends React.Component<any,any> {
             return true;
         }
 
+        if (key.tab && key.noMod) {
+            this.playTime();
+            return true;
+        }
+
         if (key.backspace && !key.shiftMod && !key.altMod && !key.ctrlMod) {
             this.removeLine(!key.metaMod);
             return true;
@@ -433,6 +500,29 @@ class EditorView extends React.Component<any,any> {
         return `${(-i % 20) * 243}px ${(-i / 20 | 0) * 100 - rounded}px`;
     }
 
+    keyDownGlobal(e:KeyboardEvent) {
+        var key = new KeyPress(e);
+        if (this.keyManager(key)) {
+            e.preventDefault();
+        }
+    }
+
+    mouseClick(e:MouseEvent) {
+        this.clickHandler(<HTMLElement>e.target);
+    }
+
+    mouseDown(e:MouseEvent) {
+        this.selectStart(e);
+    }
+
+    mouseMoveGlobal(e:MouseEvent) {
+        this.selectMove(e);
+    }
+
+    mouseUpGlobal(e:MouseEvent) {
+        this.selectEnd(e);
+    }
+
     forceUpdate() {
         setTimeout(()=>super.forceUpdate());
     }
@@ -442,25 +532,23 @@ class EditorView extends React.Component<any,any> {
     }
 
     componentDidMount() {
-        var el = <HTMLElement>React.findDOMNode(this);
+        this.el = <HTMLElement>React.findDOMNode(this);
+        this.offsetTop = this.el.offsetTop;
         this.updateCursor();
-        //this.prepareAudio();
-        el.addEventListener('click', (e) => {
-            this.clickHandler(<HTMLElement>e.target);
-        });
-
-        document.addEventListener("keydown", (e:KeyboardEvent) => {
-            var key = new KeyPress(e);
-            if (this.keyManager(key)) {
-                e.preventDefault();
-            }
-        });
+        this.el.addEventListener('click', e => this.mouseClick(e));
+        this.el.addEventListener('mousedown', e => this.mouseDown(e));
+        document.addEventListener('mouseup', e => this.mouseUpGlobal(e));
+        document.addEventListener('mousemove', e => this.mouseMoveGlobal(e));
+        document.addEventListener("keydown", e => this.keyDownGlobal(e));
     }
 
     render() {
         this.prepareData(linesStore);
         return div({className: 'editor'},
-            div({className: 'current-time', ref: 'currentTime'}),
+            div({className: 'relative'},
+                div({className: 'audio-selection audio', ref: 'audioSelectionEl'}),
+                div({className: 'current-time audio', ref: 'currentTime'})
+            ),
             this.lines.map(
                 (line, i) =>
                     div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
@@ -470,8 +558,7 @@ class EditorView extends React.Component<any,any> {
                             style: {backgroundPosition: this.getThumbPos(i)}
                         }),
                         div({
-                            className: 'audio-en',
-                            onClick: ()=>this.playRawLine(i),
+                            className: 'audio-en audio',
                             style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}
                         }),
                         React.DOM.svg({width: 50, height: 50}, this.generatePath(i)),
