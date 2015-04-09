@@ -8,10 +8,16 @@ class WordSelection {
 class LineView {
     model:Line;
     words:{[index: string]: string[]; en: string[]; ru: string[]};
+    hidden = false;
+    haveCrossedPath = false;
 
-    constructor(model:Line, en:string[], ru:string[]) {
+    constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
         this.model = model;
         this.words = {en: en, ru: ru};
+        if (oldLine) {
+            this.hidden = oldLine.hidden;
+            this.haveCrossedPath = oldLine.haveCrossedPath;
+        }
     }
 }
 
@@ -56,6 +62,7 @@ class EditorView extends React.Component<any,any> {
         var timeX = 50;
         var lineHeight = 50;
         var arr:React.ReactSVGElement[] = [];
+        this.lines[i].haveCrossedPath = false;
         this.lines.forEach((line, j)=> {
             if (line.model.lang.en.start) {
                 var end = line.model.lang.en.end / 100;
@@ -66,7 +73,8 @@ class EditorView extends React.Component<any,any> {
                 var rightTop = (j - i) * lineHeight;
                 var min = leftTop < rightTop ? leftTop : rightTop;
                 var max = (leftTop + leftHeight) > (rightTop + lineHeight) ? leftTop + leftHeight : rightTop + lineHeight;
-                if (min <= 0 && 0 <= max || min <= lineHeight && lineHeight <= max) {
+                if (min < 0 && 0 < max || min < lineHeight && lineHeight < max) {
+                    this.lines[i].haveCrossedPath = true;
                     //noinspection JSUnusedGlobalSymbols
                     arr.push(
                         React.DOM.path({
@@ -114,13 +122,34 @@ class EditorView extends React.Component<any,any> {
                 console.log("play", start, end, dur);
 
                 var channel = audioData.getChannelData(0);
-                var sliceChannel = channel.subarray(start * audioData.sampleRate, end * audioData.sampleRate);
-                var buff = this.audioContext.createBuffer(audioData.numberOfChannels, sliceChannel.length, audioData.sampleRate);
-                buff.getChannelData(0).set(sliceChannel);
 
+                var sliced:Float32Array[] = [];
+                var size = 0;
+                var i = 0;
+                this.lines.forEach((line, j) => {
+                    if (!line.hidden) {
+                        if (i >= Math.floor(start) && i < Math.ceil(end)) {
+                            var addToStart = Math.max(start - i, 0);
+                            var addToEnd = Math.floor(end) == i ? end - i : 1;
+                            var slice = channel.subarray((j + addToStart) * audioData.sampleRate, (j + addToEnd) * audioData.sampleRate);
+                            sliced.push(slice);
+                            size += slice.length;
+                        }
+                        i++;
+                    }
+                });
+                var buff = this.audioContext.createBuffer(audioData.numberOfChannels, size, audioData.sampleRate);
+                sliced.reduce((offset, slice) => {
+                    buff.getChannelData(0).set(slice, offset);
+                    return offset + slice.length;
+                }, 0);
                 var source = this.audioContext.createBufferSource();
                 source.buffer = buff;
                 source.playbackRate.value = rate;
+                source.connect(this.audioContext.destination);
+                source.start(0);
+                this.playingSources.push(source);
+
                 var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
                 currentTime.style.transition = '';
                 currentTime.style.transform = `translateY(${start * 50}px)`;
@@ -130,14 +159,31 @@ class EditorView extends React.Component<any,any> {
                 currentTime.style.transform = `translateY(${end * 50}px)`;
                 currentTime.style.transitionDuration = dur / rate + 's';
 
-                source.connect(this.audioContext.destination);
-                source.start(0);
-                this.playingSources.push(source);
             }
         }
+
         else {
-            console.log("audioData is not loaded yet");
+            console
+                .
+                log(
+                "audioData is not loaded yet"
+            );
         }
+    }
+
+    showAllLines() {
+        this.lines.forEach(line => line.hidden = false);
+    }
+
+    hideEmptyLines() {
+        console.log("hideEmptyLines");
+
+        this.lines.forEach(line => {
+            if (line.model.isEmpty() && !line.haveCrossedPath) {
+                line.hidden = true;
+            }
+        });
+        this.forceUpdate();
     }
 
     stopPlay() {
@@ -471,10 +517,12 @@ class EditorView extends React.Component<any,any> {
     }
 
     prepareData(linesStore:LinesStore) {
-        this.lines = linesStore.data.map((line, i)=> new LineView(line,
-                this.parse(line.lang.en && line.lang.en.text),
-                this.parse(line.lang.ru && line.lang.ru.text)
-            )
+        this.lines = linesStore.data.map((line, i)=> {
+                var en = this.parse(line.lang.en && line.lang.en.text);
+                var ru = this.parse(line.lang.ru && line.lang.ru.text);
+                var lineView = this.lines ? this.lines.filter(lineView=>lineView.model == line).pop() : null;
+                return new LineView(line, en, ru, lineView);
+            }
         );
         //this.syncAudioLines();
     }
@@ -545,13 +593,16 @@ class EditorView extends React.Component<any,any> {
     render() {
         this.prepareData(linesStore);
         return div({className: 'editor'},
+            div({className: 'panel'},
+                React.DOM.button({onClick: ()=>this.hideEmptyLines()}, 'Hide')
+            ),
             div({className: 'relative'},
                 div({className: 'audio-selection audio', ref: 'audioSelectionEl'}),
                 div({className: 'current-time audio', ref: 'currentTime'})
             ),
             this.lines.map(
                 (line, i) =>
-                    div({className: cx({line: true, linked: line.model.linked}), 'data-line': i},
+                    div({className: cx({line: true, hidden: line.hidden, linked: line.model.linked}), 'data-line': i},
                         div({
                             className: 'thumb',
                             onClick: ()=>this.playRawLine(i),
