@@ -9,6 +9,7 @@ class LineView {
     model:Line;
     words:{[index: string]: string[]; en: string[]; ru: string[]};
     hidden = false;
+    hiddenBefore = 0;
     haveCrossedPath = false;
 
     constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
@@ -17,6 +18,7 @@ class LineView {
         if (oldLine) {
             this.hidden = oldLine.hidden;
             this.haveCrossedPath = oldLine.haveCrossedPath;
+            this.hiddenBefore = oldLine.hiddenBefore;
         }
     }
 }
@@ -178,10 +180,27 @@ class EditorView extends React.Component<any,any> {
     hideEmptyLines() {
         console.log("hideEmptyLines");
 
+        var hiddenBefore = 0;
+        var prevLine:LineView;
         this.lines.forEach(line => {
             if (line.model.isEmpty() && !line.haveCrossedPath) {
+                hiddenBefore++;
                 line.hidden = true;
             }
+            else {
+                if (hiddenBefore > 0) {
+                    if (line.model.isEmpty()) {
+                        line.hiddenBefore = hiddenBefore + 1;
+                    }
+                    else if (prevLine.model.isEmpty()) {
+                        prevLine.hiddenBefore = hiddenBefore;
+                        prevLine.hidden = false;
+                    }
+                }
+
+                hiddenBefore = 0;
+            }
+            prevLine = line;
         });
         this.forceUpdate();
     }
@@ -602,7 +621,14 @@ class EditorView extends React.Component<any,any> {
             ),
             this.lines.map(
                 (line, i) =>
-                    div({className: cx({line: true, hidden: line.hidden, linked: line.model.linked}), 'data-line': i},
+                    div({
+                            className: cx({
+                                line: true,
+                                'hidden-before': line.hiddenBefore,
+                                hidden: line.hidden,
+                                linked: line.model.linked
+                            }), 'data-line': i
+                        },
                         div({
                             className: 'thumb',
                             onClick: ()=>this.playRawLine(i),
