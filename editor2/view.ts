@@ -9,7 +9,7 @@ class LineView {
     model:Line;
     words:{[index: string]: string[]; en: string[]; ru: string[]};
     hidden = false;
-    hiddenBefore = 0;
+    collapsed = 0;
     haveCrossedPath = false;
 
     constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
@@ -18,7 +18,7 @@ class LineView {
         if (oldLine) {
             this.hidden = oldLine.hidden;
             this.haveCrossedPath = oldLine.haveCrossedPath;
-            this.hiddenBefore = oldLine.hiddenBefore;
+            this.collapsed = oldLine.collapsed;
         }
     }
 }
@@ -180,25 +180,25 @@ class EditorView extends React.Component<any,any> {
     hideEmptyLines() {
         console.log("hideEmptyLines");
 
-        var hiddenBefore = 0;
+        var collapsed = 0;
         var prevLine:LineView;
         this.lines.forEach(line => {
             if (line.model.isEmpty() && !line.haveCrossedPath) {
-                hiddenBefore++;
+                collapsed++;
                 line.hidden = true;
             }
             else {
-                if (hiddenBefore > 0) {
+                if (collapsed > 0) {
                     if (line.model.isEmpty()) {
-                        line.hiddenBefore = hiddenBefore + 1;
+                        line.collapsed = collapsed + 1;
                     }
                     else if (prevLine.model.isEmpty()) {
-                        prevLine.hiddenBefore = hiddenBefore;
+                        prevLine.collapsed = collapsed;
                         prevLine.hidden = false;
                     }
                 }
 
-                hiddenBefore = 0;
+                collapsed = 0;
             }
             prevLine = line;
         });
@@ -624,10 +624,12 @@ class EditorView extends React.Component<any,any> {
                     div({
                             className: cx({
                                 line: true,
-                                'hidden-before': line.hiddenBefore,
+
                                 hidden: line.hidden,
                                 linked: line.model.linked
-                            }), 'data-line': i
+                            }),
+                            'data-line': i,
+                            'data-collapsed': line.collapsed ? line.collapsed : void 0
                         },
                         div({
                             className: 'thumb',
