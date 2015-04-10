@@ -9,7 +9,9 @@ class LineView {
     model:Line;
     words:{[index: string]: string[]; en: string[]; ru: string[]};
     hidden = false;
-    collapsed = 0;
+    mayHide = false;
+    collapsibleCount = 0;
+    collapsed = false;
     haveCrossedPath = false;
 
     constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
@@ -17,8 +19,10 @@ class LineView {
         this.words = {en: en, ru: ru};
         if (oldLine) {
             this.hidden = oldLine.hidden;
-            this.haveCrossedPath = oldLine.haveCrossedPath;
+            this.mayHide = oldLine.mayHide;
             this.collapsed = oldLine.collapsed;
+            this.haveCrossedPath = oldLine.haveCrossedPath;
+            this.collapsibleCount = oldLine.collapsibleCount;
         }
     }
 }
@@ -177,30 +181,39 @@ class EditorView extends React.Component<any,any> {
         this.lines.forEach(line => line.hidden = false);
     }
 
-    hideEmptyLines() {
-        console.log("hideEmptyLines");
-
+    prepareHideLines() {
         var collapsed = 0;
         var prevLine:LineView;
         this.lines.forEach(line => {
             if (line.model.isEmpty() && !line.haveCrossedPath) {
                 collapsed++;
-                line.hidden = true;
+                line.mayHide = true;
             }
             else {
                 if (collapsed > 0) {
                     if (line.model.isEmpty()) {
-                        line.collapsed = collapsed + 1;
+                        line.collapsibleCount = collapsed;
                     }
                     else if (prevLine.model.isEmpty()) {
-                        prevLine.collapsed = collapsed;
-                        prevLine.hidden = false;
+                        prevLine.collapsibleCount = collapsed - 1;
+                        prevLine.mayHide = false;
                     }
                 }
 
                 collapsed = 0;
             }
             prevLine = line;
+        });
+    }
+
+    hideEmptyLines() {
+        this.lines.forEach(line => {
+            if (line.collapsibleCount) {
+                line.collapsed = true;
+            }
+            if (line.mayHide) {
+                line.hidden = true;
+            }
         });
         this.forceUpdate();
     }
@@ -502,6 +515,25 @@ class EditorView extends React.Component<any,any> {
         return false;
     }
 
+    collapse(node:HTMLElement) {
+        var collapseLine:LineView;
+        var i = this.sel.line;
+        while ((collapseLine = this.lines[i]) && !collapseLine.collapsibleCount) {i++}
+
+        if (collapseLine.collapsed) {
+            collapseLine.collapsed = false;
+        }
+        if (collapseLine) {
+            var hidden = !collapseLine.collapsed;
+            for (var j = i - 1; j >= i - collapseLine.collapsibleCount; j--) {
+                this.lines[j].hidden = hidden;
+                //console.log({collapseLine, i, j, collapsibleCount:collapseLine.collapsibleCount, line:this.lines[j]});
+            }
+            collapseLine.collapsed = hidden;
+            this.forceUpdate();
+        }
+    }
+
     wordClick(node:HTMLElement) {
         var langEl = <HTMLElement>node.parentNode;
         this.sel.lang = (<any>langEl.dataset)['lang'];
@@ -543,6 +575,7 @@ class EditorView extends React.Component<any,any> {
                 return new LineView(line, en, ru, lineView);
             }
         );
+        this.prepareHideLines();
         //this.syncAudioLines();
     }
 
@@ -576,6 +609,7 @@ class EditorView extends React.Component<any,any> {
 
     mouseClick(e:MouseEvent) {
         this.clickHandler(<HTMLElement>e.target);
+        this.collapse(<HTMLElement>e.target);
     }
 
     mouseDown(e:MouseEvent) {
@@ -624,12 +658,13 @@ class EditorView extends React.Component<any,any> {
                     div({
                             className: cx({
                                 line: true,
-
                                 hidden: line.hidden,
                                 linked: line.model.linked
                             }),
                             'data-line': i,
-                            'data-collapsed': line.collapsed ? line.collapsed : void 0
+                            'data-may-hide': line.mayHide ? line.mayHide : void 0,
+                            'data-collapsed': line.collapsed ? line.collapsed : void 0,
+                            'data-collapsible-count': line.collapsibleCount ? line.collapsibleCount : void 0
                         },
                         div({
                             className: 'thumb',
