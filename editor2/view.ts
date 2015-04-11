@@ -13,6 +13,7 @@ class LineView {
     collapsibleCount = 0;
     collapsed = false;
     haveCrossedPath = false;
+    path:{i: number;path:string}[];
 
     constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
         this.model = model;
@@ -23,6 +24,7 @@ class LineView {
             this.collapsed = oldLine.collapsed;
             this.haveCrossedPath = oldLine.haveCrossedPath;
             this.collapsibleCount = oldLine.collapsibleCount;
+            this.path = oldLine.path;
         }
     }
 }
@@ -64,38 +66,33 @@ class EditorView extends React.Component<any,any> {
         return path;
     }
 
-    generatePath(i:number) {
+    generatePath() {
         var timeX = 50;
         var lineHeight = 50;
-        var arr:React.ReactSVGElement[] = [];
-        this.lines[i].haveCrossedPath = false;
-        this.lines.forEach((line, j)=> {
-            if (line.model.lang.en.start) {
-                var end = line.model.lang.en.end / 100;
-                var start = line.model.lang.en.start / 100;
-                var dur = (end - start);
-                var leftTop = (start * timeX - lineHeight * i) | 0;
-                var leftHeight = dur * timeX | 0;
-                var rightTop = (j - i) * lineHeight;
-                var min = leftTop < rightTop ? leftTop : rightTop;
-                var max = (leftTop + leftHeight) > (rightTop + lineHeight) ? leftTop + leftHeight : rightTop + lineHeight;
-                if (min < 0 && 0 < max || min < lineHeight && lineHeight < max) {
-                    this.lines[i].haveCrossedPath = true;
-                    //noinspection JSUnusedGlobalSymbols
-                    arr.push(
-                        React.DOM.path({
-                            onClick: ()=>this.play(j),
-                            onMouseEnter: ()=>console.log("enter", j),
-                            onMouseLeave: ()=>console.log("leave", j),
-                            stroke: "transparent",
-                            d: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, 50),
-                            fill: 'hsla(' + (start * 77 | 0) + ', 50%,60%, 1)'
-                        })
-                    )
+        for (var i = 0; i < this.lines.length; i++) {
+            this.lines[i].path = [];
+            this.lines[i].haveCrossedPath = false;
+            this.lines.forEach((line, j)=> {
+                if (line.model.lang.en.start) {
+                    var end = line.model.lang.en.end / 100;
+                    var start = line.model.lang.en.start / 100;
+                    var dur = (end - start);
+                    var leftTop = (start * timeX - lineHeight * i) | 0;
+                    var leftHeight = dur * timeX | 0;
+                    var rightTop = (j - i) * lineHeight;
+                    var min = leftTop < rightTop ? leftTop : rightTop;
+                    var max = (leftTop + leftHeight) > (rightTop + lineHeight) ? leftTop + leftHeight : rightTop + lineHeight;
+                    if (min < 0 && 0 < max || min < lineHeight && lineHeight < max) {
+                        this.lines[i].haveCrossedPath = true;
+                        //noinspection JSUnusedGlobalSymbols
+                        this.lines[i].path.push({
+                            i: j,
+                            path: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, 50)
+                        });
+                    }
                 }
-            }
-        });
-        return arr;
+            });
+        }
     }
 
     play(i:number) {
@@ -182,6 +179,8 @@ class EditorView extends React.Component<any,any> {
     }
 
     prepareHideLines() {
+        console.log("prepareHideLines");
+
         var collapsed = 0;
         var prevLine:LineView;
         this.lines.forEach(line => {
@@ -196,7 +195,7 @@ class EditorView extends React.Component<any,any> {
                     }
                     else if (prevLine.model.isEmpty()) {
                         prevLine.collapsibleCount = collapsed - 1;
-                        prevLine.mayHide = false;
+                        //prevLine.mayHide = false;
                     }
                 }
 
@@ -515,19 +514,26 @@ class EditorView extends React.Component<any,any> {
         return false;
     }
 
-    collapse(node:HTMLElement) {
-        var collapseLine:LineView;
-        var i = this.sel.line;
-        while ((collapseLine = this.lines[i]) && !collapseLine.collapsibleCount) {i++}
-
-        if (collapseLine.collapsed) {
-            collapseLine.collapsed = false;
+    collapse(parents: HTMLElement[]) {
+        if (parents.some(parent=>parent.classList.contains('audio') || parent.classList.contains('thumb') || parent.tagName == 'svg')){
+            return;
+        }
+        var line = this.lines[this.sel.line];
+        if (!line.mayHide && !line.collapsibleCount) {
+            return;
+        }
+        for (var i = this.sel.line; i < this.lines.length; i++) {
+            var line = this.lines[i];
+            if (line.collapsibleCount) {
+                var collapseLine = line;
+                break;
+            }
         }
         if (collapseLine) {
             var hidden = !collapseLine.collapsed;
             for (var j = i - 1; j >= i - collapseLine.collapsibleCount; j--) {
                 this.lines[j].hidden = hidden;
-                //console.log({collapseLine, i, j, collapsibleCount:collapseLine.collapsibleCount, line:this.lines[j]});
+                //console.log({collapseLine, hidden, i, j, line: this.lines[j]});
             }
             collapseLine.collapsed = hidden;
             this.forceUpdate();
@@ -544,30 +550,31 @@ class EditorView extends React.Component<any,any> {
         this.forceUpdate();
     }
 
-    clickHandler(target:HTMLElement) {
-        var parents = <HTMLElement[]>[];
-        var node = target;
-        while (node = <HTMLElement>node.parentNode) {
-            parents.push(node);
-        }
-        if (target.tagName === 'SPAN') {
-            this.wordClick(target);
-            return;
-        }
-
+    getHH(parents:HTMLElement[]) {
         for (var i = 0; i < parents.length; i++) {
             var node = parents[i];
             if (node.dataset && node.dataset['line']) {
                 this.sel.lang = 'en';
                 this.sel.line = +node.dataset['line'];
                 this.sel.pos = 0;
-                this.forceUpdate();
-                return;
+                return true;
             }
         }
+        return false;
+    }
+
+    getParents(target:HTMLElement) {
+        var node = target;
+        var parents = <HTMLElement[]>[node];
+        while ((node = <HTMLElement>node.parentNode) && node != this.el.parentNode) {
+            parents.push(node);
+        }
+        return parents;
     }
 
     prepareData(linesStore:LinesStore) {
+        console.log("preparedata");
+
         this.lines = linesStore.data.map((line, i)=> {
                 var en = this.parse(line.lang.en && line.lang.en.text);
                 var ru = this.parse(line.lang.ru && line.lang.ru.text);
@@ -575,6 +582,7 @@ class EditorView extends React.Component<any,any> {
                 return new LineView(line, en, ru, lineView);
             }
         );
+        this.generatePath();
         this.prepareHideLines();
         //this.syncAudioLines();
     }
@@ -608,8 +616,12 @@ class EditorView extends React.Component<any,any> {
     }
 
     mouseClick(e:MouseEvent) {
-        this.clickHandler(<HTMLElement>e.target);
-        this.collapse(<HTMLElement>e.target);
+        var parents = this.getParents(<HTMLElement>e.target);
+        var selectedLine = this.getHH(parents);
+        if (selectedLine) {
+            this.collapse(parents);
+        }
+        //this.clickHandler(<HTMLElement>e.target);
     }
 
     mouseDown(e:MouseEvent) {
@@ -675,7 +687,15 @@ class EditorView extends React.Component<any,any> {
                             className: 'audio-en audio',
                             style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}
                         }),
-                        React.DOM.svg({width: 50, height: 50}, this.generatePath(i)),
+                        React.DOM.svg({width: 50, height: 50},
+                            line.path.map(path=>React.DOM.path({
+                                onClick: ()=> this.play(path.i),
+                                //onMouseEnter: ()=>console.log("enter", j),
+                                //onMouseLeave: ()=>console.log("leave", j),
+                                stroke: "transparent",
+                                d: path.path,
+                                fill: 'hsla(' + (this.lines[path.i].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
+                            }))),
                         div({className: 'audio-ru'}),
                         div({className: 'lng en', 'data-lang': 'en'},
                             line.words.en.map((block, pos)=>
