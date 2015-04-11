@@ -37,6 +37,7 @@ class EditorView extends React.Component<any,any> {
     el:HTMLElement;
     offsetTop = 0;
     playingSources:AudioBufferSourceNode[] = [];
+    audioRate = 0.8;
 
     constructor() {
         super(null, null);
@@ -101,16 +102,6 @@ class EditorView extends React.Component<any,any> {
         this.audioSelection.start = start;
         this.audioSelection.end = end;
         this.playTime();
-        this.updateAudioSelection();
-    }
-
-    playRawLine(i:number) {
-        var start = i;
-        var end = (i + 1);
-        this.audioSelection.start = start;
-        this.audioSelection.end = end;
-        this.playTime();
-        this.updateAudioSelection();
     }
 
     playTime() {
@@ -118,7 +109,6 @@ class EditorView extends React.Component<any,any> {
         var start = this.audioSelection.start;
         var end = this.audioSelection.end;
         var audioData = linesStore.audioData;
-        var rate = .85;
         if (audioData) {
             var dur = end - start;
             if (dur) {
@@ -128,17 +118,15 @@ class EditorView extends React.Component<any,any> {
 
                 var sliced:Float32Array[] = [];
                 var size = 0;
-                var i = 0;
                 this.lines.forEach((line, j) => {
                     if (!line.hidden) {
-                        if (i >= Math.floor(start) && i < Math.ceil(end)) {
-                            var addToStart = Math.max(start - i, 0);
-                            var addToEnd = Math.floor(end) == i ? end - i : 1;
+                        if (j >= Math.floor(start) && j < Math.ceil(end)) {
+                            var addToStart = Math.max(start - j, 0);
+                            var addToEnd = Math.floor(end) == j ? end - j : 1;
                             var slice = channel.subarray((j + addToStart) * audioData.sampleRate, (j + addToEnd) * audioData.sampleRate);
                             sliced.push(slice);
                             size += slice.length;
                         }
-                        i++;
                     }
                 });
                 var buff = this.audioContext.createBuffer(audioData.numberOfChannels, size, audioData.sampleRate);
@@ -148,29 +136,16 @@ class EditorView extends React.Component<any,any> {
                 }, 0);
                 var source = this.audioContext.createBufferSource();
                 source.buffer = buff;
-                source.playbackRate.value = rate;
+                source.playbackRate.value = this.audioRate;
                 source.connect(this.audioContext.destination);
                 source.start(0);
                 this.playingSources.push(source);
-
-                var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
-                currentTime.style.transition = '';
-                currentTime.style.transform = `translateY(${start * 50}px)`;
-                //noinspection BadExpressionStatementJS
-                currentTime.offsetHeight; //force reflow
-                currentTime.style.transition = 'all linear';
-                currentTime.style.transform = `translateY(${end * 50}px)`;
-                currentTime.style.transitionDuration = dur / rate + 's';
-
+                this.updateAudioSelection(true);
             }
         }
 
         else {
-            console
-                .
-                log(
-                "audioData is not loaded yet"
-            );
+            console.log("audioData is not loaded yet");
         }
     }
 
@@ -179,8 +154,6 @@ class EditorView extends React.Component<any,any> {
     }
 
     prepareHideLines() {
-        console.log("prepareHideLines");
-
         var collapsed = 0;
         var prevLine:LineView;
         this.lines.forEach(line => {
@@ -214,32 +187,63 @@ class EditorView extends React.Component<any,any> {
                 line.hidden = true;
             }
         });
+        this.stopPlay();
+        this.clearAudioSelection();
         this.forceUpdate();
     }
 
     stopPlay() {
         var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
         currentTime.style.transition = '';
-        //currentTime.style.transform = '';
-
         this.playingSources.forEach(source=>source.stop());
         this.playingSources = [];
+    }
+
+    fromVisibleToTime(visibleLineN:number) {
+        var k = 0;
+        var start = 0;
+        for (var i = 0; i < this.lines.length; i++) {
+            var line = this.lines[i];
+            if (!line.hidden) {
+                if (visibleLineN < k + 1) {
+                    start = i + visibleLineN - k;
+                    break;
+                }
+                k++;
+            }
+        }
+        return start;
+    }
+
+    timeToVisibleLineN(time:number) {
+        var k = 0;
+        for (var i = 0; i < this.lines.length; i++) {
+            var line = this.lines[i];
+            //console.log({i, k, time, hidden: line.hidden});
+            if (i == Math.floor(time)) {
+                return k + (line.hidden ? 0 : time % 1);
+            }
+            if (!line.hidden) {
+                k++;
+            }
+        }
+        return 0;
     }
 
     selectStart(e:MouseEvent) {
         if ((<HTMLElement>e.target).classList.contains('audio')) {
             this.audioSelection.selecting = true;
-            this.audioSelection.start = (e.pageY - this.offsetTop) / 50;
+            this.audioSelection.start = this.fromVisibleToTime((e.pageY - this.offsetTop) / 50);
             this.audioSelection.selectionStart = this.audioSelection.start;
             this.audioSelection.end = this.audioSelection.start;
-            this.updateAudioSelection();
+            this.updateAudioSelection(false);
             e.preventDefault();
         }
     }
 
     selectMove(e:MouseEvent) {
         if (this.audioSelection.selecting) {
-            var end = (e.pageY - this.offsetTop) / 50;
+            var end = this.fromVisibleToTime((e.pageY - this.offsetTop) / 50);
             if (end <= this.audioSelection.selectionStart) {
                 this.audioSelection.start = end;
                 this.audioSelection.end = this.audioSelection.selectionStart;
@@ -248,7 +252,7 @@ class EditorView extends React.Component<any,any> {
                 this.audioSelection.start = this.audioSelection.selectionStart;
                 this.audioSelection.end = end;
             }
-            this.updateAudioSelection();
+            this.updateAudioSelection(false);
         }
     }
 
@@ -259,10 +263,29 @@ class EditorView extends React.Component<any,any> {
         }
     }
 
-    updateAudioSelection() {
+    clearAudioSelection() {
+        this.audioSelection.start = 0;
+        this.audioSelection.end = 0;
+        this.updateAudioSelection(false);
+    }
+
+    updateAudioSelection(startCurrentTime:boolean) {
         var el = (<HTMLElement>React.findDOMNode(this.refs['audioSelectionEl']));
-        el.style.top = this.audioSelection.start * 50 + 'px';
-        el.style.height = (this.audioSelection.end - this.audioSelection.start) * 50 + 'px';
+        var start = this.timeToVisibleLineN(this.audioSelection.start) * 50;
+        var end = this.timeToVisibleLineN(this.audioSelection.end) * 50;
+        var dur = (end - start) / 50;
+        el.style.top = start + 'px';
+        el.style.height = (end - start) + 'px';
+        if (startCurrentTime) {
+            var currentTime = (<HTMLElement>React.findDOMNode(this.refs['currentTime']));
+            currentTime.style.transition = '';
+            currentTime.style.transform = `translateY(${start}px)`;
+            //noinspection BadExpressionStatementJS
+            currentTime.offsetHeight; //force reflow
+            currentTime.style.transition = 'all linear';
+            currentTime.style.transform = `translateY(${end}px)`;
+            currentTime.style.transitionDuration = dur / this.audioRate + 's';
+        }
     }
 
     insertLine(cut = false) {
@@ -514,8 +537,9 @@ class EditorView extends React.Component<any,any> {
         return false;
     }
 
-    collapse(parents: HTMLElement[]) {
-        if (parents.some(parent=>parent.classList.contains('audio') || parent.classList.contains('thumb') || parent.tagName == 'svg')){
+    collapse(parents:HTMLElement[]) {
+        if (parents.some(
+                    parent=>parent.classList.contains('audio') || parent.classList.contains('thumb') || parent.tagName == 'svg')) {
             return;
         }
         var line = this.lines[this.sel.line];
@@ -536,6 +560,8 @@ class EditorView extends React.Component<any,any> {
                 //console.log({collapseLine, hidden, i, j, line: this.lines[j]});
             }
             collapseLine.collapsed = hidden;
+            this.stopPlay();
+            this.clearAudioSelection();
             this.forceUpdate();
         }
     }
@@ -680,7 +706,6 @@ class EditorView extends React.Component<any,any> {
                         },
                         div({
                             className: 'thumb',
-                            onClick: ()=>this.playRawLine(i),
                             style: {backgroundPosition: this.getThumbPos(i)}
                         }),
                         div({
