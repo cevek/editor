@@ -18,7 +18,7 @@ body { font-family: Tahoma; cursor: default }
 .audio-en { float: left; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
 svg { float: left; }
 .line.linked { background: #DDF0FA; }
-.thumb { float: left; background: url('../data/thumbs.jpg') no-repeat; width: 200px; height: 50px; }
+.thumb { float: left; background: url('../data/thumbs.jpg') no-repeat; background-size: 2000px 1650px; width: 100px; height: 50px; }
 .relative { position: relative }
 .current-time { position: absolute; width: 30px; height: 10px; background: #0FF; mix-blend-mode: multiply; margin: -5px 0 0 200px; }
 .audio-selection { position: absolute; width: 30px; height: 10px; background: #FF0; mix-blend-mode: multiply; margin: 0 0 0 200px; }

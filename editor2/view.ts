@@ -38,6 +38,10 @@ class EditorView extends React.Component<any,any> {
     offsetTop = 0;
     playingSources:AudioBufferSourceNode[] = [];
     audioRate = 0.8;
+    lineDuration = 1;
+    lineHeight = 50;
+    secondHeight = this.lineHeight / this.lineDuration;
+    svgWidth = 50;
 
     constructor() {
         super(null, null);
@@ -68,8 +72,6 @@ class EditorView extends React.Component<any,any> {
     }
 
     generatePath() {
-        var timeX = 50;
-        var lineHeight = 50;
         for (var i = 0; i < this.lines.length; i++) {
             this.lines[i].path = [];
             this.lines[i].haveCrossedPath = false;
@@ -78,17 +80,19 @@ class EditorView extends React.Component<any,any> {
                     var end = line.model.lang.en.end / 100;
                     var start = line.model.lang.en.start / 100;
                     var dur = (end - start);
-                    var leftTop = (start * timeX - lineHeight * i) | 0;
-                    var leftHeight = dur * timeX | 0;
-                    var rightTop = (j - i) * lineHeight;
+                    var leftTop = (start * this.secondHeight - this.lineHeight * i) | 0;
+                    var leftHeight = dur * this.secondHeight | 0;
+                    var rightTop = (j - i) * this.lineHeight;
                     var min = leftTop < rightTop ? leftTop : rightTop;
-                    var max = (leftTop + leftHeight) > (rightTop + lineHeight) ? leftTop + leftHeight : rightTop + lineHeight;
-                    if (min < 0 && 0 < max || min < lineHeight && lineHeight < max) {
+                    var max = (leftTop + this.lineHeight) > (rightTop + this.lineHeight)
+                        ? leftTop + this.lineHeight
+                        : rightTop + this.lineHeight;
+                    if (min < 0 && 0 < max || min < this.lineHeight && this.lineHeight < max) {
                         this.lines[i].haveCrossedPath = true;
                         //noinspection JSUnusedGlobalSymbols
                         this.lines[i].path.push({
                             i: j,
-                            path: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, 50)
+                            path: this.pathGenerator(leftTop, leftHeight, rightTop, this.lineHeight, this.svgWidth)
                         });
                     }
                 }
@@ -187,6 +191,7 @@ class EditorView extends React.Component<any,any> {
                 line.hidden = true;
             }
         });
+
         this.stopPlay();
         this.clearAudioSelection();
         this.forceUpdate();
@@ -233,7 +238,7 @@ class EditorView extends React.Component<any,any> {
     selectStart(e:MouseEvent) {
         if ((<HTMLElement>e.target).classList.contains('audio')) {
             this.audioSelection.selecting = true;
-            this.audioSelection.start = this.fromVisibleToTime((e.pageY - this.offsetTop) / 50);
+            this.audioSelection.start = this.fromVisibleToTime((e.pageY - this.offsetTop) / this.secondHeight);
             this.audioSelection.selectionStart = this.audioSelection.start;
             this.audioSelection.end = this.audioSelection.start;
             this.updateAudioSelection(false);
@@ -243,7 +248,7 @@ class EditorView extends React.Component<any,any> {
 
     selectMove(e:MouseEvent) {
         if (this.audioSelection.selecting) {
-            var end = this.fromVisibleToTime((e.pageY - this.offsetTop) / 50);
+            var end = this.fromVisibleToTime((e.pageY - this.offsetTop) / this.secondHeight);
             if (end <= this.audioSelection.selectionStart) {
                 this.audioSelection.start = end;
                 this.audioSelection.end = this.audioSelection.selectionStart;
@@ -271,9 +276,9 @@ class EditorView extends React.Component<any,any> {
 
     updateAudioSelection(startCurrentTime:boolean) {
         var el = (<HTMLElement>React.findDOMNode(this.refs['audioSelectionEl']));
-        var start = this.timeToVisibleLineN(this.audioSelection.start) * 50;
-        var end = this.timeToVisibleLineN(this.audioSelection.end) * 50;
-        var dur = (end - start) / 50;
+        var start = this.timeToVisibleLineN(this.audioSelection.start) * this.secondHeight;
+        var end = this.timeToVisibleLineN(this.audioSelection.end) * this.secondHeight;
+        var dur = (end - start) / this.secondHeight;
         el.style.top = start + 'px';
         el.style.height = (end - start) + 'px';
         if (startCurrentTime) {
@@ -566,23 +571,23 @@ class EditorView extends React.Component<any,any> {
         }
     }
 
-    wordClick(node:HTMLElement) {
-        var langEl = <HTMLElement>node.parentNode;
-        this.sel.lang = (<any>langEl.dataset)['lang'];
-        var lineEl = <HTMLElement>langEl.parentNode;
-        this.sel.line = +(<any>lineEl.dataset)['line'];
-        var arr = Array.prototype.slice.call(langEl.querySelectorAll('span'));
-        this.sel.pos = arr.indexOf(node);
-        this.forceUpdate();
-    }
-
-    getHH(parents:HTMLElement[]) {
+    getSelectionOnClick(parents:HTMLElement[]) {
+        var line:number;
+        var lang:string;
+        var pos:number;
         for (var i = 0; i < parents.length; i++) {
             var node = parents[i];
+            if (node.tagName == 'SPAN') {
+                pos = Array.prototype.slice.call(node.parentNode.childNodes).indexOf(node);
+            }
+            if (node.dataset && node.dataset['lang']) {
+                lang = node.dataset['lang'];
+            }
             if (node.dataset && node.dataset['line']) {
-                this.sel.lang = 'en';
-                this.sel.line = +node.dataset['line'];
-                this.sel.pos = 0;
+                line = +node.dataset['line'];
+                this.sel.line = line;
+                this.sel.lang = lang === void 0 ? 'en' : lang;
+                this.sel.pos = pos === void 0 ? 0 : pos;
                 return true;
             }
         }
@@ -608,6 +613,7 @@ class EditorView extends React.Component<any,any> {
                 return new LineView(line, en, ru, lineView);
             }
         );
+        //this.sync();
         this.generatePath();
         this.prepareHideLines();
         //this.syncAudioLines();
@@ -628,10 +634,62 @@ class EditorView extends React.Component<any,any> {
         return block;
     }
 
-    getThumbPos(i:number) {
-        var rounded = i % 2 * 50;
-        i = (i / 2 | 0) * 2;
-        return `${(-i % 20) * 243}px ${(-i / 20 | 0) * 100 - rounded}px`;
+    createLinesUntil(array:LineView[], k:number) {
+        for (var i = array.length; i <= k; i++) {
+            array.push(new LineView(new Line(new LangItem(), new LangItem()), [], []));
+        }
+    }
+
+    sync() {
+        var lines = <LineView[]>[];
+        var enLines = <LangItem[]>[];
+        var ruLines = <LangItem[]>[];
+
+        var lastUsedLineEn = -1;
+        var lastUsedLineRu = -1;
+
+        //for (var i = 0; i < linesStore.data.length; i++) {
+        linesStore.data.forEach(model => {
+            var lng = model.lang;
+            if (lng.en && lng.en.start) {
+                enLines.push(lng.en);
+                var enMiddle = (lng.en.start + (lng.en.end - lng.en.start) / 2) / 100 / this.lineDuration;
+                var k = Math.max(Math.round(enMiddle), lastUsedLineEn + 1);
+                lastUsedLineEn = k;
+                this.createLinesUntil(lines, k);
+
+                if (lines[k].model.isEmpty()) {
+                    var lineView = this.lines ? this.lines.filter(lineView=>lineView.model == model).pop() : null;
+                    lines[k] = new LineView(model, [], [], lineView);
+                }
+
+                lines[k].model.lang.en = lng.en;
+            }
+            if (lng.ru && lng.ru.start) {
+                ruLines.push(lng.ru);
+                var ruMiddle = (lng.ru.start + (lng.ru.end - lng.ru.start) / 2) / 100 / this.lineDuration;
+                var k = Math.max(Math.round(ruMiddle), lastUsedLineRu + 1);
+                lastUsedLineRu = k;
+                this.createLinesUntil(lines, k);
+                lines[k].model.lang.ru = lng.ru;
+
+                if (lines[k].model.isEmpty()) {
+                    var lineView = this.lines ? this.lines.filter(lineView=>lineView.model == model).pop() : null;
+                    lines[k] = new LineView(model, [], [], lineView);
+                }
+                lines[k].words.ru = this.parse(lng.ru && lng.ru.text);
+            }
+        });
+        this.lines = lines;
+    }
+
+    getThumbPos(time:number) {
+        //var time = this.fromVisibleToTime(i);
+        var width = 100; //243
+        var height = this.lineHeight;//100;
+        var rounded = 0;//i % 2 * 50;
+        //i = (i / 2 | 0) * 2;
+        return `${(-time % 20) * width}px ${(-time / 20 | 0) * height - rounded}px`;
     }
 
     keyDownGlobal(e:KeyboardEvent) {
@@ -643,9 +701,10 @@ class EditorView extends React.Component<any,any> {
 
     mouseClick(e:MouseEvent) {
         var parents = this.getParents(<HTMLElement>e.target);
-        var selectedLine = this.getHH(parents);
+        var selectedLine = this.getSelectionOnClick(parents);
         if (selectedLine) {
             this.collapse(parents);
+            this.forceUpdate();
         }
         //this.clickHandler(<HTMLElement>e.target);
     }
@@ -710,9 +769,9 @@ class EditorView extends React.Component<any,any> {
                         }),
                         div({
                             className: 'audio-en audio',
-                            style: {backgroundPosition: 0 + 'px ' + -i * 50 + 'px'}
+                            style: {backgroundPosition: 0 + 'px ' + -i * this.lineHeight + 'px'}
                         }),
-                        React.DOM.svg({width: 50, height: 50},
+                        React.DOM.svg({width: this.svgWidth, height: this.lineHeight},
                             line.path.map(path=>React.DOM.path({
                                 onClick: ()=> this.play(path.i),
                                 //onMouseEnter: ()=>console.log("enter", j),

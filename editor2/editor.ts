@@ -63,7 +63,6 @@ class LinesStore {
             var line = new Line(enLines[i] || new LangItem(), ruLines[i] || new LangItem());
             this.add(line);
         }
-
         this.sync2();
     }
 
