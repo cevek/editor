@@ -20,6 +20,6 @@ svg { float: left; }
 .line.linked { background: #DDF0FA; }
 .thumb { float: left; background: url('../data/thumbs.jpg') no-repeat; background-size: 2000px 1650px; width: 100px; height: 50px; }
 .relative { position: relative }
-.current-time { position: absolute; width: 30px; height: 10px; background: #0FF; mix-blend-mode: multiply; margin: -5px 0 0 200px; }
-.audio-selection { position: absolute; width: 30px; height: 10px; background: #FF0; mix-blend-mode: multiply; margin: 0 0 0 200px; }
+.current-time { position: absolute; width: 30px; height: 10px; background: #0FF; mix-blend-mode: multiply; margin: -5px 0 0 100px; }
+.audio-selection { position: absolute; width: 30px; height: 10px; background: #FF0; mix-blend-mode: multiply; margin: 0 0 0 100px; }
 .panel{position: absolute}

@@ -43,6 +43,9 @@ class EditorView extends React.Component<any,any> {
     secondHeight = this.lineHeight / this.lineDuration;
     svgWidth = 50;
 
+    audioWidth = 30;
+    audioHeight = 30000 / (50 * this.lineDuration / this.lineHeight);
+
     constructor() {
         super(null, null);
         glob.editor = this;
@@ -772,7 +775,10 @@ class EditorView extends React.Component<any,any> {
                         }),
                         div({
                             className: 'audio-en audio',
-                            style: {backgroundPosition: 0 + 'px ' + -i * this.lineHeight + 'px'}
+                            style: {
+                                backgroundPosition: 0 + 'px ' + -i * this.lineHeight + 'px',
+                                backgroundSize: `${this.audioWidth}px ${this.audioHeight}px`
+                            }
                         }),
                         React.DOM.svg({width: this.svgWidth, height: this.lineHeight},
                             line.path.map(path=>React.DOM.path({
