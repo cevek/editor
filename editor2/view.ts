@@ -38,7 +38,7 @@ class EditorView extends React.Component<any,any> {
     offsetTop = 0;
     playingSources:AudioBufferSourceNode[] = [];
     audioRate = 0.8;
-    lineDuration = 1;
+    lineDuration = 2;
     lineHeight = 50;
     secondHeight = this.lineHeight / this.lineDuration;
     svgWidth = 50;
@@ -84,12 +84,12 @@ class EditorView extends React.Component<any,any> {
                     var leftHeight = dur * this.secondHeight | 0;
                     var rightTop = (j - i) * this.lineHeight;
                     var min = leftTop < rightTop ? leftTop : rightTop;
-                    var max = (leftTop + this.lineHeight) > (rightTop + this.lineHeight)
-                        ? leftTop + this.lineHeight
+                    var max = (leftTop + leftHeight) > (rightTop + this.lineHeight)
+                        ? leftTop + leftHeight
                         : rightTop + this.lineHeight;
+
                     if (min < 0 && 0 < max || min < this.lineHeight && this.lineHeight < max) {
                         this.lines[i].haveCrossedPath = true;
-                        //noinspection JSUnusedGlobalSymbols
                         this.lines[i].path.push({
                             i: j,
                             path: this.pathGenerator(leftTop, leftHeight, rightTop, this.lineHeight, this.svgWidth)
@@ -112,6 +112,8 @@ class EditorView extends React.Component<any,any> {
         this.stopPlay();
         var start = this.audioSelection.start;
         var end = this.audioSelection.end;
+        var startLine = start / this.lineDuration;
+        var endLine = end / this.lineDuration;
         var audioData = linesStore.audioData;
         if (audioData) {
             var dur = end - start;
@@ -124,10 +126,11 @@ class EditorView extends React.Component<any,any> {
                 var size = 0;
                 this.lines.forEach((line, j) => {
                     if (!line.hidden) {
-                        if (j >= Math.floor(start) && j < Math.ceil(end)) {
-                            var addToStart = Math.max(start - j, 0);
-                            var addToEnd = Math.floor(end) == j ? end - j : 1;
-                            var slice = channel.subarray((j + addToStart) * audioData.sampleRate, (j + addToEnd) * audioData.sampleRate);
+                        if (j >= Math.floor(startLine) && j < Math.ceil(endLine)) {
+                            var addToStart = Math.max(startLine - j, 0);
+                            var addToEnd = Math.floor(endLine) == j ? endLine - j : 1;
+                            var slice = channel.subarray((j + addToStart) * this.lineDuration * audioData.sampleRate | 0,
+                                (j + addToEnd) * this.lineDuration * audioData.sampleRate | 0);
                             sliced.push(slice);
                             size += slice.length;
                         }
@@ -204,29 +207,29 @@ class EditorView extends React.Component<any,any> {
         this.playingSources = [];
     }
 
-    fromVisibleToTime(visibleLineN:number) {
+    fromVisibleToTime(top:number) {
         var k = 0;
-        var start = 0;
+        var top = top / this.lineHeight;
         for (var i = 0; i < this.lines.length; i++) {
             var line = this.lines[i];
             if (!line.hidden) {
-                if (visibleLineN < k + 1) {
-                    start = i + visibleLineN - k;
-                    break;
+                if (top < k + 1) {
+                    return (i + top - k) * this.lineDuration;
                 }
                 k++;
             }
         }
-        return start;
+        return 0;
     }
 
     timeToVisibleLineN(time:number) {
         var k = 0;
+        var lineN = time / this.lineDuration;
         for (var i = 0; i < this.lines.length; i++) {
             var line = this.lines[i];
             //console.log({i, k, time, hidden: line.hidden});
-            if (i == Math.floor(time)) {
-                return k + (line.hidden ? 0 : time % 1);
+            if (i == Math.floor(lineN)) {
+                return (k + (line.hidden ? 0 : lineN % 1)) * this.lineHeight;
             }
             if (!line.hidden) {
                 k++;
@@ -238,7 +241,7 @@ class EditorView extends React.Component<any,any> {
     selectStart(e:MouseEvent) {
         if ((<HTMLElement>e.target).classList.contains('audio')) {
             this.audioSelection.selecting = true;
-            this.audioSelection.start = this.fromVisibleToTime((e.pageY - this.offsetTop) / this.secondHeight);
+            this.audioSelection.start = this.fromVisibleToTime((e.pageY - this.offsetTop));
             this.audioSelection.selectionStart = this.audioSelection.start;
             this.audioSelection.end = this.audioSelection.start;
             this.updateAudioSelection(false);
@@ -248,7 +251,7 @@ class EditorView extends React.Component<any,any> {
 
     selectMove(e:MouseEvent) {
         if (this.audioSelection.selecting) {
-            var end = this.fromVisibleToTime((e.pageY - this.offsetTop) / this.secondHeight);
+            var end = this.fromVisibleToTime((e.pageY - this.offsetTop));
             if (end <= this.audioSelection.selectionStart) {
                 this.audioSelection.start = end;
                 this.audioSelection.end = this.audioSelection.selectionStart;
@@ -276,9 +279,9 @@ class EditorView extends React.Component<any,any> {
 
     updateAudioSelection(startCurrentTime:boolean) {
         var el = (<HTMLElement>React.findDOMNode(this.refs['audioSelectionEl']));
-        var start = this.timeToVisibleLineN(this.audioSelection.start) * this.secondHeight;
-        var end = this.timeToVisibleLineN(this.audioSelection.end) * this.secondHeight;
-        var dur = (end - start) / this.secondHeight;
+        var start = this.timeToVisibleLineN(this.audioSelection.start);
+        var end = this.timeToVisibleLineN(this.audioSelection.end);
+        var dur = (this.audioSelection.end - this.audioSelection.start);
         el.style.top = start + 'px';
         el.style.height = (end - start) + 'px';
         if (startCurrentTime) {

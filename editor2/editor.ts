@@ -363,7 +363,7 @@ class LinesStore {
         for (var i = 0; i < this.data.length; i++) {
             if (this.data[i].lang.en && this.data[i].lang.en.start) {
                 enLines.push(this.data[i].lang.en);
-                var enMiddle = (this.data[i].lang.en.start + (this.data[i].lang.en.end - this.data[i].lang.en.start) / 2) / 100;
+                var enMiddle = (this.data[i].lang.en.start + (this.data[i].lang.en.end - this.data[i].lang.en.start) / 2) / 100 / 2;
                 var k = Math.max(Math.round(enMiddle), lastUsedLineEn + 1);
                 lastUsedLineEn = k;
                 this.createLinesUntil(lines, k);
@@ -371,7 +371,7 @@ class LinesStore {
             }
             if (this.data[i].lang.ru && this.data[i].lang.ru.start) {
                 ruLines.push(this.data[i].lang.ru);
-                var ruMiddle = (this.data[i].lang.ru.start + (this.data[i].lang.ru.end - this.data[i].lang.ru.start) / 2) / 100;
+                var ruMiddle = (this.data[i].lang.ru.start + (this.data[i].lang.ru.end - this.data[i].lang.ru.start) / 2) / 100 / 2;
                 var k = Math.max(Math.round(ruMiddle), lastUsedLineRu + 1);
                 lastUsedLineRu = k;
                 this.createLinesUntil(lines, k);
