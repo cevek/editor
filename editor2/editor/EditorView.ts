@@ -1,4 +1,5 @@
 ///<reference path="config.ts"/>
+///<reference path="HistoryService.ts"/>
 ///<reference path="Events.ts"/>
 ///<reference path="Path.ts"/>
 ///<reference path="AudioPlayer.ts"/>

@@ -1,5 +1,3 @@
-/// <reference path="../typings/es6-promise/es6-promise.d.ts"/>
-
 class HTTP {
     static request<T>(method:string, url:string, data?:any) {
         return new Promise<T>((resolve, reject)=> {

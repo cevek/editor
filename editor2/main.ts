@@ -1,16 +1,16 @@
 //--<reference path="Atomic/lib/Argentum.ts"/>
-///<reference path="EventEmitter.ts"/>
-///<reference path="react.d.ts" />
-///<reference path="DOM.ts" />
-///<reference path="HTTP.ts"/>
+///<reference path="../typings/es6-promise/es6-promise.d.ts"/>
+///<reference path="lib/EventEmitter.ts"/>
+///<reference path="lib/react.d.ts" />
+///<reference path="expiriments/DOM.ts" />
+///<reference path="lib/HTTP.ts"/>
 ///<reference path="Store.ts"/>
-///<reference path="ReactDOM.ts"/>
-///<reference path="HistoryService.ts"/>
+///<reference path="lib/ReactDOM.ts"/>
 ///<reference path="LinesStore.ts"/>
-///<reference path="KeyboardKey.ts"/>
+///<reference path="lib/KeyboardKey.ts"/>
 ///<reference path="editor/EditorView.ts"/>
 ///<reference path="test/LinesStore.spec.ts"/>
-///<reference path="Observer.ts"/>
+///<reference path="expiriments/Observer.ts"/>
 ///<reference path="../typings/webaudioapi/waa.d.ts"/>
 
 
