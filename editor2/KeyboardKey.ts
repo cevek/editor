@@ -1,4 +1,4 @@
-class KeyPress {
+class KeyboardKey {
 [index: string]:boolean;
     noMod = true;
     shiftMod = false;
@@ -219,50 +219,50 @@ class KeyPress {
     static metaLeft = false;
 
     constructor(e:KeyboardEvent) {
-        (<any>this)[KeyPress.keys[e.keyCode]] = true;
+        (<any>this)[KeyboardKey.keys[e.keyCode]] = true;
         if (this.metaLeft) {
-            KeyPress.metaLeft = true;
+            KeyboardKey.metaLeft = true;
             return;
         }
         if (this.metaRight) {
-            KeyPress.metaLeft = false;
+            KeyboardKey.metaLeft = false;
             return;
         }
         if (this.shift) {
-            KeyPress.shiftLeft = e.location === 1;
+            KeyboardKey.shiftLeft = e.location === 1;
             return;
         }
         if (this.ctrl) {
-            KeyPress.ctrlLeft = e.location === 1;
+            KeyboardKey.ctrlLeft = e.location === 1;
             return;
         }
         if (this.alt) {
-            KeyPress.altLeft = e.location === 1;
+            KeyboardKey.altLeft = e.location === 1;
             return;
         }
         if (e.shiftKey) {
             this.noMod = false;
             this.shiftMod = true;
-            this.shiftLeftMod = KeyPress.shiftLeft;
-            this.shiftRightMod = !KeyPress.shiftLeft;
+            this.shiftLeftMod = KeyboardKey.shiftLeft;
+            this.shiftRightMod = !KeyboardKey.shiftLeft;
         }
         if (e.altKey) {
             this.noMod = false;
             this.altMod = true;
-            this.altLeftMod = KeyPress.altLeft;
-            this.altRightMod = !KeyPress.altLeft;
+            this.altLeftMod = KeyboardKey.altLeft;
+            this.altRightMod = !KeyboardKey.altLeft;
         }
         if (e.ctrlKey) {
             this.noMod = false;
             this.ctrlMod = true;
-            this.ctrlLeftMod = KeyPress.ctrlLeft;
-            this.ctrlRightMod = !KeyPress.ctrlLeft;
+            this.ctrlLeftMod = KeyboardKey.ctrlLeft;
+            this.ctrlRightMod = !KeyboardKey.ctrlLeft;
         }
         if (e.metaKey) {
             this.noMod = false;
             this.metaMod = true;
-            this.metaLeftMod = KeyPress.metaLeft;
-            this.metaRightMod = !KeyPress.metaLeft;
+            this.metaLeftMod = KeyboardKey.metaLeft;
+            this.metaRightMod = !KeyboardKey.metaLeft;
         }
         /*var keys = Object.keys(this);
         for (var i = 0; i < keys.length; i++) {

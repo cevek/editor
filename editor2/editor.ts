@@ -415,7 +415,7 @@ Promise.all([
     console.log(values);
 
     linesStore.parse(values[0], values[1]);
-    React.render(React.createElement(EditorView), document.getElementById('body'));
+    React.render(React.createElement(editor.EditorView), document.getElementById('body'));
 });
 
 HTTP.get<ArrayBuffer>('../data/enAudio.mp3', true, 'arraybuffer')
