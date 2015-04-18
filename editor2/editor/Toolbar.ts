@@ -1,7 +1,7 @@
 module editor {
     export class Toolbar {
         constructor(private model:Model,
-                    private eventEmitter:EventEmitter<Action>) {}
+                    private events:Events) {}
 
         hideEmptyLines() {
             this.model.lines.forEach(line => {
@@ -13,8 +13,8 @@ module editor {
                 }
             });
 
-            this.eventEmitter.emit(Action.STOP);
-            this.eventEmitter.emit(Action.UPDATE_AUDIO_SELECTION);
+            this.events.stop.emit();
+            this.events.updateAudioSelection.emit();
         }
     }
 

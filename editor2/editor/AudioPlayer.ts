@@ -6,11 +6,9 @@ module editor {
 
         constructor(private model:Model) {}
 
-        play(audioSelection:AudioSelection) {
+        play(start:number, end: number) {
             this.stopPlay();
             var lineDuration = config.lineDuration;
-            var start = audioSelection.start;
-            var end = audioSelection.end;
             var startLine = start / lineDuration;
             var endLine = end / lineDuration;
             var audioData = linesStore.audioData;

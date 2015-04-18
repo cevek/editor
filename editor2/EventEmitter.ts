@@ -1,7 +1,7 @@
 class EventEmitter<T> {
     private listeners:((data:T)=>void)[] = [];
 
-    emit(val:T) {
+    emit(val?:T) {
         for (var i = 0; i < this.listeners.length; i++) {
             var listener = this.listeners[i];
             listener(val);

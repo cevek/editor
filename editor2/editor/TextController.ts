@@ -8,38 +8,18 @@ module editor {
 
     export class TextController {
         constructor(private model:Model,
-                    private eventEmitter:EventEmitter<Action>,
+                    private events:Events,
                     private el:HTMLElement,
                     private forceUpdate:()=>void) {
 
-            this.eventEmitter.listen(action => {
-                switch (action) {
-                    case Action.DOWN:
-                        this.moveCaretUpDown(false);
-                        break;
-                    case Action.UP:
-                        this.moveCaretUpDown(true);
-                        break;
-                    case Action.LEFT:
-                        this.leftRight(true);
-                        break;
-                    case Action.RIGHT:
-                        this.leftRight(false);
-                        break;
-                    case Action.INSERT_LINE:
-                        this.insertLine();
-                        break;
-                    case Action.REMOVE_LINE:
-                        this.removeLine(false);
-                        break;
-                    case Action.APPEND_LINE:
-                        this.removeLine(true);
-                        break;
-                    case Action.LINKED_NEGATE:
-                        this.linkedNegate();
-                        break;
-                }
-            });
+            this.events.up.listen(()=>this.moveCaretUpDown(true));
+            this.events.down.listen(()=>this.moveCaretUpDown(false));
+            this.events.left.listen(()=>this.leftRight(true));
+            this.events.right.listen(()=>this.leftRight(false));
+            this.events.insertLine.listen(()=>this.insertLine());
+            this.events.appendLine.listen(()=>this.removeLine(true));
+            this.events.removeLine.listen(()=>this.removeLine(false));
+            this.events.linkedNegate.listen(()=>this.linkedNegate());
             this.el.addEventListener('click', e => this.mouseClick(e));
         }
 
@@ -282,7 +262,7 @@ module editor {
                     //console.log({collapseLine, hidden, i, j, line: this.lines[j]});
                 }
                 collapseLine.collapsed = hidden;
-                this.eventEmitter.emit(Action.UPDATE_AUDIO_SELECTION);
+                this.events.updateAudioSelection.emit();
                 this.forceUpdate();
             }
         }

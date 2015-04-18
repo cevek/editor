@@ -9,22 +9,14 @@ module editor {
         player = new AudioPlayer(this.model);
 
         constructor(private model:Model,
-                    private eventEmitter:EventEmitter<Action>,
+                    private events:Events,
                     private el:HTMLElement,
                     private audioSelectionEl:HTMLElement,
                     private currentTime:HTMLElement) {
 
-            eventEmitter.listen(action => {
-                if (action == Action.PLAY) {
-                    this.play();
-                }
-                if (action == Action.STOP) {
-                    this.stop();
-                }
-                if (action == Action.UPDATE_AUDIO_SELECTION) {
-                    this.update(false);
-                }
-            });
+            events.play.listen(()=>this.play());
+            events.stop.listen(()=>this.stop());
+            events.updateAudioSelection.listen(()=>this.update(false));
 
             el.addEventListener('mousedown', e => this.selectStart(e));
             document.addEventListener('mousemove', e => this.selectMove(e));
@@ -102,7 +94,7 @@ module editor {
 
         play() {
             this.update(true);
-            this.player.play(this);
+            this.player.play(this.start, this.end);
         }
 
         stop() {

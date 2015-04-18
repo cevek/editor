@@ -1,4 +1,5 @@
 ///<reference path="config.ts"/>
+///<reference path="Events.ts"/>
 ///<reference path="Path.ts"/>
 ///<reference path="AudioPlayer.ts"/>
 ///<reference path="AudioSelection.ts"/>
@@ -20,21 +21,17 @@ module editor {
 
         model = new Model;
         path = new Path(this.model);
-        eventEmitter = new EventEmitter<Action>();
-        toolbar = new Toolbar(this.model, this.eventEmitter);
-        keyManager = new KeyManager(this.eventEmitter);
+        //eventEmitter = new EventEmitter<Action>();
+        events = new Events;
+        toolbar = new Toolbar(this.model, this.events);
+        keyManager = new KeyManager(this.events);
+
 
         constructor() {
             super(null, null);
             glob.editor = this;
-            this.eventEmitter.listen(action => {
-                if (action == Action.UNDO) {
-                    this.undo();
-                }
-                if (action == Action.REDO) {
-                    this.redo();
-                }
-            });
+            this.events.undo.listen(()=>this.undo());
+            this.events.redo.listen(()=>this.redo());
         }
 
         undo() {
@@ -80,12 +77,12 @@ module editor {
 
             this.audioSelection = new AudioSelection(
                 this.model,
-                this.eventEmitter,
+                this.events,
                 this.el,
                 <HTMLElement>React.findDOMNode(this.refs['audioSelection']),
                 <HTMLElement>React.findDOMNode(this.refs['currentTime'])
             );
-            this.textEditor = new TextController(this.model, this.eventEmitter, this.el, ()=>this.forceUpdate());
+            this.textEditor = new TextController(this.model, this.events, this.el, ()=>this.forceUpdate());
             this.textEditor.updateCursor();
         }
 
