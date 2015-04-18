@@ -5,6 +5,10 @@ class WordSelection {
     leftOffset = -1;
 }
 
+const enum Pos{
+    TOP, BOTTOM
+}
+
 class LineView {
     model:Line;
     words:{[index: string]: string[]; en: string[]; ru: string[]};
@@ -13,7 +17,7 @@ class LineView {
     collapsibleCount = 0;
     collapsed = false;
     haveCrossedPath = false;
-    path:{i: number;path:string}[];
+    path:{i: number; path:string; top: number; height: number;}[];
 
     constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
         this.model = model;
@@ -91,10 +95,13 @@ class EditorView extends React.Component<any,any> {
                         ? leftTop + leftHeight
                         : rightTop + this.lineHeight;
 
-                    if (min < 0 && 0 < max || min < this.lineHeight && this.lineHeight < max) {
+                    var margin = 0;
+                    if (min < -margin && -margin < max || min < this.lineHeight + margin && this.lineHeight + margin < max) {
                         this.lines[i].haveCrossedPath = true;
                         this.lines[i].path.push({
                             i: j,
+                            top: leftTop,
+                            height: leftHeight,
                             path: this.pathGenerator(leftTop, leftHeight, rightTop, this.lineHeight, this.svgWidth)
                         });
                     }
@@ -140,10 +147,12 @@ class EditorView extends React.Component<any,any> {
                     }
                 });
                 var buff = this.audioContext.createBuffer(audioData.numberOfChannels, size, audioData.sampleRate);
-                sliced.reduce((offset, slice) => {
+                var offset = 0;
+                for (var i = 0; i < sliced.length; i++) {
+                    var slice = sliced[i];
                     buff.getChannelData(0).set(slice, offset);
-                    return offset + slice.length;
-                }, 0);
+                    offset += slice.length;
+                }
                 var source = this.audioContext.createBufferSource();
                 source.buffer = buff;
                 source.playbackRate.value = this.audioRate;
@@ -272,6 +281,18 @@ class EditorView extends React.Component<any,any> {
             this.audioSelection.selecting = false;
             this.playTime();
         }
+    }
+
+    resizeTime(e:MouseEvent, i:number, pos:Pos) {
+        console.log({e, i, pos});
+    }
+
+    resizeTimeMove(e:MouseEvent) {
+
+    }
+
+    resizeTimeEnd(e:MouseEvent) {
+
     }
 
     clearAudioSelection() {
@@ -626,7 +647,7 @@ class EditorView extends React.Component<any,any> {
     }
 
     parse(str:string) {
-        var regexp = /([\s.]*?([-–—][ \t]+)?[\wа-яА-Я'\`]+[^\s]*)/g;
+        var regexp = /([\s.]*?([-–—][ \t]+)?[\wа-яА-Я']+[^\s]*)/g;
         var m:RegExpExecArray;
         var pos = 0;
         var block:string[] = [];
@@ -781,14 +802,30 @@ class EditorView extends React.Component<any,any> {
                             }
                         }),
                         React.DOM.svg({width: this.svgWidth, height: this.lineHeight},
-                            line.path.map(path=>React.DOM.path({
-                                onClick: ()=> this.play(path.i),
-                                //onMouseEnter: ()=>console.log("enter", j),
-                                //onMouseLeave: ()=>console.log("leave", j),
-                                stroke: "transparent",
-                                d: path.path,
-                                fill: 'hsla(' + (this.lines[path.i].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
-                            }))),
+                            line.path.map(path=>[
+                                React.DOM.path({
+                                    onClick: ()=> this.play(path.i),
+                                    //onMouseEnter: ()=>console.log("enter", j),
+                                    //onMouseLeave: ()=>console.log("leave", j),
+                                    stroke: "transparent",
+                                    d: path.path,
+                                    fill: 'hsla(' + (this.lines[path.i].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
+                                }),
+                                React.DOM.rect(<any>{
+                                    onClick: (e:React.MouseEvent)=> this.resizeTime(<MouseEvent>e.nativeEvent, path.i, Pos.TOP),
+                                    x: 0,
+                                    y: path.top - 10,
+                                    width: 20,
+                                    height: 20
+                                }),
+                                React.DOM.rect(<any>{
+                                    onClick: (e:React.MouseEvent)=> this.resizeTime(<MouseEvent>e.nativeEvent, path.i, Pos.BOTTOM),
+                                    x: 0,
+                                    y: path.top + path.height - 10,
+                                    width: 20,
+                                    height: 20
+                                })
+                            ])),
                         div({className: 'audio-ru'}),
                         div({className: 'lng en', 'data-lang': 'en'},
                             line.words.en.map((block, pos)=>
