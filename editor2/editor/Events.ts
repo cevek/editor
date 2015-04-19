@@ -12,6 +12,7 @@ module editor {
         play = new EventEmitter;
         stop = new EventEmitter;
         updateAudioSelection = new EventEmitter;
-        linkedNegate = new EventEmitter
+        linkedNegate = new EventEmitter;
+        mouseClick = new EventEmitter<MouseEvent>();
     }
 }

@@ -76,10 +76,12 @@ module editor {
                 }
             });
 
+            this.el.addEventListener('click', e => this.events.mouseClick.emit(e));
+
             this.audioSelection = new AudioSelection(
                 this.model,
                 this.events,
-                this.el,
+                this.el.offsetTop,
                 <HTMLElement>React.findDOMNode(this.refs['audioSelection']),
                 <HTMLElement>React.findDOMNode(this.refs['currentTime'])
             );

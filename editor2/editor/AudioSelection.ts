@@ -4,21 +4,19 @@ module editor {
         end = 0;
         selecting = false;
         selectionStart = 0;
-        offsetTop = this.el.offsetTop;
-
         player = new AudioPlayer(this.model);
 
         constructor(private model:Model,
                     private events:Events,
-                    private el:HTMLElement,
+                    private offsetTop:number,
                     private audioSelectionEl:HTMLElement,
                     private currentTime:HTMLElement) {
 
             events.play.listen(()=>this.play());
             events.stop.listen(()=>this.stop());
             events.updateAudioSelection.listen(()=>this.update(false));
+            events.mouseClick.listen(e => this.selectStart(e));
 
-            el.addEventListener('mousedown', e => this.selectStart(e));
             document.addEventListener('mousemove', e => this.selectMove(e));
             document.addEventListener('mouseup', e => this.selectEnd(e));
         }
