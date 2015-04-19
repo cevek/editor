@@ -20,20 +20,42 @@ function observe(obj:any, key:string) {
                 this[globalObserver] = {};
                 this[globalObserver][globalListeners] = {};
             }
+            this[globalObserver][key] = val;
             if (this[globalObserver][globalListeners][key]) {
                 for (var i = 0; i < this[globalObserver][globalListeners][key].length; i++) {
                     var listener = this[globalObserver][globalListeners][key][i];
                     listener();
                 }
             }
-            this[globalObserver][key] = val;
         }
     });
 }
 
-interface Observed {
-    listen(callback:()=>void):Observed;
-    unlisten(callback:()=>void):Observed;
+class Observed {
+    constructor(private stack:any[], private args:any[]) {}
+
+    listen(callback:()=>void) {
+        for (var i = 0; i < this.stack.length; i++) {
+            var item = this.stack[i];
+            var listeners = item[0][globalObserver][globalListeners];
+            listeners[item[1]] = listeners[item[1]] || [];
+            listeners[item[1]].push(callback);
+        }
+        return this;
+    }
+
+    unlisten(callback:()=>void) {
+        for (var i = 0; i < this.stack.length; i++) {
+            var item = this.stack[i];
+            var listeners = item[0][globalObserver][globalListeners];
+            listeners[item[1]] = listeners[item[1]] || [];
+            var pos = listeners[item[1]].indexOf(callback);
+            if (pos > -1) {
+                listeners[item[1]].splice(pos, 1);
+            }
+        }
+        return this;
+    }
 }
 
 declare
@@ -47,20 +69,10 @@ Object.defineProperty(window, 'Observer', {
             var args = Array.prototype.slice.call(arguments, 0);
             var stack = __observe_stack;
             __observe_stack = old_stack;
-            var fn = args.pop();
-            if (typeof fn !== "function") {
-                throw new Error("last arg is not function");
-            }
-
-            for (var i = 0; i < stack.length; i++) {
-                var item = stack[i];
-                var listeners = item[0][globalObserver][globalListeners];
-                listeners[item[1]] = listeners[item[1]] || [];
-                listeners[item[1]].push(fn);
-            }
             if (stack.length !== args.length) {
                 throw new Error(`Not all parameters observed: ${stack.length} of ${args.length}`);
             }
+            return new Observed(stack, args);
         };
     }
 });

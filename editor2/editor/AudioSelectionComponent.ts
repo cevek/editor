@@ -3,7 +3,7 @@ module editor {
 
         selecting = false;
         selectionStart = 0;
-        player = new AudioPlayer(this.props.model);
+        player = new AudioPlayer(this.model);
         currentTime:HTMLElement;
         el:HTMLElement;
 
@@ -11,29 +11,33 @@ module editor {
         startY = 0;
         endY = 0;
 
+        model = this.props.model;
+        audioSelection = this.props.model.audioSelection;
+        events = this.props.events;
+
         selectStart(e:MouseEvent) {
             if ((<HTMLElement>e.target).classList.contains('audio')) {
                 this.selecting = true;
-                this.props.model.audioSelection.start = this.props.model.fromVisibleToTime(e.pageY - this.offsetTop);
-                this.selectionStart = this.props.model.audioSelection.start;
-                this.props.model.audioSelection.end = this.props.model.audioSelection.start;
+                this.audioSelection.start = this.model.fromVisibleToTime(e.pageY - this.offsetTop);
+                this.selectionStart = this.audioSelection.start;
+                this.audioSelection.end = this.audioSelection.start;
                 e.preventDefault();
                 this.stopCurrentTime();
-                this.props.model.audioSelection.stop();
+                this.audioSelection.stop();
                 this.forceUpdate();
             }
         }
 
         selectMove(e:MouseEvent) {
             if (this.selecting) {
-                var end = this.props.model.fromVisibleToTime(e.pageY - this.offsetTop);
+                var end = this.model.fromVisibleToTime(e.pageY - this.offsetTop);
                 if (end <= this.selectionStart) {
-                    this.props.model.audioSelection.start = end;
-                    this.props.model.audioSelection.end = this.selectionStart;
+                    this.audioSelection.start = end;
+                    this.audioSelection.end = this.selectionStart;
                 }
                 else {
-                    this.props.model.audioSelection.start = this.selectionStart;
-                    this.props.model.audioSelection.end = end;
+                    this.audioSelection.start = this.selectionStart;
+                    this.audioSelection.end = end;
                 }
                 this.forceUpdate();
             }
@@ -42,19 +46,19 @@ module editor {
         selectEnd(e:MouseEvent) {
             if (this.selecting) {
                 this.selecting = false;
-                this.props.model.audioSelection.playCurrent();
+                this.audioSelection.playCurrent();
                 this.startCurrentTime();
                 this.forceUpdate();
             }
         }
 
         clear() {
-            this.props.model.audioSelection.start = 0;
-            this.props.model.audioSelection.end = 0;
+            this.audioSelection.start = 0;
+            this.audioSelection.end = 0;
         }
 
         startCurrentTime() {
-            var dur = (this.props.model.audioSelection.end - this.props.model.audioSelection.start);
+            var dur = (this.audioSelection.end - this.audioSelection.start);
             this.currentTime.style.transition = '';
             this.currentTime.style.transform = `translateY(${this.startY}px)`;
             //noinspection BadExpressionStatementJS
@@ -69,17 +73,21 @@ module editor {
         }
 
         componentDidMount() {
-            Observer(this.props.model.audioSelection.status, () => {
-                var status = this.props.model.audioSelection.status;
+            Observer(this.audioSelection.status).listen(() => {
+                var status = this.audioSelection.status;
                 if (status == AudioSelectionState.PLAYING) {
                     this.startCurrentTime();
                 }
                 if (status == AudioSelectionState.STOPPED) {
                     this.stopCurrentTime();
                 }
+                this.forceUpdate();
             });
-
-            //this.props.events.updateAudioSelection.listen(()=>this.update(false));
+            Observer(this.audioSelection.start, this.audioSelection.end).listen(() => {
+                this.startY = this.model.timeToVisibleLineN(this.audioSelection.start);
+                this.endY = this.model.timeToVisibleLineN(this.audioSelection.end);
+                this.forceUpdate();
+            });
 
             this.el = <HTMLElement>React.findDOMNode(this.refs['audioSelection']);
             this.currentTime = <HTMLElement>React.findDOMNode(this.refs['currentTime']);
@@ -92,8 +100,6 @@ module editor {
         }
 
         render() {
-            this.startY = this.props.model.timeToVisibleLineN(this.props.model.audioSelection.start);
-            this.endY = this.props.model.timeToVisibleLineN(this.props.model.audioSelection.end);
             return div({className: 'relative'},
                 div({
                     className: 'audio-selection audio', style: {
