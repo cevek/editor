@@ -15,8 +15,6 @@ module editor {
             if (audioData) {
                 var dur = end - start;
                 if (dur) {
-                    console.log("play", start, end, dur);
-
                     var channel = audioData.getChannelData(0);
 
                     var sliced:Float32Array[] = [];

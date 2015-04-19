@@ -1,5 +1,5 @@
 module editor {
-    export class Path extends React.Component<{model:Model; lineN:number; audioSelection: AudioSelection},any> {
+    export class PathComponent extends React.Component<{model:Model; lineN:number;},any> {
 
         path = '';
         marginTop = 0;
@@ -10,12 +10,20 @@ module editor {
         handleWidth = 20;
         bottom = 0;
         top = 0;
+        resizeKoef = 2;
+
 
         selecting = false;
         selectionStartY = 0;
         selectionStartTime = 0;
         isSelectionStartTime = false;
         //constructor(private model:Model) {}
+
+        playLine(i:number) {
+            var start = this.props.model.lines[i].model.lang.en.start / 100;
+            var end = this.props.model.lines[i].model.lang.en.end / 100;
+            this.props.model.audioSelection.play(start, end);
+        }
 
         static pathGenerator(topLeft:number, bottomLeft:number, topRight:number, bottomRight:number, width:number) {
             var bx = width / 2;
@@ -61,7 +69,7 @@ module editor {
                 this.marginBottom = this.height > lineHeight ? this.height - lineHeight : 0;
                 this.top = leftTop + marginTop;
                 this.bottom = leftBottom + marginTop;
-                this.path = Path.pathGenerator(this.top, this.bottom, rightTop + marginTop, rightBottom + marginTop, config.svgWidth);
+                this.path = PathComponent.pathGenerator(this.top, this.bottom, rightTop + marginTop, rightBottom + marginTop, config.svgWidth);
                 return true;
             }
             return false;
@@ -82,10 +90,10 @@ module editor {
                 var lang = this.props.model.lines[this.props.lineN].model.lang.en;
                 var diff = e.pageY - this.selectionStartY;
                 if (this.isSelectionStartTime) {
-                    lang.start = this.selectionStartTime + diff;
+                    lang.start = this.selectionStartTime + diff * this.resizeKoef;
                 }
                 else {
-                    lang.end = this.selectionStartTime + diff;
+                    lang.end = this.selectionStartTime + diff * this.resizeKoef;
                 }
                 this.forceUpdate();
                 e.preventDefault();
@@ -96,6 +104,8 @@ module editor {
             if (this.selecting) {
                 this.selecting = false;
                 document.body.classList.remove('resize-ns');
+                var lang = this.props.model.lines[this.props.lineN].model.lang.en;
+                this.props.model.audioSelection.play(lang.start / 100, lang.end / 100);
             }
         }
 
@@ -128,11 +138,11 @@ module editor {
             return React.DOM.svg({
                     width: config.svgWidth,
                     height: this.height,
-                    style: {webkitTransform: `translateY(-${this.marginTop}px)`}
+                    style: {WebkitTransform: `translateY(-${this.marginTop}px)`}
                 },
                 React.DOM.path({
                     //todo:
-                    onClick: ()=> this.props.audioSelection.playLine(this.props.lineN),
+                    onClick: ()=> this.playLine(this.props.lineN),
                     //onMouseEnter: ()=>console.log("enter", j),
                     //onMouseLeave: ()=>console.log("leave", j),
                     stroke: "transparent",

@@ -1,5 +1,7 @@
 //--<reference path="Atomic/lib/Argentum.ts"/>
 ///<reference path="../typings/es6-promise/es6-promise.d.ts"/>
+///<reference path="lib/Observable.ts"/>
+///<reference path="lib/Observer.ts"/>
 ///<reference path="lib/EventEmitter.ts"/>
 ///<reference path="lib/react.d.ts" />
 ///<reference path="expiriments/DOM.ts" />
@@ -8,9 +10,9 @@
 ///<reference path="lib/ReactDOM.ts"/>
 ///<reference path="LinesStore.ts"/>
 ///<reference path="lib/KeyboardKey.ts"/>
-///<reference path="editor/EditorView.ts"/>
+///<reference path="editor/EditorComponent.ts"/>
 ///<reference path="test/LinesStore.spec.ts"/>
-///<reference path="expiriments/Observer.ts"/>
+///<reference path="lib/Observer.ts"/>
 ///<reference path="../typings/webaudioapi/waa.d.ts"/>
 
 
@@ -22,7 +24,7 @@ Promise.all([
     console.log(values);
 
     linesStore.parse(values[0], values[1]);
-    React.render(React.createElement(editor.EditorView), document.getElementById('body'));
+    React.render(React.createElement(editor.EditorComponent), document.getElementById('body'));
 });
 
 HTTP.get<ArrayBuffer>('../data/enAudio.mp3', true, 'arraybuffer')

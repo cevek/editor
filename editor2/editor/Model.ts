@@ -25,6 +25,7 @@ module editor {
     export class Model {
         lines:LineView[];
         sel = new WordSelection();
+        audioSelection = new AudioSelection(this);
 
         fromVisibleToTime(top:number) {
             var k = 0;
@@ -87,8 +88,6 @@ module editor {
         }
 
         prepareData(linesStore:LinesStore) {
-            console.log("preparedata");
-
             this.lines = linesStore.data.map((line, i)=> {
                     var en = this.parse(line.lang.en && line.lang.en.text);
                     var ru = this.parse(line.lang.ru && line.lang.ru.text);

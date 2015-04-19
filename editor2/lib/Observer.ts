@@ -5,7 +5,7 @@ var globalObserver = Sym("observer");
 var globalListeners = Sym("listeners");
 
 function observe(obj:any, key:string) {
-    return {
+    Object.defineProperty(obj, key, {
         enumerable: true,
         get: function () {
             __observe_stack.push([this, key]);
@@ -28,11 +28,16 @@ function observe(obj:any, key:string) {
             }
             this[globalObserver][key] = val;
         }
-    }
+    });
+}
+
+interface Observed {
+    listen(callback:()=>void):Observed;
+    unlisten(callback:()=>void):Observed;
 }
 
 declare
-function Observer(...deps:any[]):void;
+function Observer(...deps:any[]):Observed;
 
 Object.defineProperty(window, 'Observer', {
     get: function () {
@@ -59,7 +64,6 @@ Object.defineProperty(window, 'Observer', {
         };
     }
 });
-
 
 class Test {
     @observe a:string;

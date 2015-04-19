@@ -1,9 +1,10 @@
 ///<reference path="config.ts"/>
 ///<reference path="HistoryService.ts"/>
 ///<reference path="Events.ts"/>
-///<reference path="Path.ts"/>
+///<reference path="PathComponent.ts"/>
 ///<reference path="AudioPlayer.ts"/>
 ///<reference path="AudioSelection.ts"/>
+///<reference path="AudioSelectionComponent.ts"/>
 ///<reference path="KeyManager.ts"/>
 ///<reference path="TextController.ts"/>
 ///<reference path="Utils.ts"/>
@@ -11,7 +12,7 @@
 ///<reference path="Toolbar.ts"/>
 
 module editor {
-    export class EditorView extends React.Component<any,any> {
+    export class EditorComponent extends React.Component<any,any> {
         el:HTMLElement;
         offsetTop = 0;
 
@@ -29,14 +30,6 @@ module editor {
             this.historyService,
             null,
             ()=>this.forceUpdate());
-
-        audioSelection = new AudioSelection(
-            this.model,
-            this.events,
-            null,
-            null,
-            null
-        );
 
         constructor() {
             super(null, null);
@@ -87,10 +80,7 @@ module editor {
             });
 
             this.el.addEventListener('click', e => this.events.mouseClick.emit(e));
-
-            this.audioSelection.audioSelectionEl = <HTMLElement>React.findDOMNode(this.refs['audioSelection']);
-            this.audioSelection.currentTime = <HTMLElement>React.findDOMNode(this.refs['currentTime']);
-            this.audioSelection.offsetTop = this.el.offsetTop;
+            this.el.addEventListener('mousedown', e => this.events.mouseDown.emit(e));
 
             this.textEditor.el = this.el;
             this.textEditor.updateCursor();
@@ -104,10 +94,10 @@ module editor {
                 div({className: 'panel'},
                     React.DOM.button({onClick: ()=>this.toolbar.hideEmptyLines()}, 'Hide')
                 ),
-                div({className: 'relative'},
-                    div({className: 'audio-selection audio', ref: 'audioSelection'}),
-                    div({className: 'current-time audio', ref: 'currentTime'})
-                ),
+                React.createElement(AudioSelectionComponent, {
+                    model: this.model,
+                    events: this.events
+                }),
                 this.model.lines.map(
                     (line, i) =>
                         div({
@@ -132,10 +122,9 @@ module editor {
                                     backgroundSize: `${config.audioWidth}px ${this.audioHeight}px`
                                 }
                             }),
-                            React.createElement(Path, {
+                            React.createElement(PathComponent, {
                                 model: this.model,
-                                lineN: i,
-                                audioSelection: this.audioSelection
+                                lineN: i
                             }),
                             div({className: 'audio-ru'}),
                             div({className: 'lng en', 'data-lang': 'en'},
