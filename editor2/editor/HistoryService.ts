@@ -26,22 +26,22 @@ class Change {
     command:string;
     append:boolean;
 }
-interface IHistoryService {[n: number]: Change}
-class HistoryService extends List<Change> implements IHistoryService {
+class HistoryService {
+    private data:Change[] = [];
     private index = 0;
 
     add(change:Change) {
-        if (this.length > this.index) {
-            this.splice(this.index);
+        if (this.data.length > this.index) {
+            this.data.splice(this.index);
         }
-        this.push(change);
+        this.data.push(change);
         this.index++;
     }
 
     forward():Change {
-        if (this.index < this.length) {
+        if (this.index < this.data.length) {
             this.index++;
-            return this[this.index - 1];
+            return this.data[this.index - 1];
         }
         return null;
     }
@@ -50,10 +50,9 @@ class HistoryService extends List<Change> implements IHistoryService {
         if (this.index > 0) {
             this.index--;
 
-            return this[this.index];
+            return this.data[this.index];
         }
         return null;
     }
 
 }
-var historyService = new HistoryService();

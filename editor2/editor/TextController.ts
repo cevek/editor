@@ -9,6 +9,7 @@ module editor {
     export class TextController {
         constructor(private model:Model,
                     private events:Events,
+                    private historyService:HistoryService,
                     private el:HTMLElement,
                     private forceUpdate:()=>void) {
 
@@ -20,7 +21,7 @@ module editor {
             this.events.appendLine.listen(()=>this.removeLine(true));
             this.events.removeLine.listen(()=>this.removeLine(false));
             this.events.linkedNegate.listen(()=>this.linkedNegate());
-            this.el.addEventListener('click', e => this.mouseClick(e));
+            this.events.mouseClick.listen(e=>this.mouseClick(e))
         }
 
         mouseClick(e:MouseEvent) {
@@ -66,16 +67,15 @@ module editor {
         }
 
         updateCursor() {
-            var el = <HTMLElement>React.findDOMNode(this.el);
-            var selected = (<HTMLElement>el.querySelector('.selected'));
+            var selected = (<HTMLElement>this.el.querySelector('.selected'));
             if (selected) {
                 selected.classList.remove('selected');
             }
-            for (var current of <HTMLElement[]>[].slice.call(el.querySelectorAll('.current'))) {
+            for (var current of <HTMLElement[]>[].slice.call(this.el.querySelectorAll('.current'))) {
                 current.classList.remove('current');
             }
 
-            var line = <HTMLElement>el.querySelector(`[data-line="${this.model.sel.line}"]`);
+            var line = <HTMLElement>this.el.querySelector(`[data-line="${this.model.sel.line}"]`);
             if (line) {
                 var lng = <HTMLElement>line.querySelector(`.lng.${this.model.sel.lang}`);
                 if (lng) {
@@ -180,7 +180,7 @@ module editor {
                     this.model.sel.pos = 0;
                     change.cursorBefore = {line: line, pos: pos};
                     change.cursorAfter = {line: this.model.sel.line, pos: this.model.sel.pos};
-                    historyService.add(change);
+                    this.historyService.add(change);
                     this.forceUpdate();
                 }
             }
@@ -213,7 +213,7 @@ module editor {
                 }
                 change.cursorBefore = {line: line, pos: pos};
                 change.cursorAfter = {line: this.model.sel.line, pos: this.model.sel.pos};
-                historyService.add(change);
+                this.historyService.add(change);
                 this.forceUpdate();
             }
         }

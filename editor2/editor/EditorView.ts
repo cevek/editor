@@ -26,7 +26,7 @@ module editor {
         events = new Events;
         toolbar = new Toolbar(this.model, this.events);
         keyManager = new KeyManager(this.events);
-
+        historyService = new HistoryService();
 
         constructor() {
             super(null, null);
@@ -36,7 +36,7 @@ module editor {
         }
 
         undo() {
-            var change = historyService.back();
+            var change = this.historyService.back();
             if (change) {
                 linesStore.undo(change);
                 this.textEditor.undo(change);
@@ -45,7 +45,7 @@ module editor {
         }
 
         redo() {
-            var change = historyService.forward();
+            var change = this.historyService.forward();
             if (change) {
                 linesStore.redo(change);
                 this.textEditor.redo(change);
@@ -85,7 +85,12 @@ module editor {
                 <HTMLElement>React.findDOMNode(this.refs['audioSelection']),
                 <HTMLElement>React.findDOMNode(this.refs['currentTime'])
             );
-            this.textEditor = new TextController(this.model, this.events, this.el, ()=>this.forceUpdate());
+            this.textEditor = new TextController(
+                this.model,
+                this.events,
+                this.historyService,
+                this.el,
+                ()=>this.forceUpdate());
             this.textEditor.updateCursor();
         }
 
