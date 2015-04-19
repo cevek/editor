@@ -6,11 +6,11 @@ module editor {
         selectionStart = 0;
         player = new AudioPlayer(this.model);
 
-        constructor(private model:Model,
-                    private events:Events,
-                    private offsetTop:number,
-                    private audioSelectionEl:HTMLElement,
-                    private currentTime:HTMLElement) {
+        constructor(public model:Model,
+                    public events:Events,
+                    public offsetTop:number,
+                    public audioSelectionEl:HTMLElement,
+                    public currentTime:HTMLElement) {
 
             events.play.listen(()=>this.play());
             events.stop.listen(()=>this.stop());

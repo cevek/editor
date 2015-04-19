@@ -1,7 +1,8 @@
 * { box-sizing: border-box }
 body { font-family: Tahoma; cursor: default }
 .editor { width: 1000px; margin: auto; }
-.line { p1adding: 10px; height: 50px; text-align: center; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+.line { p1adding: 10px; height: 50px; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+.lng { text-align: center }
 .lng::before { content: '\00a0'; }
 .lng.current { background: rgba(255, 255, 0, 0.1) }
 .line span { padding: 2px 2px 1px 2px; }
@@ -13,14 +14,15 @@ body { font-family: Tahoma; cursor: default }
 .line.hidden { display: none }
 .line .selected { /*margin: 0 -15px 0 -5px; padding: 0 3px 0 15px;*/ background: #6CE6FF; border-radius: 3px;
     position: relative }
-.line[data-collapsed]{ background: #E8E6FF !important;}
-.line[data-collapsible-count], .line[data-may-hide]{ background: #F5FFE8;}
-.audio-en { float: left; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
-svg { float: left; }
+.line[data-collapsed] { background: #E8E6FF !important; }
+.line[data-collapsible-count], .line[data-may-hide] { background: #F5FFE8; }
+.audio-en { display: inline-block; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
+svg { position: absolute }
 .line.linked { background: #DDF0FA; }
-.thumb { float: left; background: url('../data/thumbs.jpg') no-repeat; background-size: 2000px 1650px; width: 100px; height: 50px; }
+.thumb { display: inline-block; background: url('../data/thumbs.jpg') no-repeat; background-size: 2000px 1650px; width: 100px; height: 50px; }
 .relative { position: relative }
 .current-time { position: absolute; width: 30px; height: 10px; background: #0FF; mix-blend-mode: multiply; margin: -5px 0 0 100px; }
 .audio-selection { position: absolute; width: 30px; height: 10px; background: #FF0; mix-blend-mode: multiply; margin: 0 0 0 100px; }
-.panel{position: absolute}
-svg rect{cursor: ns-resize; fill: transparent;}
+.panel { position: absolute }
+svg rect { cursor: ns-resize; fill: transparent; }
+body.resize-ns { cursor: ns-resize; }

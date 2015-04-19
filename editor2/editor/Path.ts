@@ -1,16 +1,24 @@
 module editor {
-    export class Path {
-        secondHeight = config.lineHeight / config.lineDuration;
+    export class Path extends React.Component<{model:Model; lineN:number; audioSelection: AudioSelection},any> {
 
-        constructor(private model:Model) {}
+        path = '';
+        marginTop = 0;
+        marginBottom = 0;
+        height = 0;
+        handleHeight = 20;
+        halfHandlHeight = this.handleHeight / 2;
+        handleWidth = 20;
+        bottom = 0;
+        top = 0;
 
-        pathGenerator(topLeft:number, leftHeight:number, topRight:number, rightHeight:number, width:number) {
-            topLeft = Math.round(topLeft);
-            leftHeight = Math.round(leftHeight);
-            topRight = Math.round(topRight);
-            rightHeight = Math.round(rightHeight);
-            width = Math.round(width);
-            var bx = width / 2 | 0;
+        selecting = false;
+        selectionStartY = 0;
+        selectionStartTime = 0;
+        isSelectionStartTime = false;
+        //constructor(private model:Model) {}
+
+        static pathGenerator(topLeft:number, bottomLeft:number, topRight:number, bottomRight:number, width:number) {
+            var bx = width / 2;
             var path = '';
 
             path += 'M0,' + topLeft + ' ';
@@ -19,63 +27,81 @@ module editor {
             path += bx + ',' + topRight + ' ';
             path += width + ',' + topRight + ' ';
 
-            path += 'L' + width + ',' + (topRight + rightHeight) + ' ';
+            path += 'L' + width + ',' + bottomRight + ' ';
 
-            path += 'C' + bx + ',' + (topRight + rightHeight) + ' ';
-            path += bx + ',' + (topLeft + leftHeight) + ' ';
-            path += '0,' + (topLeft + leftHeight) + 'Z';
+            path += 'C' + bx + ',' + bottomRight + ' ';
+            path += bx + ',' + bottomLeft + ' ';
+            path += '0,' + bottomLeft + 'Z';
             return path;
         }
 
-        generatePath() {
-            var lines = this.model.lines;
-            for (var i = 0; i < lines.length; i++) {
-                lines[i].path = [];
-                lines[i].haveCrossedPath = false;
-                lines.forEach((line, j)=> {
-                    if (line.model.lang.en.start) {
-                        var end = line.model.lang.en.end / 100;
-                        var start = line.model.lang.en.start / 100;
-                        var dur = (end - start);
-                        var lineHeight = config.lineHeight;
-                        var leftTop = (start * this.secondHeight - lineHeight * i) | 0;
-                        var leftHeight = dur * this.secondHeight | 0;
-                        var rightTop = (j - i) * lineHeight;
-                        var min = leftTop < rightTop ? leftTop : rightTop;
-                        var max = (leftTop + leftHeight) > (rightTop + lineHeight)
-                            ? leftTop + leftHeight
-                            : rightTop + lineHeight;
+        makePath() {
+            var lineHeight = config.lineHeight;
+            var secondHeight = lineHeight / config.lineDuration;
 
-                        var margin = 0;
-                        if (min < -margin && -margin < max || min < lineHeight + margin && lineHeight + margin < max) {
-                            lines[i].haveCrossedPath = true;
-                            lines[i].path.push({
-                                i: j,
-                                top: leftTop,
-                                height: leftHeight,
-                                path: this.pathGenerator(leftTop, leftHeight, rightTop, lineHeight, config.svgWidth)
-                            });
-                        }
-                    }
-                });
+            var line = this.props.model.lines[this.props.lineN];
+            var end = line.model.lang.en.end / 100;
+            var start = line.model.lang.en.start / 100;
+            if (start) {
+                var dur = (end - start);
+                var leftTop = (start * secondHeight - lineHeight * this.props.lineN);
+                var leftBottom = leftTop + dur * secondHeight;
+                var rightTop = 0;
+                var rightBottom = rightTop + lineHeight;
+                var min = leftTop < rightTop ? leftTop : rightTop;
+                var max = leftBottom > rightBottom ? leftBottom : rightBottom;
+                min -= this.halfHandlHeight;
+                max += this.halfHandlHeight;
+                var marginTop = 0;
+                if (min < 0) {
+                    marginTop = -min;
+                }
+                this.height = max + marginTop;
+                this.marginTop = marginTop;
+                this.marginBottom = this.height > lineHeight ? this.height - lineHeight : 0;
+                this.top = leftTop + marginTop;
+                this.bottom = leftBottom + marginTop;
+                this.path = Path.pathGenerator(this.top, this.bottom, rightTop + marginTop, rightBottom + marginTop, config.svgWidth);
+                return true;
             }
+            return false;
         }
 
-        resizeTime(e:MouseEvent, i:number, pos:Pos) {
-            console.log({e, i, pos});
+        resizeTime(e:MouseEvent, isStartTime:boolean) {
+            var lang = this.props.model.lines[this.props.lineN].model.lang.en;
+            this.selecting = true;
+            this.selectionStartTime = isStartTime ? lang.start : lang.end;
+            this.selectionStartY = e.pageY;
+            this.isSelectionStartTime = isStartTime;
+            document.body.classList.add('resize-ns');
+            e.preventDefault();
         }
 
         resizeTimeMove(e:MouseEvent) {
-
+            if (this.selecting) {
+                var lang = this.props.model.lines[this.props.lineN].model.lang.en;
+                var diff = e.pageY - this.selectionStartY;
+                if (this.isSelectionStartTime) {
+                    lang.start = this.selectionStartTime + diff;
+                }
+                else {
+                    lang.end = this.selectionStartTime + diff;
+                }
+                this.forceUpdate();
+                e.preventDefault();
+            }
         }
 
         resizeTimeEnd(e:MouseEvent) {
-
+            if (this.selecting) {
+                this.selecting = false;
+                document.body.classList.remove('resize-ns');
+            }
         }
 
         moveTime(isUp:boolean, isStartTime:boolean, isEndTime:boolean) {
             var t = 30;
-            var line = this.model.lines[this.model.sel.line];
+            var line = this.props.model.lines[this.props.model.sel.line];
             if (line.model.lang.en.start) {
                 if (isStartTime) {
                     line.model.lang.en.start += isUp ? -t : t;
@@ -86,6 +112,50 @@ module editor {
                 return true;
             }
             return false;
+        }
+
+        componentDidMount() {
+
+            document.addEventListener('mousemove', e => this.resizeTimeMove(e));
+            document.addEventListener('mouseup', e => this.resizeTimeEnd(e));
+
+        }
+
+        render() {
+            if (!this.makePath()) {
+                return null;
+            }
+            return React.DOM.svg({
+                    width: config.svgWidth,
+                    height: this.height,
+                    style: {webkitTransform: `translateY(-${this.marginTop}px)`}
+                },
+                React.DOM.path({
+                    //todo:
+                    onClick: ()=> this.props.audioSelection.playLine(this.props.lineN),
+                    //onMouseEnter: ()=>console.log("enter", j),
+                    //onMouseLeave: ()=>console.log("leave", j),
+                    stroke: "transparent",
+                    d: this.path,
+                    fill: 'hsla(' + (this.props.model.lines[this.props.lineN].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
+                }),
+                React.DOM.rect(<any>{
+                    onMouseDown: (e:React.MouseEvent)=>
+                        this.resizeTime(<MouseEvent>e.nativeEvent, true),
+                    x: 0,
+                    y: this.top - this.halfHandlHeight,
+                    width: 20,
+                    height: 20
+                }),
+                React.DOM.rect(<any>{
+                    onMouseDown: (e:React.MouseEvent)=>
+                        this.resizeTime(<MouseEvent>e.nativeEvent, false),
+                    x: 0,
+                    y: this.bottom - this.halfHandlHeight,
+                    width: 20,
+                    height: 20
+                })
+            )
         }
 
     }

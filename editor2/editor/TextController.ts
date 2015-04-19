@@ -7,11 +7,11 @@ module editor {
     }
 
     export class TextController {
-        constructor(private model:Model,
-                    private events:Events,
-                    private historyService:HistoryService,
-                    private el:HTMLElement,
-                    private forceUpdate:()=>void) {
+        constructor(public model:Model,
+                    public events:Events,
+                    public historyService:HistoryService,
+                    public el:HTMLElement,
+                    public forceUpdate:()=>void) {
 
             this.events.up.listen(()=>this.moveCaretUpDown(true));
             this.events.down.listen(()=>this.moveCaretUpDown(false));

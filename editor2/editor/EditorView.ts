@@ -17,16 +17,26 @@ module editor {
 
         audioHeight = 30000 / (50 * config.lineDuration / config.lineHeight);
 
-        textEditor:TextController;
-        audioSelection:AudioSelection;
-
         model = new Model;
-        path = new Path(this.model);
         //eventEmitter = new EventEmitter<Action>();
         events = new Events;
         toolbar = new Toolbar(this.model, this.events);
         keyManager = new KeyManager(this.events);
         historyService = new HistoryService();
+        textEditor = new TextController(
+            this.model,
+            this.events,
+            this.historyService,
+            null,
+            ()=>this.forceUpdate());
+
+        audioSelection = new AudioSelection(
+            this.model,
+            this.events,
+            null,
+            null,
+            null
+        );
 
         constructor() {
             super(null, null);
@@ -78,25 +88,16 @@ module editor {
 
             this.el.addEventListener('click', e => this.events.mouseClick.emit(e));
 
-            this.audioSelection = new AudioSelection(
-                this.model,
-                this.events,
-                this.el.offsetTop,
-                <HTMLElement>React.findDOMNode(this.refs['audioSelection']),
-                <HTMLElement>React.findDOMNode(this.refs['currentTime'])
-            );
-            this.textEditor = new TextController(
-                this.model,
-                this.events,
-                this.historyService,
-                this.el,
-                ()=>this.forceUpdate());
+            this.audioSelection.audioSelectionEl = <HTMLElement>React.findDOMNode(this.refs['audioSelection']);
+            this.audioSelection.currentTime = <HTMLElement>React.findDOMNode(this.refs['currentTime']);
+            this.audioSelection.offsetTop = this.el.offsetTop;
+
+            this.textEditor.el = this.el;
             this.textEditor.updateCursor();
         }
 
         render() {
             this.model.prepareData(linesStore);
-            this.path.generatePath();
             this.model.prepareHideLines();
 
             return div({className: 'editor'},
@@ -131,33 +132,11 @@ module editor {
                                     backgroundSize: `${config.audioWidth}px ${this.audioHeight}px`
                                 }
                             }),
-                            React.DOM.svg({width: config.svgWidth, height: config.lineHeight},
-                                line.path.map(path=>[
-                                    React.DOM.path({
-                                        onClick: ()=> this.audioSelection.playLine(path.i),
-                                        //onMouseEnter: ()=>console.log("enter", j),
-                                        //onMouseLeave: ()=>console.log("leave", j),
-                                        stroke: "transparent",
-                                        d: path.path,
-                                        fill: 'hsla(' + (this.model.lines[path.i].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
-                                    }),
-                                    React.DOM.rect(<any>{
-                                        onClick: (e:React.MouseEvent)=>
-                                            this.path.resizeTime(<MouseEvent>e.nativeEvent, path.i, Pos.TOP),
-                                        x: 0,
-                                        y: path.top - 10,
-                                        width: 20,
-                                        height: 20
-                                    }),
-                                    React.DOM.rect(<any>{
-                                        onClick: (e:React.MouseEvent)=>
-                                            this.path.resizeTime(<MouseEvent>e.nativeEvent, path.i, Pos.BOTTOM),
-                                        x: 0,
-                                        y: path.top + path.height - 10,
-                                        width: 20,
-                                        height: 20
-                                    })
-                                ])),
+                            React.createElement(Path, {
+                                model: this.model,
+                                lineN: i,
+                                audioSelection: this.audioSelection
+                            }),
                             div({className: 'audio-ru'}),
                             div({className: 'lng en', 'data-lang': 'en'},
                                 line.words.en.map((block, pos)=>

@@ -7,7 +7,6 @@ module editor {
         mayHide = false;
         collapsibleCount = 0;
         collapsed = false;
-        haveCrossedPath = false;
         path:{i: number; path:string; top: number; height: number;}[];
 
         constructor(model:Line, en:string[], ru:string[], oldLine?:LineView) {
@@ -17,7 +16,6 @@ module editor {
                 this.hidden = oldLine.hidden;
                 this.mayHide = oldLine.mayHide;
                 this.collapsed = oldLine.collapsed;
-                this.haveCrossedPath = oldLine.haveCrossedPath;
                 this.collapsibleCount = oldLine.collapsibleCount;
                 this.path = oldLine.path;
             }
@@ -67,7 +65,7 @@ module editor {
             var collapsed = 0;
             var prevLine:LineView;
             this.lines.forEach(line => {
-                if (line.model.isEmpty() && !line.haveCrossedPath) {
+                if (line.model.isEmpty()) {
                     collapsed++;
                     line.mayHide = true;
                 }
