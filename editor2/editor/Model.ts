@@ -1,4 +1,12 @@
 module editor {
+
+    export class WordSelection {
+        line = 0;
+        pos = 0;
+        lang = 'en';
+        leftOffset = -1;
+    }
+
     export class LineView {
 
         model:Line;
@@ -26,6 +34,8 @@ module editor {
         lines:LineView[];
         sel = new WordSelection();
         audioSelection = new AudioSelection(this);
+        historyService = new HistoryService();
+
 
         collapsedLines:{[index:number]:{collapsed: boolean; length: number}} = {};
 

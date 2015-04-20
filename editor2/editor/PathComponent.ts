@@ -141,10 +141,7 @@ module editor {
                     style: {WebkitTransform: `translateY(-${this.marginTop}px)`}
                 },
                 React.DOM.path({
-                    //todo:
                     onClick: ()=> this.playLine(this.props.lineN),
-                    //onMouseEnter: ()=>console.log("enter", j),
-                    //onMouseLeave: ()=>console.log("leave", j),
                     stroke: "transparent",
                     d: this.path,
                     fill: 'hsla(' + (this.props.model.lines[this.props.lineN].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
