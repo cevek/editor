@@ -240,32 +240,17 @@ module editor {
         }
 
         collapse(parents:HTMLElement[]) {
-            if (parents.some(
-                        parent=>parent.classList.contains('audio') || parent.classList.contains('thumb') || parent.tagName == 'svg')) {
-                return;
-            }
-            var line = this.model.lines[this.model.sel.line];
-            if (!line.mayHide && !line.collapsibleCount) {
-                return;
-            }
-            for (var i = this.model.sel.line; i < this.model.lines.length; i++) {
-                var line = this.model.lines[i];
-                if (line.collapsibleCount) {
-                    var collapseLine = line;
-                    break;
+            var el = parents[0];
+            if (el.dataset['collapsible']) {
+                var fromLine = +el.dataset['line'];
+                var collapseLine = this.model.collapsedLines[fromLine];
+                var toLine = fromLine + collapseLine.length;
+                for (var i = fromLine; i < toLine; i++) {
+                    this.model.lines[i].hidden = !collapseLine.collapsed;
                 }
+                collapseLine.collapsed = !collapseLine.collapsed;
             }
-            if (collapseLine) {
-                var hidden = !collapseLine.collapsed;
-                for (var j = i - 1; j >= i - collapseLine.collapsibleCount; j--) {
-                    this.model.lines[j].hidden = hidden;
-                    //console.log({collapseLine, hidden, i, j, line: this.lines[j]});
-                }
-                collapseLine.collapsed = hidden;
-                this.events.updateAudioSelection.emit();
-                this.forceUpdate();
-            }
+            this.forceUpdate();
         }
-
     }
 }

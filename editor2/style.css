@@ -14,12 +14,12 @@ body { font-family: Tahoma; cursor: default }
 .line.hidden { display: none }
 .line .selected { /*margin: 0 -15px 0 -5px; padding: 0 3px 0 15px;*/ background: #6CE6FF; border-radius: 3px;
     position: relative }
-.line[data-collapsed] { background: #E8E6FF !important; }
-.line[data-collapsible-count], .line[data-may-hide] { background: #F5FFE8; }
-.audio-en { display: inline-block; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
+.collapsible { position: relative; margin: -10px 0; height: 20px; background: #F4FFF5; }
+.collapsible.collapsed { background: #EAF8FF; }
+.audio-en { float: left; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
 svg { position: absolute }
 .line.linked { background: #DDF0FA; }
-.thumb { display: inline-block; background: url('../data/thumbs.jpg') no-repeat; background-size: 2000px 1650px; width: 100px; height: 50px; }
+.thumb { float: left;  background: url('../data/thumbs.jpg') no-repeat; background-size: 2000px 1650px; width: 100px; height: 50px; }
 .relative { position: relative }
 .current-time { position: absolute; width: 30px; height: 10px; background: #0FF; mix-blend-mode: multiply; margin: -5px 0 0 100px; }
 .audio-selection { position: absolute; width: 30px; height: 10px; background: #FF0; mix-blend-mode: multiply; margin: 0 0 0 100px; }

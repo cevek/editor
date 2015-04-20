@@ -65,8 +65,30 @@ module editor {
             return `${(-time % 20) * width}px ${(-time / 20 | 0) * height - rounded}px`;
         }
 
+        hideEmptyLines() {
+            for (let line in this.model.collapsedLines) {
+                let fromLine = +line;
+                var collapseLine = this.model.collapsedLines[fromLine];
+                if (collapseLine) {
+                    console.log(fromLine, collapseLine);
+
+                    var toLine = fromLine + collapseLine.length;
+                    for (var i = fromLine; i < toLine; i++) {
+                        this.model.lines[i].hidden = true;
+                    }
+                    collapseLine.collapsed = true;
+                }
+            }
+            this.forceUpdate();
+        }
+
         componentDidUpdate() {
             this.textEditor.updateCursor();
+        }
+
+        componentWillMount() {
+            this.model.prepareData(linesStore);
+            this.model.prepareHideLines();
         }
 
         componentDidMount() {
@@ -87,19 +109,16 @@ module editor {
         }
 
         render() {
-            this.model.prepareData(linesStore);
-            this.model.prepareHideLines();
-
             return div({className: 'editor'},
                 div({className: 'panel'},
-                    React.DOM.button({onClick: ()=>this.toolbar.hideEmptyLines()}, 'Hide')
+                    React.DOM.button({onClick: ()=>this.hideEmptyLines()}, 'Hide')
                 ),
                 React.createElement(AudioSelectionComponent, {
                     model: this.model,
                     events: this.events
                 }),
                 this.model.lines.map(
-                    (line, i) =>
+                    (line, i) =>[
                         div({
                                 className: cx({
                                     line: true,
@@ -133,7 +152,17 @@ module editor {
                             div({className: 'lng ru', 'data-lang': 'ru'},
                                 line.words.ru.map((block, pos)=>
                                     span({}, block)))
-                        )
+                        ),
+                        this.model.collapsedLines[i + 1] ?
+                            div({
+                                className: cx({
+                                    collapsible: true,
+                                    collapsed: this.model.collapsedLines[i + 1].collapsed
+                                }),
+                                'data-collapsible': true,
+                                'data-line': i + 1,
+                            }) : null
+                    ]
                 ));
         }
     }

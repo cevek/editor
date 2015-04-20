@@ -27,6 +27,8 @@ module editor {
         sel = new WordSelection();
         audioSelection = new AudioSelection(this);
 
+        collapsedLines:{[index:number]:{collapsed: boolean; length: number}} = {};
+
         fromVisibleToTime(top:number) {
             var k = 0;
             var top = top / config.lineHeight;
@@ -63,28 +65,25 @@ module editor {
         }
 
         prepareHideLines() {
+
             var collapsed = 0;
-            var prevLine:LineView;
-            this.lines.forEach(line => {
+            var start:number = null;
+            this.lines.forEach((line, i) => {
                 if (line.model.isEmpty()) {
+                    if (start == null) {
+                        start = i - 1;
+                    }
                     collapsed++;
-                    line.mayHide = true;
                 }
                 else {
                     if (collapsed > 0) {
-                        if (line.model.isEmpty()) {
-                            line.collapsibleCount = collapsed;
-                        }
-                        else if (prevLine.model.isEmpty()) {
-                            prevLine.collapsibleCount = collapsed - 1;
-                            //prevLine.mayHide = false;
-                        }
+                        this.collapsedLines[start + 1] = {collapsed: false, length: collapsed};
                     }
-
+                    start = null;
                     collapsed = 0;
                 }
-                prevLine = line;
             });
+            console.log(this.collapsedLines);
         }
 
         prepareData(linesStore:LinesStore) {

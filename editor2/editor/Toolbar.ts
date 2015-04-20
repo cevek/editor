@@ -4,17 +4,14 @@ module editor {
                     private events:Events) {}
 
         hideEmptyLines() {
-            this.model.lines.forEach(line => {
-                if (line.collapsibleCount) {
-                    line.collapsed = true;
+            for (let fromLine in this.model.collapsedLines){
+                var collapseLine = this.model.collapsedLines[fromLine];
+                var toLine = fromLine + collapseLine.length;
+                for (var i = fromLine; i < toLine; i++) {
+                    this.model.lines[i].hidden = !collapseLine.collapsed;
                 }
-                if (line.mayHide) {
-                    line.hidden = true;
-                }
-            });
-
-            this.events.stop.emit();
-            this.events.updateAudioSelection.emit();
+                collapseLine.collapsed = !collapseLine.collapsed;
+            }
         }
     }
 
