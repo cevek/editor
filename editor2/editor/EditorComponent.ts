@@ -28,17 +28,8 @@ module editor {
             glob.editor = this;
         }
 
-        mouseClick(e:MouseEvent) {
-            var parents = this.getParents(<HTMLElement>e.target);
-            var selectedLine = this.getSelectionOnClick(parents);
-            if (selectedLine) {
-                this.collapse(parents);
-            }
-            this.forceUpdate();
-            //this.clickHandler(<HTMLElement>e.target);
-        }
-
-        getSelectionOnClick(parents:HTMLElement[]) {
+        getSelectionOnClick(e:MouseEvent) {
+            var parents = getParents(<Node>e.target, this.el);
             var line:number;
             var lang:string;
             var pos:number;
@@ -59,15 +50,6 @@ module editor {
                 }
             }
             return false;
-        }
-
-        getParents(target:HTMLElement) {
-            var node = target;
-            var parents = <HTMLElement[]>[node];
-            while ((node = <HTMLElement>node.parentNode) && node != this.el.parentNode) {
-                parents.push(node);
-            }
-            return parents;
         }
 
         updateCursor() {
@@ -93,9 +75,13 @@ module editor {
             }
         }
 
+        getCurrentLineWords(){
+            return <HTMLElement[]>[].slice.call(document.querySelectorAll(`.visible[data-line="${this.model.sel.line}"] .${this.model.sel.lang} span`));
+        }
+
         moveCaretUpDown(isUp = false) {
-            var currentLineWords = document.querySelectorAll('[data-line="' + this.model.sel.line + '"] .' + this.model.sel.lang + ' span');
-            var currentWord = <HTMLElement>currentLineWords[this.model.sel.pos];
+            var currentLineWords = this.getCurrentLineWords();
+            var currentWord = currentLineWords[this.model.sel.pos];
             if (currentWord) {
                 this.setLineWhenUpDown(isUp);
                 var closestWord = this.setPosToClosestNextWord(currentWord);
@@ -154,7 +140,7 @@ module editor {
             }
             var closest = -1;
             var closestDiff = Infinity;
-            var nextWords = document.querySelectorAll('[data-line="' + this.model.sel.line + '"] .' + this.model.sel.lang + ' span');
+            var nextWords = this.getCurrentLineWords();
             var closestNode:HTMLElement;
             for (var i = 0; i < nextWords.length; i++) {
                 var nextWord = <HTMLElement>nextWords[i];
@@ -222,34 +208,14 @@ module editor {
             }
         }
 
-        undo() {
-            var change = this.model.historyService.back();
-            if (change) {
-                this.model.sel.line = change.cursorBefore.line;
-                this.model.sel.pos = change.cursorBefore.pos;
-                this.model.sel.leftOffset = -1;
-                this.model.sel.lang = change.lang;
-            }
-        }
-
-        redo() {
-            var change = this.model.historyService.forward();
-            if (change) {
-                this.model.sel.line = change.cursorAfter.line;
-                this.model.sel.pos = change.cursorAfter.pos;
-                this.model.sel.leftOffset = -1;
-                this.model.sel.lang = change.lang;
-            }
-        }
-
         linkedNegate() {
             //console.log("linked");
             this.model.lines[this.model.sel.line].model.linked = !this.model.lines[this.model.sel.line].model.linked;
             this.forceUpdate();
         }
 
-        collapse(parents:HTMLElement[]) {
-            var el = parents[0];
+        collapse(e:React.MouseEvent) {
+            var el = <HTMLElement>e.target;
             if (el.dataset['collapsible']) {
                 var fromLine = +el.dataset['line'];
                 var collapseLine = this.model.collapsedLines[fromLine];
@@ -315,9 +281,10 @@ module editor {
             this.events.appendLine.listen(()=>this.removeLine(true));
             this.events.removeLine.listen(()=>this.removeLine(false));
             this.events.linkedNegate.listen(()=>this.linkedNegate());
-            this.events.mouseClick.listen(e=>this.mouseClick(e));
-            this.events.undo.listen(()=>this.undo());
-            this.events.redo.listen(()=>this.redo());
+            this.events.mouseClick.listen(e=>this.getSelectionOnClick(e));
+            //this.events.mouseClick.listen(e=>this.mouseClick(e));
+            this.events.undo.listen(()=>this.model.undo());
+            this.events.redo.listen(()=>this.model.redo());
 
             this.el.addEventListener('click', e => this.events.mouseClick.emit(e));
             this.el.addEventListener('mousedown', e => this.events.mouseDown.emit(e));
@@ -340,6 +307,7 @@ module editor {
                                 className: cx({
                                     line: true,
                                     hidden: line.hidden,
+                                    visible: !line.hidden,
                                     linked: line.model.linked
                                 }),
                                 'data-line': i,
@@ -372,6 +340,7 @@ module editor {
                         ),
                         this.model.collapsedLines[i + 1] ?
                             div({
+                                onClick: (e:React.MouseEvent)=>this.collapse(e),
                                 className: cx({
                                     collapsible: true,
                                     collapsed: this.model.collapsedLines[i + 1].collapsed

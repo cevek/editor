@@ -39,6 +39,26 @@ module editor {
 
         collapsedLines:{[index:number]:{collapsed: boolean; length: number}} = {};
 
+        undo() {
+            var change = this.historyService.back();
+            if (change) {
+                this.sel.line = change.cursorBefore.line;
+                this.sel.pos = change.cursorBefore.pos;
+                this.sel.leftOffset = -1;
+                this.sel.lang = change.lang;
+            }
+        }
+
+        redo() {
+            var change = this.historyService.forward();
+            if (change) {
+                this.sel.line = change.cursorAfter.line;
+                this.sel.pos = change.cursorAfter.pos;
+                this.sel.leftOffset = -1;
+                this.sel.lang = change.lang;
+            }
+        }
+
         fromVisibleToTime(top:number) {
             var k = 0;
             var top = top / config.lineHeight;
