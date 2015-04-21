@@ -14,11 +14,16 @@ module editor {
             this.end = 0;
         }
 
-        play(start:number, end:number) {
+        play(start:number, end:number, playGaps = false) {
             this.start = start;
             this.end = end;
             this.status = AudioSelectionState.PLAYING;
-            this.player.play(this.start, this.end);
+            if (playGaps) {
+                this.player.playRaw(this.start, this.end);
+            }
+            else {
+                this.player.play(this.start, this.end);
+            }
         }
 
         playCurrent() {

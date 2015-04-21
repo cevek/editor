@@ -22,7 +22,7 @@ module editor {
         playLine(i:number) {
             var start = this.props.model.lines[i].model.lang.en.start / 100;
             var end = this.props.model.lines[i].model.lang.en.end / 100;
-            this.props.model.audioSelection.play(start, end);
+            this.props.model.audioSelection.play(start, end, true);
         }
 
         static pathGenerator(topLeft:number, bottomLeft:number, topRight:number, bottomRight:number, width:number) {

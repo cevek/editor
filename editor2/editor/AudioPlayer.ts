@@ -6,7 +6,33 @@ module editor {
 
         constructor(private model:Model) {}
 
-        play(start:number, end: number) {
+        playRaw(start:number, end:number) {
+
+            this.stopPlay();
+            var audioData = linesStore.audioData;
+            if (audioData) {
+                var dur = end - start;
+                if (dur) {
+                    var channel = audioData.getChannelData(0);
+                    var slice = channel.subarray(start * audioData.sampleRate | 0, end * audioData.sampleRate | 0);
+                    console.log(start, end, slice.length / audioData.sampleRate);
+                    var buff = this.audioContext.createBuffer(1, slice.length / config.audioRate, audioData.sampleRate);
+                    buff.getChannelData(0).set(slice);
+                    var source = this.audioContext.createBufferSource();
+                    source.buffer = buff;
+                    source.playbackRate.value = config.audioRate;
+                    source.connect(this.audioContext.destination);
+                    source.start(0);
+                    this.playingSources.push(source);
+                    return true;
+                }
+            }
+            else {
+                console.log("audioData is not loaded yet");
+            }
+        }
+
+        play(start:number, end:number) {
             this.stopPlay();
             var lineDuration = config.lineDuration;
             var startLine = start / lineDuration;
@@ -31,7 +57,7 @@ module editor {
                             }
                         }
                     });
-                    var buff = this.audioContext.createBuffer(audioData.numberOfChannels, size, audioData.sampleRate);
+                    var buff = this.audioContext.createBuffer(audioData.numberOfChannels, size / config.audioRate, audioData.sampleRate);
                     var offset = 0;
                     for (var i = 0; i < sliced.length; i++) {
                         var slice = sliced[i];
