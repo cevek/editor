@@ -12,11 +12,14 @@ module editor {
         top = 0;
         resizeKoef = 2;
 
-
         selecting = false;
         selectionStartY = 0;
         selectionStartTime = 0;
         isSelectionStartTime = false;
+
+        isCutTop = false;
+        isCutBottom = false;
+
         //constructor(private model:Model) {}
 
         playLine(i:number) {
@@ -43,7 +46,30 @@ module editor {
             return path;
         }
 
+        findTopCut() {
+            for (var i = this.props.lineN - 1; i >= 0; i--) {
+                var cl = this.props.model.collapsedLines[i];
+                if (cl && cl.collapsed) {
+                    return (this.props.lineN - (i + cl.length)) * -config.lineHeight;
+                }
+            }
+            return -Infinity;
+        }
+
+        findBottomCut() {
+            for (var i = this.props.lineN; i < this.props.model.lines.length; i++) {
+                var cl = this.props.model.collapsedLines[i];
+                if (cl && cl.collapsed) {
+                    return (i - this.props.lineN) * config.lineHeight;
+                }
+            }
+            return Infinity;
+        }
+
         makePath() {
+            this.isCutTop = false;
+            this.isCutBottom = false;
+
             var lineHeight = config.lineHeight;
             var secondHeight = lineHeight / config.lineDuration;
 
@@ -54,6 +80,17 @@ module editor {
                 var dur = (end - start);
                 var leftTop = (start * secondHeight - lineHeight * this.props.lineN);
                 var leftBottom = leftTop + dur * secondHeight;
+                var topCut = this.findTopCut();
+                var bottomCut = this.findBottomCut();
+                //console.log({leftTop, topCut});
+                if (leftTop < topCut) {
+                    this.isCutTop = true;
+                    leftTop = topCut;
+                }
+                if (leftBottom > bottomCut) {
+                    this.isCutBottom = true;
+                    leftBottom = bottomCut;
+                }
                 var rightTop = 0;
                 var rightBottom = rightTop + lineHeight;
                 var min = leftTop < rightTop ? leftTop : rightTop;
@@ -64,6 +101,7 @@ module editor {
                 if (min < 0) {
                     marginTop = -min;
                 }
+
                 this.height = max + marginTop;
                 this.marginTop = marginTop;
                 this.marginBottom = this.height > lineHeight ? this.height - lineHeight : 0;
@@ -146,22 +184,24 @@ module editor {
                     d: this.path,
                     fill: 'hsla(' + (this.props.model.lines[this.props.lineN].model.lang.en.start / 10 | 0) + ', 50%,60%, 1)'
                 }),
-                React.DOM.rect(<any>{
-                    onMouseDown: (e:React.MouseEvent)=>
-                        this.resizeTime(<MouseEvent>e.nativeEvent, true),
-                    x: 0,
-                    y: this.top - this.halfHandlHeight,
-                    width: 20,
-                    height: 20
-                }),
-                React.DOM.rect(<any>{
-                    onMouseDown: (e:React.MouseEvent)=>
-                        this.resizeTime(<MouseEvent>e.nativeEvent, false),
-                    x: 0,
-                    y: this.bottom - this.halfHandlHeight,
-                    width: 20,
-                    height: 20
-                })
+                this.isCutTop ? null :
+                    React.DOM.rect(<any>{
+                        onMouseDown: (e:React.MouseEvent)=>
+                            this.resizeTime(<MouseEvent>e.nativeEvent, true),
+                        x: 0,
+                        y: this.top - this.halfHandlHeight,
+                        width: 20,
+                        height: 20
+                    }),
+                this.isCutBottom ? null :
+                    React.DOM.rect(<any>{
+                        onMouseDown: (e:React.MouseEvent)=>
+                            this.resizeTime(<MouseEvent>e.nativeEvent, false),
+                        x: 0,
+                        y: this.bottom - this.halfHandlHeight,
+                        width: 20,
+                        height: 20
+                    })
             )
         }
 
