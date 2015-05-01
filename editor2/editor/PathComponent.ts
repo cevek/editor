@@ -205,5 +205,45 @@ module editor {
             )
         }
 
+        render2() {
+            if (!this.makePath()) {
+                return null;
+            }
+            return vd('svg', {
+                    width: config.svgWidth,
+                    height: this.height,
+                    styles: {WebkitTransform: `translateY(-${this.marginTop}px)`}
+                },
+                vd('path', {
+                    events: {
+                        click: ()=> this.playLine(this.props.lineN),
+                    },
+                    stroke: "transparent",
+                    d: this.path,
+                    fill: `hsla(${this.props.model.lines[this.props.lineN].model.lang.en.start / 10 | 0}, 50%,60%, 1)`
+                }),
+                this.isCutTop ? null :
+                    vd('rect', {
+                        events: {
+                            mousedown: e => this.resizeTime(e, true),
+                        },
+                        x: 0,
+                        y: this.top - this.halfHandlHeight,
+                        width: 20,
+                        height: 20
+                    }),
+                this.isCutBottom ? null :
+                    vd('rect', {
+                        events: {
+                            mousedown: e => this.resizeTime(e, false),
+                        },
+                        x: 0,
+                        y: this.bottom - this.halfHandlHeight,
+                        width: 20,
+                        height: 20
+                    })
+            )
+        }
+
     }
 }

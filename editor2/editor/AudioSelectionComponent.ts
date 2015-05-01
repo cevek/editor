@@ -111,5 +111,22 @@ module editor {
                 div({className: 'current-time audio', ref: 'currentTime'})
             )
         }
+
+        audioSelectionNode:vd.Node;
+        currentTimeNode:vd.Node;
+
+        render2() {
+            return vd('.relative',
+                this.audioSelectionNode =
+                    vd('.audio-selection.audio', {
+                        styles: {
+                            top: `${this.startY}px`,
+                            height: `${this.endY - this.startY}px`
+                        },
+                    }),
+                this.currentTimeNode =
+                    vd('.current-time.audio')
+            )
+        }
     }
 }

@@ -11,6 +11,7 @@
 ///<reference path="Toolbar.ts"/>
 
 module editor {
+
     export class EditorComponent extends React.Component<any,any> {
         el:HTMLElement;
         offsetTop = 0;
@@ -75,7 +76,7 @@ module editor {
             }
         }
 
-        getCurrentLineWords(){
+        getCurrentLineWords() {
             return <HTMLElement[]>[].slice.call(document.querySelectorAll(`.visible[data-line="${this.model.sel.line}"] .${this.model.sel.lang} span`));
         }
 
@@ -214,7 +215,7 @@ module editor {
             this.forceUpdate();
         }
 
-        collapse(e:React.MouseEvent) {
+        collapse(e:MouseEvent) {
             var el = <HTMLElement>e.target;
             if (el.dataset['collapsible']) {
                 var fromLine = +el.dataset['line'];
@@ -350,6 +351,70 @@ module editor {
                             }) : null
                     ]
                 ));
+        }
+
+        render2() {
+            return vd('div.editor',
+                vd('div.panel',
+                    vd('button', {events: {click: ()=>this.hideEmptyLines()}}, 'Hide')
+                ),
+                new AudioSelectionComponent({
+                    model: this.model,
+                    events: this.events
+                }),
+                this.model.lines.map(
+                    (line, i) =>[
+                        vd('div.line', {
+                                classes: {
+                                    hidden: line.hidden,
+                                    visible: !line.hidden,
+                                    linked: line.model.linked
+                                },
+                                data: {
+                                    line: i,
+                                    mayHide: line.mayHide ? line.mayHide : void 0,
+                                    collapsed: line.collapsed ? line.collapsed : void 0,
+                                    collapsibleCount: line.collapsibleCount ? line.collapsibleCount : void 0
+                                }
+                            },
+                            vd('div.thumb', {
+                                styles: {backgroundPosition: this.getThumbPos(i)}
+                            }),
+                            vd('div.audio-en.audio', {
+                                styles: {
+                                    backgroundPosition: `0px ${-i * config.lineHeight}px`,
+                                    backgroundSize: `${config.audioWidth}px ${this.audioHeight}px`
+                                }
+                            }),
+                            new PathComponent({
+                                model: this.model,
+                                lineN: i
+                            }),
+                            vd('.audio-ru'),
+                            vd('.lng.en', {data: {lang: 'en'}},
+                                line.words.en.map((block, pos)=>
+                                    vd('span', block))),
+                            vd('.lng.ru', {data: {lang: 'ru'}},
+                                line.words.ru.map((block, pos)=>
+                                    vd('span', block)))
+                        ),
+                        !this.model.collapsedLines[i + 1] ? null :
+                            vd({
+                                events: {
+                                    click: e => this.collapse(e),
+                                },
+                                classes: {
+                                    collapsible: true,
+                                    collapsed: this.model.collapsedLines[i + 1].collapsed
+                                },
+                                data: {
+                                    collapsible: true,
+                                    line: i + 1,
+                                }
+                            })
+                    ]
+                ));
+
         }
     }
 }
