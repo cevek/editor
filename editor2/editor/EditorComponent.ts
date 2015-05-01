@@ -341,7 +341,7 @@ module editor {
                         ),
                         this.model.collapsedLines[i + 1] ?
                             div({
-                                onClick: (e:React.MouseEvent)=>this.collapse(e),
+                                onClick: (e:React.MouseEvent)=>this.collapse(<MouseEvent>e.nativeEvent),
                                 className: cx({
                                     collapsible: true,
                                     collapsed: this.model.collapsedLines[i + 1].collapsed
