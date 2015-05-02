@@ -133,6 +133,22 @@ declare module cito.vdom {
     export function append(dom:Node, newNode:vd.Node):void;
 }
 
+function prop(proto:any, name:string) {
+    console.log("prop", proto, name);
+    observe(proto, name);
+    proto.constructor[Component.props] = proto.constructor[Component.props] || [];
+    proto.constructor[Component.props].push(name);
+}
+function attr(proto:any, name:string) {
+    console.log("attr", proto, name);
+    observe(proto, name);
+    proto.constructor[Component.attrs] = proto.constructor[Component.attrs] || [];
+    proto.constructor[Component.attrs].push(name);
+
+}
+class Model {
+
+}
 interface Component {
     onAttached?():void;
     onDetached?():void;
@@ -143,6 +159,9 @@ interface Component {
 class NFF implements Component {
     @observe content = 'hello';
 
+    @prop model:Model;
+    @attr title:string;
+
     onAttached():void {
         console.log("onAttached");
     }
@@ -152,58 +171,84 @@ class NFF implements Component {
     }
 
     render() {
-        debugger;
         console.log("render");
+        this.model;
+        this.title;
         return vd('div', this.content);
     }
 }
 
+interface HTMLElement {
+    component: Component;
+}
+
 var fft = document.createElement('nff-node');
 document.body.appendChild(fft);
+var comp = fft.component;
 
 function Component(name:string) {
     return function (target:new ()=>void) {
-        (<any>document).registerElement(name, {
-            prototype: Object.create(HTMLElement.prototype, {
-                createdCallback: {
-                    value: function createdCallback() {
-                        var el = this;
-                        var component:Component = <any>new target();
-                        var oldNode:vd.Node;
-                        var newNode:vd.Node;
-                        new Observer2(function dependencyObserver() {
-                            newNode = component.render();
-                            if (oldNode) {
-                                cito.vdom.update(oldNode, newNode);
-                            }
-                            else {
-                                cito.vdom.append(el, newNode);
-                            }
-                            oldNode = newNode;
-                        });
-                        this.component = component;
-                        console.log('here I am ^_^ ');
-                        console.log('with content: ', this.textContent);
-                    }
-                },
-                attachedCallback: {
-                    value: function attachedCallback() {
-                        (<Component>this.component).onAttached();
-                        console.log('live on DOM ;-) ');
-                    }
-                },
-                detachedCallback: {
-                    value: function detachedCallback() {
-                        (<Component>this.component).onDetached();
-                        console.log('leaving the DOM :-( )');
-                    }
-                },
-                attributeChangedCallback: {
-                    value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
-                        (<Component>this.component).onAttributeChanged(name, previousValue, value);
-                    }
+        var proto:{[index:string]:PropertyDescriptor} = {
+            createdCallback: {
+                value: function createdCallback() {
+                    var el = this;
+                    var component:Component = <any>new target();
+                    var oldNode:vd.Node;
+                    var newNode:vd.Node;
+                    new Observer2(function dependencyObserver() {
+                        newNode = component.render();
+                        if (oldNode) {
+                            cito.vdom.update(oldNode, newNode);
+                        }
+                        else {
+                            cito.vdom.append(el, newNode);
+                        }
+                        oldNode = newNode;
+                    });
+                    this.component = component;
+
+                    (<string[]>(<any>target)[Component.attrs]).forEach(attr => {
+                        this.component[attr] = el.getAttribute(attr);
+                    });
+
+                    console.log('here I am ^_^ ');
+                    console.log('with content: ', this.textContent);
                 }
-            })
+            },
+            attachedCallback: {
+                value: function attachedCallback() {
+                    var el = this;
+                    (<Component>this.component).onAttached();
+                    console.log('live on DOM ;-) ');
+                }
+            },
+            detachedCallback: {
+                value: function detachedCallback() {
+                    (<Component>this.component).onDetached();
+                    console.log('leaving the DOM :-( )');
+                }
+            },
+            attributeChangedCallback: {
+                value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
+                    this.component[name] = value;
+                }
+            }
+        };
+
+        (<string[]>(<any>target)[Component.props]).forEach(prop => {
+            proto[prop] = {
+                set: function (val:any) {
+                    this.component[prop] = val;
+                }
+            }
+        });
+
+        (<any>document).registerElement(name, {
+            prototype: Object.create(HTMLElement.prototype, proto)
         });
     }
+}
+module Component {
+    export var attrs = Sym('attrs');
+    export var props = Sym('props');
 }
