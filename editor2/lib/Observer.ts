@@ -1,4 +1,4 @@
-var __observe_stack:any[] = [];
+var __observe_stack:Stack[] = [];
 
 var Sym = (<any>window).Symbol || function (name:string) {return '__' + name};
 var globalObserver = Sym("observer");
@@ -8,7 +8,7 @@ function observe(obj:any, key:string) {
     Object.defineProperty(obj, key, {
         enumerable: true,
         get: function () {
-            __observe_stack.push([this, key]);
+            __observe_stack.push({obj: this, key: key});
             if (!this[globalObserver]) {
                 this[globalObserver] = {};
                 this[globalObserver][globalListeners] = {};
@@ -31,51 +31,50 @@ function observe(obj:any, key:string) {
     });
 }
 
-class Observed {
-    constructor(private stack:any[], private args:any[]) {}
+class Stack {
+    key:string;
+    obj:any;
+}
+class Observer2 {
+    private stack:Stack[];
+    private cb = ()=>this.listen();
 
-    listen(callback:()=>void) {
+    constructor(private callback:()=>void) {
+        this.listen();
+    }
+
+    private listen() {
+        var old_stack = __observe_stack;
+        __observe_stack = [];
+        this.unlisten();
+        this.callback();
+        this.stack = __observe_stack;
+        __observe_stack = old_stack;
+
         for (var i = 0; i < this.stack.length; i++) {
-            var item = this.stack[i];
-            var listeners = item[0][globalObserver][globalListeners];
-            listeners[item[1]] = listeners[item[1]] || [];
-            listeners[item[1]].push(callback);
+            var stack = this.stack[i];
+            var listeners = stack.obj[globalObserver][globalListeners];
+            listeners[stack.key] = listeners[stack.obj] || [];
+            listeners[stack.key].push(this.cb);
         }
         return this;
     }
 
-    unlisten(callback:()=>void) {
-        for (var i = 0; i < this.stack.length; i++) {
-            var item = this.stack[i];
-            var listeners = item[0][globalObserver][globalListeners];
-            listeners[item[1]] = listeners[item[1]] || [];
-            var pos = listeners[item[1]].indexOf(callback);
-            if (pos > -1) {
-                listeners[item[1]].splice(pos, 1);
+    unlisten() {
+        if (this.stack) {
+            for (var i = 0; i < this.stack.length; i++) {
+                var stack = this.stack[i];
+                var listeners = stack.obj[globalObserver][globalListeners];
+                listeners[stack.key] = listeners[stack.key] || [];
+                var pos = listeners[stack.key].indexOf(this.cb);
+                if (pos > -1) {
+                    listeners[stack.key].splice(pos, 1);
+                }
             }
         }
         return this;
     }
 }
-
-declare
-function Observer(...deps:any[]):Observed;
-
-Object.defineProperty(window, 'Observer', {
-    get: function () {
-        var old_stack = __observe_stack;
-        __observe_stack = [];
-        return function () {
-            var args = Array.prototype.slice.call(arguments, 0);
-            var stack = __observe_stack;
-            __observe_stack = old_stack;
-            if (stack.length !== args.length) {
-                throw new Error(`Not all parameters observed: ${stack.length} of ${args.length}`);
-            }
-            return new Observed(stack, args);
-        };
-    }
-});
 
 class Test {
     @observe a:string;
@@ -89,7 +88,7 @@ class CCC {
     index:number = 1;
 
     constructor() {
-        Observer(test.a, test.b, ()=> {
+        new Observer2(()=> {
             console.log("observer launch", this.index);
         });
     }

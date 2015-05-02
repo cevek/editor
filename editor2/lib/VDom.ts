@@ -70,27 +70,19 @@ function vd(...children:any[]):vd.Node {
 }
 module vd {
     export interface Events {
-        [name: string]: ((e:Event)=>any);
-        click?:((e:MouseEvent)=>any);
-        mousedown?:((e:MouseEvent)=>any);
-        mouseup?:((e:MouseEvent)=>any);
-        mouseenter?:((e:MouseEvent)=>any);
-        mouseleave?:((e:MouseEvent)=>any);
-        mousemove?:((e:MouseEvent)=>any);
-        keydown?:((e:KeyboardEvent)=>any);
-        keyup?:((e:KeyboardEvent)=>any);
-        keypress?:((e:KeyboardEvent)=>any);
+        [name: string]: ((e:Event)=>void);
+        click?:((e:MouseEvent)=>void);
+        mousedown?:((e:MouseEvent)=>void);
+        mouseup?:((e:MouseEvent)=>void);
+        mouseenter?:((e:MouseEvent)=>void);
+        mouseleave?:((e:MouseEvent)=>void);
+        mousemove?:((e:MouseEvent)=>void);
+        keydown?:((e:KeyboardEvent)=>void);
+        keyup?:((e:KeyboardEvent)=>void);
+        keypress?:((e:KeyboardEvent)=>void);
     }
 
-    export interface INode {
-        tag:string;
-        attrs?:Attr;
-        key?:string;
-        events?:Events;
-        children?:Children[];
-    }
-
-    export class Node implements INode {
+    export class Node {
         constructor(public tag:string,
                     public attrs:Attr,
                     public key:string,
@@ -100,7 +92,7 @@ module vd {
         }
     }
 
-    type Children0 = INode | string;
+    type Children0 = Node | string;
     type Children1 = Children0 | Children0[];
     type Children2 = Children1 | Children1[];
     type Children3 = Children2 | Children2[];
@@ -115,4 +107,44 @@ module vd {
         classes?: {[index:string]: boolean};
         [index:string]:any;
     };
+
+    export function render(fn:()=>vd.Node) {
+        var oldNode:vd.Node;
+        var newNode:vd.Node;
+        return new Observer2(()=> {
+            newNode = fn();
+            if (oldNode) {
+                cito.vdom.update(oldNode, newNode);
+            }
+            else {
+                cito.vdom.create(newNode);
+            }
+            oldNode = newNode;
+        });
+
+    }
+
 }
+declare module cito.vdom {
+    export function create(newNode:vd.Node):void;
+
+    export function update(oldNode:vd.Node, newNode:vd.Node):void;
+
+    export function append(dom:Node, newNode:vd.Node):void;
+}
+
+class NFF {
+    @observe content = 'hello';
+    node:vd.Node;
+
+    constructor() {
+        vd.render(()=>this.render());
+    }
+
+    render() {
+        return this.node = vd('div', this.content);
+    }
+}
+
+var f = new NFF;
+cito.vdom.append(document.body, f.node);

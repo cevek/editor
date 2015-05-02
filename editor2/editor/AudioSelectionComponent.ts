@@ -73,7 +73,8 @@ module editor {
         }
 
         componentDidMount() {
-            Observer(this.audioSelection.status).listen(() => {
+/*
+            new Observer2(() => {
                 var status = this.audioSelection.status;
                 if (status == AudioSelectionState.PLAYING) {
                     this.startCurrentTime();
@@ -83,12 +84,13 @@ module editor {
                 }
                 this.forceUpdate();
             });
-            Observer(this.audioSelection.start, this.audioSelection.end).listen(() => {
+            new Observer2(() => {
                 this.startY = this.model.timeToVisibleLineN(this.audioSelection.start);
                 this.endY = this.model.timeToVisibleLineN(this.audioSelection.end);
                 this.forceUpdate();
             });
 
+*/
             this.el = <HTMLElement>React.findDOMNode(this.refs['audioSelection']);
             this.currentTime = <HTMLElement>React.findDOMNode(this.refs['currentTime']);
             this.offsetTop = (<HTMLElement>this.el.parentNode).offsetTop;
