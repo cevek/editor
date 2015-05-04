@@ -1,13 +1,18 @@
+module Components {
+    export var attrs = Sym('attrs');
+    export var props = Sym('props');
+}
+
 function vd(tag:string):vd.Node;
-function vd(tag:string, attrs:vd.Attr):vd.Node;
+function vd(tag:string, attrs:vd.Attrs):vd.Node;
 function vd(tag:string, ...children:vd.Children[]):vd.Node;
-function vd(tag:string, attrs:vd.Attr, ...children:vd.Children[]):vd.Node;
-function vd(attrs:vd.Attr, ...children:vd.Children[]):vd.Node;
-function vd(attrs:vd.Attr):vd.Node;
+function vd(tag:string, attrs:vd.Attrs, ...children:vd.Children[]):vd.Node;
+function vd(attrs:vd.Attrs, ...children:vd.Children[]):vd.Node;
+function vd(attrs:vd.Attrs):vd.Node;
 function vd(...children:vd.Children[]):vd.Node;
 function vd(...children:any[]):vd.Node {
     let tag:string;
-    let attrs:vd.Attr = {};
+    let attrs:vd.Attrs = {};
     let events:vd.Events;
     let key:string;
     let classes:string[] = [];
@@ -47,6 +52,7 @@ function vd(...children:any[]):vd.Node {
             }
             attrs.data = void 0;
         }
+
         if (attrs.style) {
             let keys = Object.keys(attrs.style);
             let newStyle:{[index:string]:string | number} = {};
@@ -57,7 +63,7 @@ function vd(...children:any[]):vd.Node {
             attrs.style = newStyle;
         }
         let keys = Object.keys(attrs);
-        let newAttrs:vd.Attr = {};
+        let newAttrs:vd.Attrs = {};
         for (let key of keys) {
             if (attrs[key] !== void 0) {
                 newAttrs[key] = attrs[key];
@@ -66,7 +72,7 @@ function vd(...children:any[]):vd.Node {
         attrs = newAttrs;
     }
     attrs.class = classes.join(' ');
-    return new vd.Node(tag, attrs, key, events, children);
+    return new vd.Node(tag, attrs, key, events, null, children);
 }
 module vd {
     export interface Events {
@@ -84,9 +90,10 @@ module vd {
 
     export class Node {
         constructor(public tag:string,
-                    public attrs:Attr,
+                    public attrs:Attrs,
                     public key:string,
                     public events:Events,
+                    public component:Component1<Attrs>,
                     public children:Children[]) {
 
         }
@@ -97,7 +104,7 @@ module vd {
     type Children2 = Children1 | Children1[];
     type Children3 = Children2 | Children2[];
     export type Children = Children3 | Children3[];
-    export type Attr = {
+    export interface Attrs {
         id?: string;
         class?: string;
         style?: {[index:string]:string | number};
@@ -106,7 +113,7 @@ module vd {
         key?: string;
         classes?: {[index:string]: boolean};
         [index:string]:any;
-    };
+    }
 
     export function render(fn:()=>vd.Node) {
         var oldNode:vd.Node;
@@ -124,6 +131,10 @@ module vd {
 
     }
 
+    export function element(cls:new ()=>void, attrs:Attrs, children:Children[]):Node {
+        return null;
+    }
+
 }
 declare module cito.vdom {
     export function create(newNode:vd.Node):void;
@@ -131,36 +142,85 @@ declare module cito.vdom {
     export function update(oldNode:vd.Node, newNode:vd.Node):void;
 
     export function append(dom:Node, newNode:vd.Node):void;
+
+    export function remove(oldNode:vd.Node):void;
 }
 
 function prop(proto:any, name:string) {
     console.log("prop", proto, name);
     observe(proto, name);
-    proto.constructor[Component.props] = proto.constructor[Component.props] || [];
-    proto.constructor[Component.props].push(name);
+    proto.constructor[Components.props] = proto.constructor[Components.props] || [];
+    proto.constructor[Components.props].push(name);
 }
 function attr(proto:any, name:string) {
     console.log("attr", proto, name);
     observe(proto, name);
-    proto.constructor[Component.attrs] = proto.constructor[Component.attrs] || [];
-    proto.constructor[Component.attrs].push(name);
+    proto.constructor[Components.attrs] = proto.constructor[Components.attrs] || [];
+    proto.constructor[Components.attrs].push(name);
 
 }
 class Model {
+    name:string;
+}
+class Component1<T extends vd.Attrs> {
+    attrs:T;
+    currentVNodeState:vd.Node;
+    rootNode = new vd.Node((<any>this.constructor).name, null, null, {
+        $created: ()=>this.onAttached(),
+        $destroyed: ()=>this.onDetached()
+    }, this, null);
+
+    onAttached():void {}
+
+    onDetached():void {}
+
+    onAttributeChanged(name:string, previousValue:string, value:string):void {}
+
+    render():vd.Node {return null}
+
+    runRender() {
+        return this.currentVNodeState = this.render();
+    }
+
+    private dependencyObserver() {
+        var newNode = this.render();
+        (<any>cito.vdom).updateChildren(this.rootNode, newNode);
+        this.rootNode.children = newNode ? [newNode] : null;
+        //cito.vdom.update(this.rootNode.children, newNode);
+
+/*
+        if (this.currentVNodeState) {
+            if (newNode) {
+                cito.vdom.update(this.currentVNodeState, newNode);
+            }
+            else {
+                cito.vdom.remove(this.currentVNodeState);
+            }
+        }
+        else {
+            cito.vdom.create(newNode);
+        }
+
+*/
+        this.currentVNodeState = newNode;
+        //this.rootNode.children = [newNode];
+    }
+
+    vd(attrs:T, ...children:vd.Children[]) {
+        new Observer2(this.dependencyObserver, this);
+        return this.rootNode;
+    }
 
 }
-interface Component {
-    onAttached?():void;
-    onDetached?():void;
-    onAttributeChanged?(name:string, previousValue:string, value:string):void;
-    render():vd.Node;
+
+interface NFFAttrs extends vd.Attrs {
+    model:Model;
+    title:string;
 }
-@Component('nff-node')
-class NFF implements Component {
+
+class NFF extends Component1<NFFAttrs> {
+
     @observe content = 'hello';
-
-    @prop model:Model;
-    @attr title:string;
 
     onAttached():void {
         console.log("onAttached");
@@ -172,19 +232,27 @@ class NFF implements Component {
 
     render() {
         console.log("render");
-        this.model;
-        this.title;
+        //var m = this.attrs.model;
+        //var t = this.attrs.title;
         return vd('div', this.content);
     }
 }
 
-interface HTMLElement {
-    component: Component;
+class FFT extends Component1<vd.Attrs> {
+    render():vd.Node {
+        return Math.random() > 0.5 ? new NFF().vd({model: {name: '234'}, title: 'eweads'}) : null;
+    }
 }
 
-var fft = document.createElement('nff-node');
-document.body.appendChild(fft);
-var comp = fft.component;
+interface HTMLElement {
+    component: Component1<vd.Attrs>;
+}
+
+var fft = new FFT().vd({});
+
+cito.vdom.append(document.body, fft);
+//document.body.appendChild(fft);
+//var comp = fft.component;
 
 function Component(name:string) {
     return function (target:new ()=>void) {
@@ -192,10 +260,11 @@ function Component(name:string) {
             createdCallback: {
                 value: function createdCallback() {
                     var el = this;
-                    var component:Component = <any>new target();
+                    var component:Component1<vd.Attrs> = <any>new target();
                     var oldNode:vd.Node;
                     var newNode:vd.Node;
-                    new Observer2(function dependencyObserver() {
+
+                    function dependencyObserver() {
                         newNode = component.render();
                         if (oldNode) {
                             cito.vdom.update(oldNode, newNode);
@@ -203,13 +272,18 @@ function Component(name:string) {
                         else {
                             cito.vdom.append(el, newNode);
                         }
-                        oldNode = newNode;
-                    });
+                        component.currentVNodeState = newNode;
+                    }
+
+                    new Observer2(dependencyObserver);
                     this.component = component;
 
-                    (<string[]>(<any>target)[Component.attrs]).forEach(attr => {
-                        this.component[attr] = el.getAttribute(attr);
-                    });
+                    var attrs = <string[]>(<any>target)[Components.attrs];
+                    if (attrs) {
+                        attrs.forEach(attr => {
+                            this.component[attr] = el.getAttribute(attr);
+                        });
+                    }
 
                     console.log('here I am ^_^ ');
                     console.log('with content: ', this.textContent);
@@ -218,37 +292,36 @@ function Component(name:string) {
             attachedCallback: {
                 value: function attachedCallback() {
                     var el = this;
-                    (<Component>this.component).onAttached();
+                    var comp = <Component1<vd.Attrs>>this.component;
+                    if (comp.onAttached) {
+                        comp.onAttached();
+                    }
                     console.log('live on DOM ;-) ');
                 }
             },
             detachedCallback: {
                 value: function detachedCallback() {
-                    (<Component>this.component).onDetached();
+                    var comp = <Component1<vd.Attrs>>this.component;
+                    if (comp.onDetached) {
+                        comp.onDetached();
+                    }
                     console.log('leaving the DOM :-( )');
                 }
             },
             attributeChangedCallback: {
                 value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
+                    var comp = <Component1<vd.Attrs>>this.component;
+                    cito.vdom.update(this.component.currentVNodeState, this.component.runRender());
+                    if (comp.onAttributeChanged) {
+                        comp.onAttributeChanged(name, previousValue, value);
+                    }
                     this.component[name] = value;
                 }
             }
         };
 
-        (<string[]>(<any>target)[Component.props]).forEach(prop => {
-            proto[prop] = {
-                set: function (val:any) {
-                    this.component[prop] = val;
-                }
-            }
-        });
-
         (<any>document).registerElement(name, {
             prototype: Object.create(HTMLElement.prototype, proto)
         });
     }
-}
-module Component {
-    export var attrs = Sym('attrs');
-    export var props = Sym('props');
 }

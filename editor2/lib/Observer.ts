@@ -39,7 +39,7 @@ class Observer2 {
     private stack:Stack[];
     private cb = ()=>this.listen();
 
-    constructor(private callback:()=>void) {
+    constructor(private callback:()=>void, private owner?: Object) {
         this.listen();
     }
 
@@ -47,7 +47,7 @@ class Observer2 {
         var old_stack = __observe_stack;
         __observe_stack = [];
         this.unlisten();
-        this.callback();
+        this.callback.call(this.owner);
         this.stack = __observe_stack;
         __observe_stack = old_stack;
 
