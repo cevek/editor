@@ -166,15 +166,13 @@ class Component1<T extends vd.Attrs> {
     attrs:T;
     currentVNodeState:vd.Node;
     rootNode = new vd.Node((<any>this.constructor).name, null, null, {
-        $created: ()=>this.onAttached(),
-        $destroyed: ()=>this.onDetached()
+        $created: ()=>this.componentDidMount(),
+        $destroyed: ()=>this.componentWillUnmount()
     }, this, null);
 
-    onAttached():void {}
+    componentDidMount():void {}
 
-    onDetached():void {}
-
-    onAttributeChanged(name:string, previousValue:string, value:string):void {}
+    componentWillUnmount():void {}
 
     render():vd.Node {return null}
 
@@ -222,11 +220,11 @@ class NFF extends Component1<NFFAttrs> {
 
     @observe content = 'hello';
 
-    onAttached():void {
+    componentDidMount():void {
         console.log("onAttached");
     }
 
-    onDetached():void {
+    componentWillUnmount():void {
         console.log("onDetached");
     }
 
@@ -293,8 +291,8 @@ function Component(name:string) {
                 value: function attachedCallback() {
                     var el = this;
                     var comp = <Component1<vd.Attrs>>this.component;
-                    if (comp.onAttached) {
-                        comp.onAttached();
+                    if (comp.componentDidMount) {
+                        comp.componentDidMount();
                     }
                     console.log('live on DOM ;-) ');
                 }
@@ -302,8 +300,8 @@ function Component(name:string) {
             detachedCallback: {
                 value: function detachedCallback() {
                     var comp = <Component1<vd.Attrs>>this.component;
-                    if (comp.onDetached) {
-                        comp.onDetached();
+                    if (comp.componentWillUnmount) {
+                        comp.componentWillUnmount();
                     }
                     console.log('leaving the DOM :-( )');
                 }
@@ -312,9 +310,11 @@ function Component(name:string) {
                 value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
                     var comp = <Component1<vd.Attrs>>this.component;
                     cito.vdom.update(this.component.currentVNodeState, this.component.runRender());
+/*
                     if (comp.onAttributeChanged) {
                         comp.onAttributeChanged(name, previousValue, value);
                     }
+*/
                     this.component[name] = value;
                 }
             }
