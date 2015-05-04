@@ -45,14 +45,6 @@ function vd(...children:any[]):vd.Node {
             }
             attrs.classes = void 0;
         }
-        if (attrs.data) {
-            let keys = Object.keys(attrs.data);
-            for (key of keys) {
-                attrs['data-' + key] = attrs.data[key];
-            }
-            attrs.data = void 0;
-        }
-
         if (attrs.style) {
             let keys = Object.keys(attrs.style);
             let newStyle:{[index:string]:string | number} = {};
@@ -66,7 +58,8 @@ function vd(...children:any[]):vd.Node {
         let newAttrs:vd.Attrs = {};
         for (let key of keys) {
             if (attrs[key] !== void 0) {
-                newAttrs[key] = attrs[key];
+                var newKey = key.replace(/([A-Z])/g, m => '-' + m.toLowerCase());
+                newAttrs[newKey] = attrs[key];
             }
         }
         attrs = newAttrs;
@@ -109,7 +102,6 @@ module vd {
         class?: string;
         style?: {[index:string]:string | number};
         events?: Events;
-        data?: {[index:string]:string | number | boolean};
         key?: string;
         classes?: {[index:string]: boolean};
         [index:string]:any;

@@ -358,7 +358,7 @@ module editor {
                 vd('div.panel',
                     vd('button', {events: {click: ()=>this.hideEmptyLines()}}, 'Hide')
                 ),
-                new AudioSelectionComponent({
+                new AudioSelectionComponent().vd({
                     model: this.model,
                     events: this.events
                 }),
@@ -370,12 +370,10 @@ module editor {
                                     visible: !line.hidden,
                                     linked: line.model.linked
                                 },
-                                data: {
-                                    line: i,
-                                    mayHide: line.mayHide ? line.mayHide : void 0,
-                                    collapsed: line.collapsed ? line.collapsed : void 0,
-                                    collapsibleCount: line.collapsibleCount ? line.collapsibleCount : void 0
-                                }
+                                dataLine: i,
+                                dataMayHide: line.mayHide ? line.mayHide : void 0,
+                                dataCollapsed: line.collapsed ? line.collapsed : void 0,
+                                dataCollapsibleCount: line.collapsibleCount ? line.collapsibleCount : void 0
                             },
                             vd('div.thumb', {
                                 styles: {backgroundPosition: this.getThumbPos(i)}
@@ -391,14 +389,14 @@ module editor {
                                 lineN: i
                             }),
                             vd('.audio-ru'),
-                            vd('.lng.en', {data: {lang: 'en'}},
+                            vd('.lng.en', {dataLang: 'en'},
                                 line.words.en.map((block, pos)=>
                                     vd('span', block))),
-                            vd('.lng.ru', {data: {lang: 'ru'}},
+                            vd('.lng.ru', {dataLang: 'ru'},
                                 line.words.ru.map((block, pos)=>
                                     vd('span', block)))
                         ),
-                        !this.model.collapsedLines[i + 1] ? null :
+                        this.model.collapsedLines[i + 1] ?
                             vd({
                                 events: {
                                     click: e => this.collapse(e),
@@ -407,11 +405,9 @@ module editor {
                                     collapsible: true,
                                     collapsed: this.model.collapsedLines[i + 1].collapsed
                                 },
-                                data: {
-                                    collapsible: true,
-                                    line: i + 1,
-                                }
-                            })
+                                dataCollapsible: true,
+                                dataLine: i + 1,
+                            }) : void 0
                     ]
                 ));
 
