@@ -1,4 +1,4 @@
-var __observe_stack:Stack[] = [];
+var __observe_stack:Atom<any>[] = [];
 
 var Sym = (<any>window).Symbol || function (name:string) {return '__' + name};
 var globalObserver = Sym("observer");
@@ -7,39 +7,70 @@ var globalListeners = Sym("listeners");
 function observe(obj:any, key:string) {
     Object.defineProperty(obj, key, {
         enumerable: true,
-        get: function () {
-            __observe_stack.push({obj: this, key: key});
+        get: function get() {
             if (!this[globalObserver]) {
                 this[globalObserver] = {};
-                this[globalObserver][globalListeners] = {};
             }
-            return this[globalObserver][key];
+            var atom = <Atom<any>>this[globalObserver][key];
+            if (!this[globalObserver][key]) {
+                atom = new Atom(this, key);
+                this[globalObserver][key] = atom;
+            }
+            __observe_stack.push(atom);
+            return atom.value;
         },
-        set: function (val:any) {
+        set: function set(val:any) {
             if (!this[globalObserver]) {
                 this[globalObserver] = {};
-                this[globalObserver][globalListeners] = {};
             }
-            this[globalObserver][key] = val;
-            if (this[globalObserver][globalListeners][key]) {
-                for (var i = 0; i < this[globalObserver][globalListeners][key].length; i++) {
-                    var listener = this[globalObserver][globalListeners][key][i];
-                    listener();
+            var atom = <Atom<any>>this[globalObserver][key];
+            if (!this[globalObserver][key]) {
+                atom = new Atom(this, key, val);
+                this[globalObserver][key] = atom;
+            }
+            atom.value = val;
+            if (atom.listeners) {
+                var keys = Object.keys(atom.listeners);
+                for (var i = 0; i < keys.length; i++) {
+                    var listener = atom.listeners[keys[i]];
+                    listener.callback.call(listener.scope);
                 }
             }
         }
     });
 }
 
-class Stack {
-    key:string;
+class Atom<T> {
+    id = ++Atom.ID;
     obj:any;
-}
-class Observer2 {
-    private stack:Stack[];
-    private cb = ()=>this.listen();
+    key:string;
+    value:T;
+    listeners:{[id: string]: Listener} = {};
 
-    constructor(private callback:()=>void, private owner?: Object) {
+    private static ID = 0;
+
+    constructor(obj:any, key:string, value?:T) {
+        this.obj = obj;
+        this.key = key;
+        this.value = value;
+    }
+}
+
+class Listener {
+    id = ++Listener.ID;
+    masters:{[id: string]: Atom<any>} = {};
+    private static ID = 0;
+
+    constructor(public callback:()=>void, public scope:any) {}
+}
+
+class Observer2 {
+    private stack:Atom<any>[];
+    private cb = ()=>this.listen();
+    private listener:Listener;
+
+    constructor(private callback:()=>void, private scope?:Object) {
+        this.listener = new Listener(this.callback, this.scope);
         this.listen();
     }
 
@@ -47,15 +78,17 @@ class Observer2 {
         var old_stack = __observe_stack;
         __observe_stack = [];
         this.unlisten();
-        this.callback.call(this.owner);
+        this.callback.call(this.scope);
         this.stack = __observe_stack;
         __observe_stack = old_stack;
 
         for (var i = 0; i < this.stack.length; i++) {
-            var stack = this.stack[i];
-            var listeners = stack.obj[globalObserver][globalListeners];
-            listeners[stack.key] = listeners[stack.obj] || [];
-            listeners[stack.key].push(this.cb);
+            var atom = this.stack[i];
+            if (!atom.listeners) {
+                atom.listeners = {};
+            }
+            atom.listeners[this.listener.id] = this.listener;
+            this.listener.masters[atom.id] = atom;
         }
         return this;
     }
@@ -63,13 +96,11 @@ class Observer2 {
     unlisten() {
         if (this.stack) {
             for (var i = 0; i < this.stack.length; i++) {
-                var stack = this.stack[i];
-                var listeners = stack.obj[globalObserver][globalListeners];
-                listeners[stack.key] = listeners[stack.key] || [];
-                var pos = listeners[stack.key].indexOf(this.cb);
-                if (pos > -1) {
-                    listeners[stack.key].splice(pos, 1);
+                var atom = this.stack[i];
+                if (!atom.listeners) {
+                    atom.listeners = {};
                 }
+                this.listener.masters[atom.id] = null;
             }
         }
         return this;
@@ -89,9 +120,10 @@ class CCC {
 
     constructor() {
         new Observer2(()=> {
+            test.a;
+            test.b;
             console.log("observer launch", this.index);
         });
     }
 }
-
-///new CCC();
+new CCC();
