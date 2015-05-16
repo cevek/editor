@@ -114,7 +114,7 @@ module router {
         }
 
         render() {
-            return vd('a', vd.extend({events: {click: (e)=>this.click(e)}}, this.attrs), this.children);
+            return vd('a', vd.extend({events: {click: (e)=>this.click(e)}}, this.attrs), ...this.children);
         }
     }
 
@@ -167,7 +167,7 @@ module router {
     class MainView extends DefaultComponent {
         render() {
             return vd('div',
-                new Linker().vd({url: routes.main.toURL({})}),
+                new Linker().vd({href: routes.main.toURL({})}, 'hey'),
                 routes.mainRouter.vd()
             );
         }

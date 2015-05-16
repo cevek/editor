@@ -81,7 +81,7 @@ module vd {
         keypress?:((e:KeyboardEvent)=>void);
     }
 
-    export function extend(obj:Attrs, to:Attrs) {
+    export function extend(obj:Attrs, to:Attrs):Attrs {
         if (obj && typeof obj == 'object' && to) {
             for (let i = 0, keys = Object.keys(obj); i < keys.length; i++) {
                 let key = keys[i];
@@ -172,7 +172,7 @@ class Model {
 }
 class Component1<T extends vd.Attrs> {
     attrs:T;
-    children:vd.Children = [];
+    children:vd.Children[] = [];
     currentVNodeState:vd.Node;
     rootNode = new vd.Node((<any>this.constructor).name, null, null, {
         $created: ()=>this.componentDidMount(),
@@ -214,6 +214,8 @@ class Component1<T extends vd.Attrs> {
     }
 
     vd(attrs?:T, ...children:vd.Children[]) {
+        this.attrs = attrs;
+        this.children = children;
         observer.watch(this.dependencyObserver, this);
         return this.rootNode;
     }
