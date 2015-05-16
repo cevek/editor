@@ -2,7 +2,6 @@
 ///<reference path="../typings/es6-promise/es6-promise.d.ts"/>
 ///<reference path="lib/Observable.ts"/>
 ///<reference path="lib/Observer.ts"/>
-///<reference path="lib/Router.ts"/>
 ///<reference path="lib/VDom.ts"/>
 ///<reference path="lib/EventEmitter.ts"/>
 ///<reference path="lib/react.d.ts" />
@@ -16,6 +15,7 @@
 ///<reference path="test/LinesStore.spec.ts"/>
 ///<reference path="lib/Observer.ts"/>
 ///<reference path="../typings/webaudioapi/waa.d.ts"/>
+///<reference path="lib/Router.ts"/>
 
 
 var linesStore = new LinesStore();

@@ -81,6 +81,19 @@ module vd {
         keypress?:((e:KeyboardEvent)=>void);
     }
 
+    export function extend(obj:Attrs, to:Attrs) {
+        if (obj && typeof obj == 'object' && to) {
+            for (let i = 0, keys = Object.keys(obj); i < keys.length; i++) {
+                let key = keys[i];
+                to[key] = extend(obj[key], to[key]);
+            }
+        }
+        else {
+            to = obj;
+        }
+        return to;
+    }
+
     export class Node {
         constructor(public tag:string,
                     public attrs:Attrs,
@@ -128,6 +141,7 @@ module vd {
     }
 
 }
+
 declare module cito.vdom {
     export function create(newNode:vd.Node):void;
 
@@ -144,6 +158,7 @@ function prop(proto:any, name:string) {
     proto.constructor[Components.props] = proto.constructor[Components.props] || [];
     proto.constructor[Components.props].push(name);
 }
+
 function attr(proto:any, name:string) {
     console.log("attr", proto, name);
     observe(proto, name);
@@ -151,11 +166,13 @@ function attr(proto:any, name:string) {
     proto.constructor[Components.attrs].push(name);
 
 }
+
 class Model {
     name:string;
 }
 class Component1<T extends vd.Attrs> {
     attrs:T;
+    children:vd.Children = [];
     currentVNodeState:vd.Node;
     rootNode = new vd.Node((<any>this.constructor).name, null, null, {
         $created: ()=>this.componentDidMount(),
@@ -178,20 +195,20 @@ class Component1<T extends vd.Attrs> {
         this.rootNode.children = newNode ? [newNode] : null;
         //cito.vdom.update(this.rootNode.children, newNode);
 
-/*
-        if (this.currentVNodeState) {
-            if (newNode) {
-                cito.vdom.update(this.currentVNodeState, newNode);
-            }
-            else {
-                cito.vdom.remove(this.currentVNodeState);
-            }
-        }
-        else {
-            cito.vdom.create(newNode);
-        }
+        /*
+                if (this.currentVNodeState) {
+                    if (newNode) {
+                        cito.vdom.update(this.currentVNodeState, newNode);
+                    }
+                    else {
+                        cito.vdom.remove(this.currentVNodeState);
+                    }
+                }
+                else {
+                    cito.vdom.create(newNode);
+                }
 
-*/
+        */
         this.currentVNodeState = newNode;
         //this.rootNode.children = [newNode];
     }
@@ -200,6 +217,9 @@ class Component1<T extends vd.Attrs> {
         observer.watch(this.dependencyObserver, this);
         return this.rootNode;
     }
+}
+
+class DefaultComponent extends Component1<vd.Attrs> {
 
 }
 
@@ -302,11 +322,11 @@ function Component(name:string) {
                 value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
                     var comp = <Component1<vd.Attrs>>this.component;
                     cito.vdom.update(this.component.currentVNodeState, this.component.runRender());
-/*
-                    if (comp.onAttributeChanged) {
-                        comp.onAttributeChanged(name, previousValue, value);
-                    }
-*/
+                    /*
+                                        if (comp.onAttributeChanged) {
+                                            comp.onAttributeChanged(name, previousValue, value);
+                                        }
+                    */
                     this.component[name] = value;
                 }
             }

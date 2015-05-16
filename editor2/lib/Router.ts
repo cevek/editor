@@ -1,33 +1,9 @@
 module router {
-    export class Router {
-        static activeRoute:Route<any>;
-        static currentUrl:string;
-        static routes:Route<any>[] = [];
-
-        static urlChanged() {
-            var route = Router.routes.filter(route => route.is(location.pathname)).pop();
-            if (route) {
-                Router.currentUrl = location.pathname;
-            }
-            Router.activeRoute = route;
-            console.log(route);
-        }
-
-        static addRoute(route:Route<any>) {
-            Router.routes.push(route);
-        }
-
-        static listen() {
-            Router.urlChanged();
-            window.addEventListener('popstate', Router.urlChanged, false);
-        }
-    }
-
     export class Route<T> {
         private regexp:RegExp;
         private url:string;
         private names:string[] = [];
-        @observe isActive:boolean;
+        @observe isActive = false;
 
         constructor(url:string) {
             url = '/' + url.replace(/(^\/+|\/+$)/g, '');
@@ -37,9 +13,16 @@ module router {
             var reg = /:([^\/]+)/g;
             while (v = reg.exec(url))
                 this.names.push(v[1]);
-            var r = '^' + url.replace(/(:([^\/]+))/g, '([^\/]+)') + '$';
+            var r = '^' + url.replace(/(:([^\/]+))/g, '([^\/]+)') + '?$';
             this.regexp = new RegExp(r);
             this.url = url;
+            this.urlChanged();
+            Route.routes.push(this);
+            window.addEventListener('popstate', ()=>this.urlChanged(), false);
+        }
+
+        urlChanged() {
+            this.isActive = this.regexp.test(window.location.pathname);
         }
 
         toURL(paramss:T) {
@@ -52,13 +35,9 @@ module router {
             return url;
         }
 
-        is(url:string) {
-            return this.regexp.test(url);
-        }
-
         getParams():T {
             var ret:any = {};
-            var m = Router.currentUrl.match(this.regexp);
+            var m = window.location.pathname.match(this.regexp);
             if (m) {
                 for (var i = 1; i < m.length; i++) {
                     ret[this.names[i - 1]] = m[i];
@@ -68,6 +47,14 @@ module router {
             return ret;
         }
 
+        static routes:Route<any>[] = [];
+
+        static go(url:string) {
+            history.pushState({}, '', url);
+            for (var route of Route.routes) {
+                route.urlChanged();
+            }
+        }
     }
 
     /*
@@ -120,28 +107,22 @@ module router {
      }
      }*/
 
-    /*    export class Link {
-            constructor(private attrs:Attrs, private children:any) {
-                this.attrs.onclick = e=> this.click(e)
-            }
+    export class Linker extends DefaultComponent {
+        click(e:Event) {
+            e.preventDefault();
+            Route.go(this.attrs['href']);
+        }
 
-            click(e:Event) {
-                e.preventDefault();
-                history.pushState(this.attrs['state'], '', this.attrs.href);
-                Route.urlChanged();
-            }
+        render() {
+            return vd('a', vd.extend({events: {click: (e)=>this.click(e)}}, this.attrs), this.children);
+        }
+    }
 
-            render() {
-                return vd('a', this.attrs, this.children);
-            }
-        }*/
+    class Routes extends DefaultComponent {
+        routes:{callback: ()=>DefaultComponent; route: Route<any>}[] = [];
 
-    class Routes extends Component1<vd.Attrs> {
-        routes:{callback: ()=>Component1<vd.Attrs>; route: Route<any>}[] = [];
-
-        when(route:Route<any>, callback:()=>Component1<vd.Attrs>) {
+        when(route:Route<any>, callback:()=>DefaultComponent) {
             this.routes.push({callback: callback, route: route});
-            Router.addRoute(route);
             return this;
         }
 
@@ -162,31 +143,37 @@ module router {
         export var mainRouter:Routes = new Routes()
             .when(profile, ()=>new ProfileView())
             .when(profileEmail, ()=>new ProfileEditEmailView())
-            .when(main, ()=>new MainView);
+            .when(main, ()=>new MainView());
 
         export var profileRouter = new Routes()
             .when(profileEmail, ()=>new ProfileEditEmailView)
+
     }
 
-    class ListView extends Component1<vd.Attrs> {
+    class ListView extends DefaultComponent {
         render() {
             return routes.profileRouter.vd();
         }
     }
 
-    class ProfileView extends Component1<vd.Attrs> {
+    class ProfileView extends DefaultComponent {
 
     }
 
-    class ProfileEditEmailView extends Component1<vd.Attrs> {
+    class ProfileEditEmailView extends DefaultComponent {
 
     }
 
-    class MainView extends Component1<vd.Attrs> {
+    class MainView extends DefaultComponent {
         render() {
-            return routes.mainRouter.vd();
+            return vd('div',
+                new Linker().vd({url: routes.main.toURL({})}),
+                routes.mainRouter.vd()
+            );
         }
     }
+
+    cito.vdom.append(document.body, new MainView().vd());
 
 }
 
