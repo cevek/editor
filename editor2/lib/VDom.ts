@@ -166,7 +166,7 @@ class Component1<T extends vd.Attrs> {
 
     componentWillUnmount():void {}
 
-    render():vd.Node {return null}
+    protected render():vd.Node {return null}
 
     runRender() {
         return this.currentVNodeState = this.render();
@@ -196,7 +196,7 @@ class Component1<T extends vd.Attrs> {
         //this.rootNode.children = [newNode];
     }
 
-    vd(attrs:T, ...children:vd.Children[]) {
+    vd(attrs?:T, ...children:vd.Children[]) {
         observer.watch(this.dependencyObserver, this);
         return this.rootNode;
     }
@@ -255,7 +255,7 @@ function Component(name:string) {
                     var newNode:vd.Node;
 
                     function dependencyObserver() {
-                        newNode = component.render();
+                        newNode = (<any>component).render();
                         if (oldNode) {
                             cito.vdom.update(oldNode, newNode);
                         }

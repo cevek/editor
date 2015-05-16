@@ -117,8 +117,6 @@ module observer {
 }
 import observe = observer.observe;
 
-
-
 class Test {
     @observe a:string;
     @observe b:string;
@@ -141,3 +139,17 @@ class CCC {
     }
 }
 var ccc = new CCC();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
