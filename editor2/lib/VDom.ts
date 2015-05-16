@@ -1,6 +1,6 @@
 module Components {
-    export var attrs = Sym('attrs');
-    export var props = Sym('props');
+    export var attrs = 'attrs';
+    export var props = 'props';
 }
 
 function vd(tag:string):vd.Node;
@@ -110,7 +110,7 @@ module vd {
     export function render(fn:()=>vd.Node) {
         var oldNode:vd.Node;
         var newNode:vd.Node;
-        return new Observer2(()=> {
+        return observer.watch(()=> {
             newNode = fn();
             if (oldNode) {
                 cito.vdom.update(oldNode, newNode);
@@ -197,7 +197,7 @@ class Component1<T extends vd.Attrs> {
     }
 
     vd(attrs:T, ...children:vd.Children[]) {
-        new Observer2(this.dependencyObserver, this);
+        observer.watch(this.dependencyObserver, this);
         return this.rootNode;
     }
 
@@ -265,7 +265,7 @@ function Component(name:string) {
                         component.currentVNodeState = newNode;
                     }
 
-                    new Observer2(dependencyObserver);
+                    observer.watch(dependencyObserver);
                     this.component = component;
 
                     var attrs = <string[]>(<any>target)[Components.attrs];
