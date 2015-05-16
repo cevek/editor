@@ -157,23 +157,35 @@ module router {
     }
 
     class ProfileView extends DefaultComponent {
-
+        render() {
+            return vd('div', 'ProfileView');
+        }
     }
 
     class ProfileEditEmailView extends DefaultComponent {
-
+        render() {
+            return vd('div', 'ProfileEditEmailView');
+        }
     }
 
     class MainView extends DefaultComponent {
         render() {
+            return vd('div', 'MainView');
+        }
+    }
+
+    class IndexView extends DefaultComponent {
+        render() {
             return vd('div',
-                new Linker().vd({href: routes.main.toURL({})}, 'hey'),
+                new Linker().vd({href: routes.main.toURL({})}, 'Main'),
+                new Linker().vd({href: routes.profile.toURL({})}, 'profile'),
+                new Linker().vd({href: routes.profileEmail.toURL({})}, 'profileEmail'),
                 routes.mainRouter.vd()
             );
         }
     }
 
-    cito.vdom.append(document.body, new MainView().vd());
+    cito.vdom.append(document.body, new IndexView().vd());
 
 }
 
