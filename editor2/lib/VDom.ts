@@ -174,14 +174,11 @@ class Component1<T extends vd.Attrs> {
     attrs:T;
     children:vd.Children[] = [];
     transparent = false;
-    currentVNodeState:vd.Node;
     rootNode:vd.Node;
 
-    static prepareName(constructor:any, transparent:boolean) {
-        if (transparent) {
-            //return void 0;
-        }
-        return (<string>constructor.name).replace(/([A-Z]+)/g, m => '-' + m).replace(/^-+/, '').toLowerCase();
+    get className() {
+        return (<string>(<any>this.constructor).name).replace(/([A-Z]+)/g,
+                m => '-' + m).replace(/^-+/, '').toLowerCase();
     }
 
     componentDidMount():void {}
@@ -191,38 +188,38 @@ class Component1<T extends vd.Attrs> {
     protected render():vd.Node {return null}
 
     runRender() {
-        return this.currentVNodeState = this.render();
+        return this.rootNode = this.render();
     }
 
     private dependencyObserver() {
         var newNode = this.render();
-        (<any>cito.vdom).updateChildren(this.rootNode, newNode);
-        this.rootNode.children = newNode ? [newNode] : null;
+        //(<any>cito.vdom).updateChildren(this.rootNode, newNode);
+        //(<any>cito.vdom).update(this.currentVNodeState, newNode);
+        //this.rootNode.children = newNode ? [newNode] : null;
+
         //cito.vdom.update(this.rootNode.children, newNode);
+        if (!newNode) {
+            newNode = new vd.Node('#', null, null, {}, this, ['']);
+        }
+        if (!newNode.events) {
+            newNode.events = {};
+        }
+        newNode.events['$created'] = ()=>this.componentDidMount();
+        newNode.events['$destroyed'] = ()=>this.componentWillUnmount();
+        newNode.component = this;
 
-        /*
-                if (this.currentVNodeState) {
-                    if (newNode) {
-                        cito.vdom.update(this.currentVNodeState, newNode);
-                    }
-                    else {
-                        cito.vdom.remove(this.currentVNodeState);
-                    }
-                }
-                else {
-                    cito.vdom.create(newNode);
-                }
+        if (this.rootNode) {
+            cito.vdom.update(this.rootNode, newNode);
+        }
+        else {
+            cito.vdom.create(newNode);
+        }
 
-        */
-        this.currentVNodeState = newNode;
+        this.rootNode = newNode;
         //this.rootNode.children = [newNode];
     }
 
     vd(attrs?:T, ...children:vd.Children[]) {
-        this.rootNode = new vd.Node(Component1.prepareName(this.constructor, this.transparent), null, null, {
-            $created: ()=>this.componentDidMount(),
-            $destroyed: ()=>this.componentWillUnmount()
-        }, this, null);
         this.attrs = attrs;
         this.children = children;
         observer.watch(this.dependencyObserver, this);
@@ -293,7 +290,7 @@ function Component(name:string) {
                         else {
                             cito.vdom.append(el, newNode);
                         }
-                        component.currentVNodeState = newNode;
+                        component.rootNode = newNode;
                     }
 
                     observer.watch(dependencyObserver);
@@ -332,7 +329,7 @@ function Component(name:string) {
             attributeChangedCallback: {
                 value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
                     var comp = <Component1<vd.Attrs>>this.component;
-                    cito.vdom.update(this.component.currentVNodeState, this.component.runRender());
+                    cito.vdom.update(this.component.rootNode, this.component.runRender());
                     /*
                                         if (comp.onAttributeChanged) {
                                             comp.onAttributeChanged(name, previousValue, value);

@@ -4,8 +4,16 @@ module router {
         private url:string;
         private names:string[] = [];
         @observe isActive = false;
+        parentRoutes:Route<any>[] = [];
+        //childRouts:Route<any>[] = [];
 
-        constructor(url:string) {
+        constructor(url:string, ...parentRoutes:Route<any>[]) {
+            this.parentRoutes = parentRoutes;
+            /*
+                        for (var route of parentRoutes){
+                            route.childRouts.push(route);
+                        }
+            */
             url = '/' + url.replace(/(^\/+|\/+$)/g, '');
             url = url === '/' ? url : url + '/';
             var m = url.match(/(:([^\/]+))/g);
@@ -23,6 +31,21 @@ module router {
 
         urlChanged() {
             this.isActive = this.regexp.test(window.location.pathname);
+            if (this.isActive) {
+                var parents = Route.parents(this);
+                for (var r of parents) {
+                    r.isActive = true;
+                }
+            }
+        }
+
+        private static parents(r:Route<any>) {
+            var routes:Route<any>[] = [];
+            for (var route of r.parentRoutes) {
+                routes.push(route);
+                routes = routes.concat(Route.parents(route));
+            }
+            return routes;
         }
 
         toURL(paramss:T) {
@@ -141,12 +164,11 @@ module router {
     module routes {
         export var main = new Route('/main/');
         export var profile = new Route('/profile/');
-        export var profileEmail = new Route('/profile/email/');
+        export var profileEmail = new Route('/profile/email/', profile);
         export var editor = new Route('/editor/editor2/editor2.html');
 
         export var mainRouter:RouteView = new RouteView()
             .when(profile, ()=>new ProfileView())
-            .when(profileEmail, ()=>new ProfileEditEmailView())
             .when(editor, ()=>new Editor())
             .when(main, ()=>new MainView());
 
@@ -157,39 +179,45 @@ module router {
 
     class ListView extends DefaultComponent {
         render() {
-            return routes.profileRouter.vd();
+            return vd(this.className, routes.profileRouter.vd());
         }
     }
     class Editor extends DefaultComponent {
         render() {
-            return vd('div', 'editor');
+            return vd(this.className, 'editor');
         }
     }
 
     class ProfileView extends DefaultComponent {
         render() {
-            return vd('div', 'ProfileView');
+            return vd(this.className, 'ProfileView',
+                ' ',
+                new Linker().vd({href: routes.profileEmail.toURL({})}, 'profileEmail'),
+                ' ',
+                routes.profileRouter.vd());
         }
     }
 
     class ProfileEditEmailView extends DefaultComponent {
         render() {
-            return vd('div', 'ProfileEditEmailView');
+            return vd(this.className, 'ProfileEditEmailView');
         }
     }
 
     class MainView extends DefaultComponent {
         render() {
-            return vd('div', 'MainView');
+            return vd(this.className, 'MainView');
         }
     }
 
     class IndexView extends DefaultComponent {
         render() {
-            return vd('div',
+            return vd(this.className,
                 new Linker().vd({href: routes.main.toURL({})}, 'Main'),
+                ' ',
                 new Linker().vd({href: routes.profile.toURL({})}, 'profile'),
-                new Linker().vd({href: routes.profileEmail.toURL({})}, 'profileEmail'),
+                ' ',
+                new Linker().vd({href: routes.editor.toURL({})}, 'Editor'),
                 routes.mainRouter.vd()
             );
         }
