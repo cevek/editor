@@ -223,7 +223,6 @@ module router {
         }
     }
 
-    cito.vdom.append(document.body, new IndexView().vd());
-
+    document.body.appendChild(new IndexView().vd().dom);
 }
 

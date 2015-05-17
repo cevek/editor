@@ -3,14 +3,14 @@ module Components {
     export var props = 'props';
 }
 
-function vd(tag:string):vd.Node;
-function vd(tag:string, attrs:vd.Attrs):vd.Node;
-function vd(tag:string, ...children:vd.Children[]):vd.Node;
-function vd(tag:string, attrs:vd.Attrs, ...children:vd.Children[]):vd.Node;
-function vd(attrs:vd.Attrs, ...children:vd.Children[]):vd.Node;
-function vd(attrs:vd.Attrs):vd.Node;
-function vd(...children:vd.Children[]):vd.Node;
-function vd(...children:any[]):vd.Node {
+function vd(tag:string):vd.VNode;
+function vd(tag:string, attrs:vd.Attrs):vd.VNode;
+function vd(tag:string, ...children:vd.Children[]):vd.VNode;
+function vd(tag:string, attrs:vd.Attrs, ...children:vd.Children[]):vd.VNode;
+function vd(attrs:vd.Attrs, ...children:vd.Children[]):vd.VNode;
+function vd(attrs:vd.Attrs):vd.VNode;
+function vd(...children:vd.Children[]):vd.VNode;
+function vd(...children:any[]):vd.VNode {
     let tag:string;
     let attrs:vd.Attrs = {};
     let events:vd.Events;
@@ -64,9 +64,15 @@ function vd(...children:any[]):vd.Node {
         }
         attrs = newAttrs;
     }
-    attrs.class = classes.join(' ');
-    return new vd.Node(tag, attrs, key, events, null, children);
+    if (classes.length) {
+        attrs.class = classes.join(' ');
+    }
+    return new vd.VNode(tag, attrs, key, events, null, children);
 }
+interface HTMLElement {
+    virtualNode: vd.VNode;
+}
+
 module vd {
     export interface Events {
         [name: string]: ((e:Event)=>void);
@@ -94,7 +100,9 @@ module vd {
         return to;
     }
 
-    export class Node {
+    export class VNode {
+        public dom:HTMLElement = null;
+
         constructor(public tag:string,
                     public attrs:Attrs,
                     public key:string,
@@ -105,7 +113,7 @@ module vd {
         }
     }
 
-    type Children0 = Node | string;
+    type Children0 = VNode | string;
     type Children1 = Children0 | Children0[];
     type Children2 = Children1 | Children1[];
     type Children3 = Children2 | Children2[];
@@ -120,36 +128,38 @@ module vd {
         [index:string]:any;
     }
 
-    export function render(fn:()=>vd.Node) {
-        var oldNode:vd.Node;
-        var newNode:vd.Node;
-        return observer.watch(()=> {
-            newNode = fn();
-            if (oldNode) {
-                cito.vdom.update(oldNode, newNode);
-            }
-            else {
-                cito.vdom.create(newNode);
-            }
-            oldNode = newNode;
-        });
+    /* export function render(fn:()=>vd.VNode) {
+         var oldNode:vd.VNode;
+         var newNode:vd.VNode;
+         return observer.watch(()=> {
+             newNode = fn();
+             if (oldNode) {
+                 cito.vdom.update(oldNode, newNode);
+             }
+             else {
+                 cito.vdom.create(newNode);
+             }
+             console.log(newNode);
 
-    }
+             newNode.dom.component = newNode;
+             oldNode = newNode;
+         });
 
-    export function element(cls:new ()=>void, attrs:Attrs, children:Children[]):Node {
+     }*/
+
+    export function element(cls:new ()=>void, attrs:Attrs, children:Children[]):VNode {
         return null;
     }
-
 }
 
 declare module cito.vdom {
-    export function create(newNode:vd.Node):void;
+    export function create(newNode:vd.VNode):void;
 
-    export function update(oldNode:vd.Node, newNode:vd.Node):void;
+    export function update(oldNode:vd.VNode, newNode:vd.VNode):void;
 
-    export function append(dom:Node, newNode:vd.Node):void;
+    export function append(dom:Node, newNode:vd.VNode):void;
 
-    export function remove(oldNode:vd.Node):void;
+    export function remove(oldNode:vd.VNode):void;
 }
 
 function prop(proto:any, name:string) {
@@ -174,18 +184,18 @@ class Component1<T extends vd.Attrs> {
     attrs:T;
     children:vd.Children[] = [];
     transparent = false;
-    rootNode:vd.Node;
+    rootNode:vd.VNode;
 
     get className() {
-        return (<string>(<any>this.constructor).name).replace(/([A-Z]+)/g,
-                m => '-' + m).replace(/^-+/, '').toLowerCase();
+        var name = (<string>(<any>this.constructor).name);
+        return name.replace(/([A-Z]+)/g, m => '-' + m).replace(/^-+/, '').toLowerCase();
     }
 
     componentDidMount():void {}
 
     componentWillUnmount():void {}
 
-    protected render():vd.Node {return null}
+    protected render():vd.VNode {return null}
 
     runRender() {
         return this.rootNode = this.render();
@@ -199,7 +209,7 @@ class Component1<T extends vd.Attrs> {
 
         //cito.vdom.update(this.rootNode.children, newNode);
         if (!newNode) {
-            newNode = new vd.Node('#', null, null, {}, this, ['']);
+            newNode = new vd.VNode('#', null, null, {}, this, ['']);
         }
         if (!newNode.events) {
             newNode.events = {};
@@ -257,7 +267,7 @@ class NFF extends Component1<NFFAttrs> {
 }
 
 class FFT extends Component1<vd.Attrs> {
-    render():vd.Node {
+    render():vd.VNode {
         return Math.random() > 0.5 ? new NFF().vd({model: {name: '234'}, title: 'eweads'}) : null;
     }
 }
@@ -272,6 +282,7 @@ cito.vdom.append(document.body, fft);
 //document.body.appendChild(fft);
 //var comp = fft.component;
 
+/*
 function Component(name:string) {
     return function (target:new ()=>void) {
         var proto:{[index:string]:PropertyDescriptor} = {
@@ -279,8 +290,8 @@ function Component(name:string) {
                 value: function createdCallback() {
                     var el = this;
                     var component:Component1<vd.Attrs> = <any>new target();
-                    var oldNode:vd.Node;
-                    var newNode:vd.Node;
+                    var oldNode:vd.VNode;
+                    var newNode:vd.VNode;
 
                     function dependencyObserver() {
                         newNode = (<any>component).render();
@@ -330,11 +341,11 @@ function Component(name:string) {
                 value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
                     var comp = <Component1<vd.Attrs>>this.component;
                     cito.vdom.update(this.component.rootNode, this.component.runRender());
-                    /*
+                    /!*
                                         if (comp.onAttributeChanged) {
                                             comp.onAttributeChanged(name, previousValue, value);
                                         }
-                    */
+                    *!/
                     this.component[name] = value;
                 }
             }
@@ -344,4 +355,4 @@ function Component(name:string) {
             prototype: Object.create(HTMLElement.prototype, proto)
         });
     }
-}
+}*/
