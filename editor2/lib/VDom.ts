@@ -173,11 +173,16 @@ class Model {
 class Component1<T extends vd.Attrs> {
     attrs:T;
     children:vd.Children[] = [];
+    transparent = false;
     currentVNodeState:vd.Node;
-    rootNode = new vd.Node((<any>this.constructor).name, null, null, {
-        $created: ()=>this.componentDidMount(),
-        $destroyed: ()=>this.componentWillUnmount()
-    }, this, null);
+    rootNode:vd.Node;
+
+    static prepareName(constructor:any, transparent:boolean) {
+        if (transparent) {
+            //return void 0;
+        }
+        return (<string>constructor.name).replace(/([A-Z]+)/g, m => '-' + m).replace(/^-+/, '').toLowerCase();
+    }
 
     componentDidMount():void {}
 
@@ -214,6 +219,10 @@ class Component1<T extends vd.Attrs> {
     }
 
     vd(attrs?:T, ...children:vd.Children[]) {
+        this.rootNode = new vd.Node(Component1.prepareName(this.constructor, this.transparent), null, null, {
+            $created: ()=>this.componentDidMount(),
+            $destroyed: ()=>this.componentWillUnmount()
+        }, this, null);
         this.attrs = attrs;
         this.children = children;
         observer.watch(this.dependencyObserver, this);

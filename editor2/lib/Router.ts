@@ -108,6 +108,8 @@ module router {
      }*/
 
     export class Linker extends DefaultComponent {
+        transparent = true;
+
         click(e:Event) {
             e.preventDefault();
             Route.go(this.attrs['href']);
@@ -118,8 +120,9 @@ module router {
         }
     }
 
-    class Routes extends DefaultComponent {
+    class RouteView extends DefaultComponent {
         routes:{callback: ()=>DefaultComponent; route: Route<any>}[] = [];
+        transparent = true;
 
         when(route:Route<any>, callback:()=>DefaultComponent) {
             this.routes.push({callback: callback, route: route});
@@ -139,13 +142,15 @@ module router {
         export var main = new Route('/main/');
         export var profile = new Route('/profile/');
         export var profileEmail = new Route('/profile/email/');
+        export var editor = new Route('/editor/editor2/editor2.html');
 
-        export var mainRouter:Routes = new Routes()
+        export var mainRouter:RouteView = new RouteView()
             .when(profile, ()=>new ProfileView())
             .when(profileEmail, ()=>new ProfileEditEmailView())
+            .when(editor, ()=>new Editor())
             .when(main, ()=>new MainView());
 
-        export var profileRouter = new Routes()
+        export var profileRouter = new RouteView()
             .when(profileEmail, ()=>new ProfileEditEmailView)
 
     }
@@ -153,6 +158,11 @@ module router {
     class ListView extends DefaultComponent {
         render() {
             return routes.profileRouter.vd();
+        }
+    }
+    class Editor extends DefaultComponent {
+        render() {
+            return vd('div', 'editor');
         }
     }
 
