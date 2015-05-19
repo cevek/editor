@@ -130,7 +130,7 @@ module router {
      }
      }*/
 
-    export class Linker extends DefaultComponent {
+    export class Linker extends Component1<{href:string}> {
         transparent = true;
 
         click(e:Event) {
@@ -139,15 +139,15 @@ module router {
         }
 
         render() {
-            return vd('a', vd.extend({events: {click: (e)=>this.click(e)}}, this.attrs), ...this.children);
+            return vd('a', virtualDom.extend({events: {click: (e)=>this.click(e)}}, this.attrs), ...this.children);
         }
     }
 
-    class RouteView extends DefaultComponent {
-        routes:{callback: ()=>DefaultComponent; route: Route<any>}[] = [];
+    class RouteView extends Component1<any> {
+        routes:{callback: ()=>Component1<any>; route: Route<any>}[] = [];
         transparent = true;
 
-        when(route:Route<any>, callback:()=>DefaultComponent) {
+        when(route:Route<any>, callback:()=>Component1<any>) {
             this.routes.push({callback: callback, route: route});
             return this;
         }
@@ -177,47 +177,47 @@ module router {
 
     }
 
-    class ListView extends DefaultComponent {
+    class ListView extends Component1<any> {
         render() {
             return vd(this.className, routes.profileRouter.vd());
         }
     }
-    class Editor extends DefaultComponent {
+    class Editor extends Component1<any> {
         render() {
             return vd(this.className, 'editor');
         }
     }
 
-    class ProfileView extends DefaultComponent {
+    class ProfileView extends Component1<any> {
         render() {
             return vd(this.className, 'ProfileView',
                 ' ',
-                new Linker().vd({href: routes.profileEmail.toURL({})}, 'profileEmail'),
+                new Linker().vd({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
                 ' ',
                 routes.profileRouter.vd());
         }
     }
 
-    class ProfileEditEmailView extends DefaultComponent {
+    class ProfileEditEmailView extends Component1<any> {
         render() {
             return vd(this.className, 'ProfileEditEmailView');
         }
     }
 
-    class MainView extends DefaultComponent {
+    class MainView extends Component1<any> {
         render() {
             return vd(this.className, 'MainView');
         }
     }
 
-    class IndexView extends DefaultComponent {
+    class IndexView extends Component1<any> {
         render() {
             return vd(this.className,
-                new Linker().vd({href: routes.main.toURL({})}, 'Main'),
+                new Linker().vd({href: routes.main.toURL({})}, null, 'Main'),
                 ' ',
-                new Linker().vd({href: routes.profile.toURL({})}, 'profile'),
+                new Linker().vd({href: routes.profile.toURL({})}, null, 'profile'),
                 ' ',
-                new Linker().vd({href: routes.editor.toURL({})}, 'Editor'),
+                new Linker().vd({href: routes.editor.toURL({})}, null, 'Editor'),
                 routes.mainRouter.vd()
             );
         }

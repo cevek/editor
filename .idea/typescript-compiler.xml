@@ -3,7 +3,7 @@
   <component name="TypeScriptCompiler">
     <option name="isCompilerEnabled" value="true" />
     <option name="typeScriptServiceDirectory" value="/usr/local/lib/node_modules/typescript/bin" />
-    <option name="typeScriptCompilerParams" value="--target es5 --noImplicitAny  --out /Users/cody/Dev/editor/editor2/compiled/script.js" />
+    <option name="typeScriptCompilerParams" value="--target es5  --noImplicitAny  --out /Users/cody/Dev/editor/editor2/compiled/script.js" />
     <option name="nodeInterpreterTextField" value="/usr/local/bin/node                                                 " />
     <option name="outDirectory" value="$PROJECT_DIR$/editor2/compiled/script.js" />
     <option name="mainFilePath" value="$PROJECT_DIR$/editor2/main.ts" />
