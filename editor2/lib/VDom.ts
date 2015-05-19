@@ -128,7 +128,8 @@ module virtualDom {
     type Children1 = Children0 | Children0[];
     type Children2 = Children1 | Children1[];
     type Children3 = Children2 | Children2[];
-    export type Children = Children3 | Children3[];
+    export type MiniChildren = Children3 | Children3[];
+    export type Children = MiniChildren | MiniChildren[];
     export interface Attrs {
         id?: string;
         class?: string;
@@ -174,7 +175,7 @@ module virtualDom {
     export class Component1<T> {
         attrs:virtualDom.Attrs;
         props:T;
-        children:Children[] = [];
+        children:MiniChildren[] = [];
         transparent = false;
         rootNode:VNode;
 
@@ -221,7 +222,7 @@ module virtualDom {
             //this.rootNode.children = [newNode];
         }
 
-        vd(props?:T, attrs?:virtualDom.Attrs, ...children:Children[]) {
+        vd(props?:T, attrs?:virtualDom.Attrs, ...children:MiniChildren[]) {
             this.props = props;
             this.attrs = attrs;
             this.children = children;
@@ -235,6 +236,7 @@ import vd = virtualDom.d;
 import VNode = virtualDom.VNode;
 import Children = virtualDom.Children;
 import Component1 = virtualDom.Component1;
+import extendAttrs = virtualDom.extend;
 
 declare module cito.vdom {
     export function create(newNode:VNode):void;
@@ -271,7 +273,6 @@ class FFT extends Component1<any> {
         return Math.random() > 0.5 ? new NFF().vd({model: '3r3', title: 'eweads'}) : null;
     }
 }
-
 
 var fft = new FFT().vd({});
 

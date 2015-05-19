@@ -139,7 +139,7 @@ module router {
         }
 
         render() {
-            return vd('a', virtualDom.extend({events: {click: (e)=>this.click(e)}}, this.attrs), ...this.children);
+            return vd('a', extendAttrs({events: {click: (e)=>this.click(e)}}, this.attrs), this.children);
         }
     }
 
