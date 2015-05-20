@@ -178,10 +178,21 @@ module virtualDom {
         children:MiniChildren[] = [];
         transparent = false;
         rootNode:VNode;
+        watchers:observer.Listener[] = [];
 
         get className() {
             var name = (<string>(<any>this.constructor).name);
             return name.replace(/([A-Z]+)/g, m => '-' + m).replace(/^-+/, '').toLowerCase();
+        }
+
+        root(...children:MiniChildren[]) {
+            return vd(this.className, this.attrs, children);
+        }
+
+        watch(method:()=>void) {
+            var watcher = observer.watch(method, this);
+            this.watchers.push(watcher);
+            return watcher;
         }
 
         componentDidMount():void {}
@@ -208,7 +219,12 @@ module virtualDom {
                 newNode.events = {};
             }
             newNode.events['$created'] = ()=>this.componentDidMount();
-            newNode.events['$destroyed'] = ()=>this.componentWillUnmount();
+            newNode.events['$destroyed'] = ()=> {
+                for (var watcher of this.watchers) {
+                    watcher.unSubscribe();
+                }
+                this.componentWillUnmount();
+            };
             newNode.component = this;
 
             if (this.rootNode) {

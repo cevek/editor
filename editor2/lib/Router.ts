@@ -179,18 +179,19 @@ module router {
 
     class ListView extends Component1<any> {
         render() {
-            return vd(this.className, routes.profileRouter.vd());
+            return this.root(routes.profileRouter.vd());
         }
     }
     class Editor extends Component1<any> {
         render() {
-            return vd(this.className, 'editor');
+            return this.root('editor');
         }
     }
 
     class ProfileView extends Component1<any> {
         render() {
-            return vd(this.className, 'ProfileView',
+            return this.root(
+                'ProfileView',
                 ' ',
                 new Linker().vd({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
                 ' ',
@@ -200,19 +201,19 @@ module router {
 
     class ProfileEditEmailView extends Component1<any> {
         render() {
-            return vd(this.className, 'ProfileEditEmailView');
+            return this.root('ProfileEditEmailView');
         }
     }
 
     class MainView extends Component1<any> {
         render() {
-            return vd(this.className, 'MainView');
+            return this.root('MainView');
         }
     }
 
     class IndexView extends Component1<any> {
         render() {
-            return vd(this.className,
+            return this.root(
                 new Linker().vd({href: routes.main.toURL({})}, null, 'Main'),
                 ' ',
                 new Linker().vd({href: routes.profile.toURL({})}, null, 'profile'),
