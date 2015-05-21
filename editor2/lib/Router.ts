@@ -130,20 +130,25 @@ module router {
      }
      }*/
 
-    export class Linker extends Component1<{href:string}> {
+    export class Linker extends virtual.Component1<{href:string}> {
         transparent = true;
 
         click(e:Event) {
             e.preventDefault();
-            Route.go(this.attrs['href']);
+            if (this.props.href != location.pathname) {
+                Route.go(this.props.href);
+            }
         }
 
         render() {
-            return vd('a', extendAttrs({events: {click: (e)=>this.click(e)}}, this.attrs), this.children);
+            return vd('a', extendAttrs({
+                href: this.props.href,
+                events: {click: (e)=>this.click(e)}
+            }, this.attrs), this.children);
         }
     }
 
-    class RouteView extends Component1<any> {
+    class RouteView extends virtual.Component1<any> {
         routes:{callback: ()=>Component1<any>; route: Route<any>}[] = [];
         transparent = true;
 
@@ -188,10 +193,22 @@ module router {
         }
     }
 
+
+    class Counter{
+        @observe counter = 0;
+    }
+    export var counter = new Counter();
+
     class ProfileView extends Component1<any> {
+
+        click() {
+            counter.counter++;
+        }
+
         render() {
             return this.root(
                 'ProfileView',
+                vd('button', {events: {click: ()=>this.click()}}, counter.counter),
                 ' ',
                 new Linker().vd({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
                 ' ',

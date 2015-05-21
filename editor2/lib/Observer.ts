@@ -58,7 +58,7 @@ module observer {
                 for (let keys = Object.keys(this.listeners), i = 0; i < keys.length; i++) {
                     let listener = this.listeners[keys[i]];
                     if (listener) {
-                        listener.call();
+                        listener.watch();
                     }
                 }
             }
@@ -99,19 +99,20 @@ module observer {
             }
         }
 
-        call() {
+        watch() {
             this.unSubscribe();
             let oldStack = mastersStack;
             mastersStack = [];
             this.callback.call(this.scope);
             this.subscribe(mastersStack);
             mastersStack = oldStack;
+            return this;
         }
     }
 
     export function watch(callback:()=>void, scope?:Object) {
         var listener = new Listener(callback, scope);
-        listener.call();
+        listener.watch();
         return listener;
     }
 }

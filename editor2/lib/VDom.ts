@@ -7,7 +7,24 @@ interface HTMLElement {
     virtualNode: VNode;
 }
 
-module virtualDom {
+module virtual {
+    function flatArray(array:any[]) {
+        var nodes = <any[]>[];
+        for (var i = 0; i < array.length; i++) {
+            var child = array[i];
+            if (child instanceof Array) {
+                nodes = nodes.concat(flatArray(child));
+            }
+            else if (child !== null && child !== void 0 && typeof child !== 'boolean') {
+                if (typeof child === 'number') {
+                    child = child + '';
+                }
+                nodes.push(child);
+            }
+        }
+        return nodes;
+    }
+
     export function d(tag:string, attrs:Attrs):VNode;
     export function d(tag:string, ...children:Children[]):VNode;
     export function d(tag:string, attrs:Attrs, ...children:Children[]):VNode;
@@ -26,12 +43,9 @@ module virtualDom {
             tag = chunks.shift() || 'div';
             classes = chunks;
         }
-        /*
-                if (children[0] === 'function') {
-                    vnode = new (children.shift());
-                }
-        */
-        if (typeof children[0] === 'object' && children[0].children === void 0 && children[0].tag === void 0) {
+        children = flatArray(children);
+
+        if (typeof children[0] === 'object' && !(children[0] instanceof Array) && children[0].children === void 0 && children[0].tag === void 0) {
             attrs = <any>children.shift();
             if (attrs.class) {
                 classes.push(attrs.class);
@@ -76,14 +90,7 @@ module virtualDom {
         if (classes.length) {
             attrs.class = classes.join(' ');
         }
-        /*
-                if (vnode) {
-                    return vnode.vd(attrs, children);
-                }
-                else {
-        */
         return new VNode(tag, attrs, key, events, null, children);
-        //}
     }
 
     export interface Events {
@@ -114,6 +121,7 @@ module virtualDom {
 
     export class VNode {
         public dom:HTMLElement = null;
+        public domLength:number = null;
 
         constructor(public tag:string,
                     public attrs:Attrs,
@@ -124,7 +132,7 @@ module virtualDom {
         }
     }
 
-    type Children0 = VNode | string;
+    type Children0 = VNode | string | number;
     type Children1 = Children0 | Children0[];
     type Children2 = Children1 | Children1[];
     type Children3 = Children2 | Children2[];
@@ -173,7 +181,7 @@ module virtualDom {
 
      }*/
     export class Component1<T> {
-        attrs:virtualDom.Attrs;
+        attrs:virtual.Attrs = {};
         props:T;
         children:MiniChildren[] = [];
         transparent = false;
@@ -186,6 +194,7 @@ module virtualDom {
         }
 
         root(...children:MiniChildren[]) {
+
             return vd(this.className, this.attrs, children);
         }
 
@@ -205,7 +214,7 @@ module virtualDom {
             return this.rootNode = this.render();
         }
 
-        private dependencyObserver() {
+        private renderer() {
             var newNode = this.render();
             //(<any>cito.vdom).updateChildren(this.rootNode, newNode);
             //(<any>cito.vdom).update(this.currentVNodeState, newNode);
@@ -220,9 +229,7 @@ module virtualDom {
             }
             newNode.events['$created'] = ()=>this.componentDidMount();
             newNode.events['$destroyed'] = ()=> {
-                for (var watcher of this.watchers) {
-                    watcher.unSubscribe();
-                }
+                this.watchers.forEach(watcher => watcher.unSubscribe());
                 this.componentWillUnmount();
             };
             newNode.component = this;
@@ -238,21 +245,22 @@ module virtualDom {
             //this.rootNode.children = [newNode];
         }
 
-        vd(props?:T, attrs?:virtualDom.Attrs, ...children:MiniChildren[]) {
+        vd(props?:T, attrs?:virtual.Attrs, ...children:MiniChildren[]) {
             this.props = props;
-            this.attrs = attrs;
+            this.attrs = attrs || {};
             this.children = children;
-            observer.watch(this.dependencyObserver, this);
+            var listener = new observer.Listener(this.renderer, this).watch();
+            this.watchers.push(listener);
             return this.rootNode;
         }
     }
 }
 
-import vd = virtualDom.d;
-import VNode = virtualDom.VNode;
-import Children = virtualDom.Children;
-import Component1 = virtualDom.Component1;
-import extendAttrs = virtualDom.extend;
+import vd = virtual.d;
+import VNode = virtual.VNode;
+import Children = virtual.Children;
+import Component1 = virtual.Component1;
+import extendAttrs = virtual.extend;
 
 declare module cito.vdom {
     export function create(newNode:VNode):void;
