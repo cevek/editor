@@ -130,7 +130,7 @@ module router {
      }
      }*/
 
-    export class Linker extends virtual.Component1<{href:string}> {
+    export class Linker extends virtual.Component<{href:string}> {
         transparent = true;
 
         click(e:Event) {
@@ -148,11 +148,11 @@ module router {
         }
     }
 
-    class RouteView extends virtual.Component1<any> {
-        routes:{callback: ()=>Component1<any>; route: Route<any>}[] = [];
+    class RouteView extends virtual.Component<any> {
+        routes:{callback: ()=>Component<any>; route: Route<any>}[] = [];
         transparent = true;
 
-        when(route:Route<any>, callback:()=>Component1<any>) {
+        when(route:Route<any>, callback:()=>Component<any>) {
             this.routes.push({callback: callback, route: route});
             return this;
         }
@@ -160,7 +160,7 @@ module router {
         render() {
             for (var route of this.routes) {
                 if (route.route.isActive) {
-                    return route.callback().vd();
+                    return route.callback().init();
                 }
             }
         }
@@ -182,12 +182,12 @@ module router {
 
     }
 
-    class ListView extends Component1<any> {
+    class ListView extends Component<any> {
         render() {
-            return this.root(routes.profileRouter.vd());
+            return this.root(routes.profileRouter.init());
         }
     }
-    class Editor extends Component1<any> {
+    class Editor extends Component<any> {
         render() {
             return this.root('editor');
         }
@@ -199,7 +199,7 @@ module router {
     }
     export var counter = new Counter();
 
-    class ProfileView extends Component1<any> {
+    class ProfileView extends Component<any> {
 
         click() {
             counter.counter++;
@@ -210,37 +210,62 @@ module router {
                 'ProfileView',
                 vd('button', {events: {click: ()=>this.click()}}, counter.counter),
                 ' ',
-                new Linker().vd({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
+                new Linker().init({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
                 ' ',
-                routes.profileRouter.vd());
+                routes.profileRouter.init());
         }
     }
 
-    class ProfileEditEmailView extends Component1<any> {
+    class ProfileEditEmailView extends Component<any> {
         render() {
             return this.root('ProfileEditEmailView');
         }
     }
 
-    class MainView extends Component1<any> {
+    class MainView extends virtual.Component<{popup: Popup; name: string}> {
         render() {
-            return this.root('MainView');
+            return this.root('MainView', vd('button', {events: {click: ()=>this.props.popup.remove()}}, 'Close'));
         }
     }
 
-    class IndexView extends Component1<any> {
+    class IndexView extends Component<any> {
+        click(){
+            var popup = new Popup();
+            popup.init({main: new MainView().init({popup: popup, name: 'sdf'})});
+            popup.show();
+        }
         render() {
             return this.root(
-                new Linker().vd({href: routes.main.toURL({})}, null, 'Main'),
+                vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
+                new Linker().init({href: routes.main.toURL({})}, null, 'Main'),
                 ' ',
-                new Linker().vd({href: routes.profile.toURL({})}, null, 'profile'),
+                new Linker().init({href: routes.profile.toURL({})}, null, 'profile'),
                 ' ',
-                new Linker().vd({href: routes.editor.toURL({})}, null, 'Editor'),
-                routes.mainRouter.vd()
+                new Linker().init({href: routes.editor.toURL({})}, null, 'Editor'),
+                routes.mainRouter.init()
             );
         }
     }
 
-    document.body.appendChild(new IndexView().vd().dom);
+    var indexView = new IndexView();
+    indexView.init();
+    document.body.appendChild(indexView.renderDom());
+}
+
+
+class Popup extends virtual.Component<{main: virtual.VNode}>{
+    remove(){
+        document.body.removeChild(this.rootNode.dom);
+    }
+    show(){
+        document.body.appendChild(this.renderDom());
+    }
+    render(){
+        return this.root(
+            vd('.header', 'Header'),
+            vd('.main', this.props.main),
+            vd('.footer', 'Footer')
+        );
+    }
 }
 

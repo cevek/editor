@@ -31,7 +31,7 @@ module virtual {
     export function d(attrs:Attrs, ...children:Children[]):VNode;
     export function d(...children:Children[]):VNode;
     export function d(...children:any[]) {
-        let vnode:Component1<any>;
+        let vnode:Component<any>;
         let tag:string;
         let attrs:Attrs = {};
         let events:Events;
@@ -127,7 +127,7 @@ module virtual {
                     public attrs:Attrs,
                     public key:string,
                     public events:Events,
-                    public component:Component1<any>,
+                    public component:Component<any>,
                     public children:Children[]) {
         }
     }
@@ -180,7 +180,7 @@ module virtual {
          });
 
      }*/
-    export class Component1<T> {
+    export class Component<T> {
         attrs:virtual.Attrs = {};
         props:T;
         children:MiniChildren[] = [];
@@ -216,11 +216,7 @@ module virtual {
 
         private renderer() {
             var newNode = this.render();
-            //(<any>cito.vdom).updateChildren(this.rootNode, newNode);
-            //(<any>cito.vdom).update(this.currentVNodeState, newNode);
-            //this.rootNode.children = newNode ? [newNode] : null;
 
-            //cito.vdom.update(this.rootNode.children, newNode);
             if (!newNode) {
                 newNode = new VNode('#', null, null, {}, this, ['']);
             }
@@ -235,17 +231,27 @@ module virtual {
             newNode.component = this;
 
             if (this.rootNode) {
-                cito.vdom.update(this.rootNode, newNode);
+                if (this.rootNode.dom){
+                    cito.vdom.update(this.rootNode, newNode);
+                }
+                this.rootNode.attrs = newNode.attrs;
+                this.rootNode.children = newNode.children;
+                this.rootNode.component = newNode.component;
+                this.rootNode.events = newNode.events;
+                this.rootNode.key = newNode.key;
+                this.rootNode.tag = newNode.tag;
             }
             else {
-                cito.vdom.create(newNode);
+                this.rootNode = newNode;
             }
-
-            this.rootNode = newNode;
-            //this.rootNode.children = [newNode];
         }
 
-        vd(props?:T, attrs?:virtual.Attrs, ...children:MiniChildren[]) {
+        renderDom(){
+            cito.vdom.create(this.rootNode);
+            return this.rootNode.dom;
+        }
+
+        init(props?:T, attrs?:virtual.Attrs, ...children:MiniChildren[]) {
             this.props = props;
             this.attrs = attrs || {};
             this.children = children;
@@ -259,7 +265,7 @@ module virtual {
 import vd = virtual.d;
 import VNode = virtual.VNode;
 import Children = virtual.Children;
-import Component1 = virtual.Component1;
+import Component = virtual.Component;
 import extendAttrs = virtual.extend;
 
 declare module cito.vdom {
@@ -272,7 +278,7 @@ declare module cito.vdom {
     export function remove(oldNode:VNode):void;
 }
 
-class NFF extends Component1<{model:string; title: string}> {
+class NFF extends Component<{model:string; title: string}> {
 
     @observe content = 'hello';
 
@@ -292,13 +298,13 @@ class NFF extends Component1<{model:string; title: string}> {
     }
 }
 
-class FFT extends Component1<any> {
+class FFT extends Component<any> {
     render():VNode {
-        return Math.random() > 0.5 ? new NFF().vd({model: '3r3', title: 'eweads'}) : null;
+        return Math.random() > 0.5 ? new NFF().init({model: '3r3', title: 'eweads'}) : null;
     }
 }
 
-var fft = new FFT().vd({});
+var fft = new FFT().init({});
 
 cito.vdom.append(document.body, fft);
 //document.body.appendChild(fft);
