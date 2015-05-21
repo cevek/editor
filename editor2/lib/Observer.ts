@@ -42,7 +42,7 @@ module observer {
 
     export class Atom<T> {
         id = ++Atom.ID;
-        private listeners:{[id: string]: Listener} = {};
+        private watchers:{[id: string]: Watcher} = {};
         private static ID = 0;
 
         constructor(private obj:any, private key:string, private value?:T) {}
@@ -54,39 +54,39 @@ module observer {
 
         set(val:T) {
             this.value = val;
-            if (this.listeners) {
-                for (let keys = Object.keys(this.listeners), i = 0; i < keys.length; i++) {
-                    let listener = this.listeners[keys[i]];
-                    if (listener) {
-                        listener.watch();
+            if (this.watchers) {
+                for (let keys = Object.keys(this.watchers), i = 0; i < keys.length; i++) {
+                    let watcher = this.watchers[keys[i]];
+                    if (watcher) {
+                        watcher.watch();
                     }
                 }
             }
         }
 
-        removeListener(listener:Listener) {
-            this.listeners[listener.id] = void 0;
+        removeWatcher(watcher:Watcher) {
+            this.watchers[watcher.id] = void 0;
         }
 
-        setListener(listener:Listener) {
-            if (!this.listeners) {
-                this.listeners = {};
+        setWatcher(watcher:Watcher) {
+            if (!this.watchers) {
+                this.watchers = {};
             }
-            this.listeners[listener.id] = listener;
+            this.watchers[watcher.id] = watcher;
         }
     }
 
-    export class Listener {
-        id = ++Listener.ID;
+    export class Watcher {
+        id = ++Watcher.ID;
         private masters:{[id: string]: Atom<any>} = {};
         private static ID = 0;
 
-        constructor(private callback:()=>void, private scope:any) {}
+        constructor(private callback:()=>void, private scope?:any) {}
 
-        unSubscribe() {
+        unsubscribe() {
             for (let keys = Object.keys(this.masters), j = 0; j < keys.length; j++) {
                 let masterAtom = this.masters[keys[j]];
-                masterAtom.removeListener(this);
+                masterAtom.removeWatcher(this);
             }
             this.masters = {};
         }
@@ -94,13 +94,13 @@ module observer {
         subscribe(stack:Atom<any>[]) {
             for (let i = 0; i < stack.length; i++) {
                 let atom = stack[i];
-                atom.setListener(this);
+                atom.setWatcher(this);
                 this.masters[atom.id] = atom;
             }
         }
 
         watch() {
-            this.unSubscribe();
+            this.unsubscribe();
             let oldStack = mastersStack;
             mastersStack = [];
             this.callback.call(this.scope);
@@ -108,12 +108,6 @@ module observer {
             mastersStack = oldStack;
             return this;
         }
-    }
-
-    export function watch(callback:()=>void, scope?:Object) {
-        var listener = new Listener(callback, scope);
-        listener.watch();
-        return listener;
     }
 }
 import observe = observer.observe;
@@ -129,14 +123,14 @@ let test = new Test();
 
 class CCC {
     index:number = 1;
-    ob:observer.Listener;
+    ob:observer.Watcher;
 
     constructor() {
-        this.ob = observer.watch(()=> {
+        this.ob = new observer.Watcher(()=> {
             test.a;
             test.b;
             console.log("observer launch", this.index);
-        });
+        }).watch();
     }
 }
 var ccc = new CCC();

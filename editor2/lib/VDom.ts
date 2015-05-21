@@ -186,7 +186,7 @@ module virtual {
         children:MiniChildren[] = [];
         transparent = false;
         rootNode:VNode;
-        watchers:observer.Listener[] = [];
+        watchers:observer.Watcher[] = [];
 
         get className() {
             var name = (<string>(<any>this.constructor).name);
@@ -199,7 +199,7 @@ module virtual {
         }
 
         watch(method:()=>void) {
-            var watcher = observer.watch(method, this);
+            var watcher = new observer.Watcher(method, this);
             this.watchers.push(watcher);
             return watcher;
         }
@@ -229,7 +229,7 @@ module virtual {
             }
             newNode.events['$created'] = ()=>this.componentDidMount();
             newNode.events['$destroyed'] = ()=> {
-                this.watchers.forEach(watcher => watcher.unSubscribe());
+                this.watchers.forEach(watcher => watcher.unsubscribe());
                 this.componentWillUnmount();
             };
             newNode.component = this;
@@ -249,8 +249,8 @@ module virtual {
             this.props = props;
             this.attrs = attrs || {};
             this.children = children;
-            var listener = new observer.Listener(this.renderer, this).watch();
-            this.watchers.push(listener);
+            var watcher = new observer.Watcher(this.renderer, this).watch();
+            this.watchers.push(watcher);
             return this.rootNode;
         }
     }
