@@ -4,7 +4,7 @@ module Components {
 }
 
 interface HTMLElement {
-    virtualNode: VNode;
+    virtualNode: virtual.VNode;
 }
 
 module virtual {
@@ -130,6 +130,12 @@ module virtual {
                     public component:Component<any>,
                     public children:Children[]) {
         }
+
+        renderDom(){
+            cito.vdom.create(this);
+            return this.dom;
+        }
+
     }
 
     type Children0 = VNode | string | number;
@@ -194,8 +200,10 @@ module virtual {
         }
 
         root(...children:MiniChildren[]) {
-
             return vd(this.className, this.attrs, children);
+        }
+        rootWithAttrs(attrs: Attrs, ...children:MiniChildren[]) {
+            return vd(this.className, extend(attrs, this.attrs), children);
         }
 
         watch(method:()=>void) {
@@ -246,10 +254,6 @@ module virtual {
             }
         }
 
-        renderDom(){
-            cito.vdom.create(this.rootNode);
-            return this.rootNode.dom;
-        }
 
         init(props?:T, attrs?:virtual.Attrs, ...children:MiniChildren[]) {
             this.props = props;
@@ -263,22 +267,18 @@ module virtual {
 }
 
 import vd = virtual.d;
-import VNode = virtual.VNode;
-import Children = virtual.Children;
-import Component = virtual.Component;
-import extendAttrs = virtual.extend;
 
 declare module cito.vdom {
-    export function create(newNode:VNode):void;
+    export function create(newNode:virtual.VNode):void;
 
-    export function update(oldNode:VNode, newNode:VNode):void;
+    export function update(oldNode:virtual.VNode, newNode:virtual.VNode):void;
 
-    export function append(dom:Node, newNode:VNode):void;
+    export function append(dom:Node, newNode:virtual.VNode):void;
 
-    export function remove(oldNode:VNode):void;
+    export function remove(oldNode:virtual.VNode):void;
 }
 
-class NFF extends Component<{model:string; title: string}> {
+class NFF extends virtual.Component<{model:string; title: string}> {
 
     @observe content = 'hello';
 
@@ -298,15 +298,14 @@ class NFF extends Component<{model:string; title: string}> {
     }
 }
 
-class FFT extends Component<any> {
-    render():VNode {
+class FFT extends virtual.Component<any> {
+    render() {
         return Math.random() > 0.5 ? new NFF().init({model: '3r3', title: 'eweads'}) : null;
     }
 }
 
-var fft = new FFT().init({});
+document.body.appendChild(new FFT().init().renderDom());
 
-cito.vdom.append(document.body, fft);
 //document.body.appendChild(fft);
 //var comp = fft.component;
 

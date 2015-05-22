@@ -114,8 +114,8 @@ module editor {
             )
         }
 
-        audioSelectionNode:VNode;
-        currentTimeNode:VNode;
+        audioSelectionNode:virtual.VNode;
+        currentTimeNode:virtual.VNode;
 
         render2() {
             return vd('.relative',

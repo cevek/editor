@@ -1,5 +1,5 @@
 * { box-sizing: border-box }
-body { font-family: Tahoma; cursor: default }
+body { font-family: Tahoma; cursor: default; margin: 0;}
 .editor { width: 1000px; margin: auto; }
 .line { p1adding: 10px; height: 50px; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
 .lng { text-align: center }
@@ -14,8 +14,8 @@ body { font-family: Tahoma; cursor: default }
 .line.hidden { display: none }
 .line .selected { /*margin: 0 -15px 0 -5px; padding: 0 3px 0 15px;*/ background: #6CE6FF; border-radius: 3px;
     position: relative }
-.collapsible { position: relative; margin: -10px 0 -10px 100px; height: 20px; z-index: 10;}
-.collapsible.collapsed { background: url(collapse.png) center center repeat-x;background-size: auto 7px; }
+.collapsible { position: relative; margin: -10px 0 -10px 100px; height: 20px; z-index: 10; }
+.collapsible.collapsed { background: url(collapse.png) center center repeat-x; background-size: auto 7px; }
 .audio-en { float: left; height: 50px; width: 30px; background: url("../data/spectrogram.png") black no-repeat }
 svg { position: absolute }
 .line.linked { background: #DDF0FA; }
@@ -26,3 +26,7 @@ svg { position: absolute }
 .panel { position: absolute }
 svg rect { cursor: ns-resize; fill: transparent; }
 body.resize-ns { cursor: ns-resize; }
+.popup { position: fixed; z-index: 10000; left: 0; top: 0; bottom: 0; right: 0; overflow: auto; background: rgba(0, 0, 0, .1); }
+.popup .popup-main { margin: 500px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
+    border-radius: 3px; background: wheat; }
+body.remove-scroll { overflow: hidden; margin-left: calc((100vw - 100%)/2); }
