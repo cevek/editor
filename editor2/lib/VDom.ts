@@ -131,7 +131,7 @@ module virtual {
                     public children:Children[]) {
         }
 
-        renderDom(node: Node){
+        mount(node: Node){
             cito.vdom.append(node, this);
             return this.dom;
         }
@@ -307,7 +307,7 @@ class FFT extends virtual.Component<any> {
     }
 }
 
-new FFT().init(null).renderDom(document.body);
+new FFT().init(null).mount(document.body);
 
 //document.body.appendChild(fft);
 //var comp = fft.component;

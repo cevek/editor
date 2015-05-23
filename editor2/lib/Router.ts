@@ -145,7 +145,7 @@ class Popup extends virtual.Component<any> {
     }
 
     show() {
-        this.rootNode.renderDom(document.body);
+        this.rootNode.mount(document.body);
         this.setBodyPaddingRight();
         document.body.classList.add('remove-scroll');
     }
@@ -344,7 +344,7 @@ class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
         observer.Atom.from(this.active).sync(this.props.val);
     }
 
-    prepareTabs() {
+    getChildrenTabs() {
         this.titles = [];
         this.values = [];
         var firstTab:Tab = null;
@@ -371,7 +371,7 @@ class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
     }
 
     render() {
-        this.prepareTabs();
+        this.getChildrenTabs();
         return this.root(
             this.titles.map((m, i) =>
                     vd('button', {
@@ -394,4 +394,4 @@ class Tab extends virtual.Component<{title: string; value?: any; default?: boole
     }
 }
 
-new IndexView().init(null).renderDom(document.body);
+new IndexView().init(null).mount(document.body);
