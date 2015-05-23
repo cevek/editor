@@ -257,13 +257,13 @@ module virtual {
         }
 
 
-        init(props?:T, attrs?:virtual.Attrs, ...children:Child[]) {
+        init(props:T, attrs?:virtual.Attrs, ...children:Child[]) {
             this.props = props;
             this.attrs = attrs || {};
             this.children = children;
+            this.componentWillMount();
             var watcher = new observer.Watcher(this.renderer, this).watch();
             this.watchers.push(watcher);
-            this.componentWillMount();
             return this.rootNode;
         }
     }
@@ -307,7 +307,7 @@ class FFT extends virtual.Component<any> {
     }
 }
 
-new FFT().init().renderDom(document.body);
+new FFT().init(null).renderDom(document.body);
 
 //document.body.appendChild(fft);
 //var comp = fft.component;

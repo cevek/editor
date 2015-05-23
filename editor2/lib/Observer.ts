@@ -89,7 +89,7 @@ module observer {
         static get from() {
             let oldStack = mastersStack;
             mastersStack = [];
-            return <T>(val:T) => {
+            return <T>(val:T):Atom<T> => {
                 var atom = mastersStack.shift();
                 mastersStack = oldStack;
                 return atom;

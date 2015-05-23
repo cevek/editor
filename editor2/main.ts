@@ -14,6 +14,7 @@
 ///<reference path="editor/EditorComponent.ts"/>
 ///<reference path="test/LinesStore.spec.ts"/>
 ///<reference path="lib/Observer.ts"/>
+///<reference path="lib/Debug.ts"/>
 ///<reference path="lib/Router.ts"/>
 
 

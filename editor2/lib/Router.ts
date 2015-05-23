@@ -213,7 +213,7 @@ class RouteView extends virtual.Component<any> {
     render() {
         for (var route of this.routes) {
             if (route.route.isActive) {
-                return route.callback().init();
+                return route.callback().init(null);
             }
         }
     }
@@ -237,7 +237,7 @@ module routes {
 
 class ListView extends virtual.Component<any> {
     render() {
-        return this.root(routes.profileRouter.init());
+        return this.root(routes.profileRouter.init(null));
     }
 }
 class Editor extends virtual.Component<any> {
@@ -264,7 +264,7 @@ class ProfileView extends virtual.Component<any> {
             ' ',
             new Linker().init({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
             ' ',
-            routes.profileRouter.init());
+            routes.profileRouter.init(null));
     }
 }
 
@@ -280,29 +280,29 @@ class MainView extends virtual.Component<{popup: Popup; name: string}> {
     }
 }
 
-
-var atom = new observer.Atom(null, null);
+var atom = new observer.Atom<Model>(null, null);
 class IndexView extends virtual.Component<any> {
     click() {
         var popup = new MainPopup();
-        popup.init();
+        popup.init(null);
         popup.show();
     }
 
     render() {
         return this.root(
-            //new RadioButtons().init(),
+            new RadioButtons<Model>().init({items: model, value: atom, label: m=>m.name}),
             new Tabs().init({val: atom}, null,
-                new Tab().init({title: 'Hello', value: 1}, null, 'Hello world1'),
-                new Tab().init({title: 'World', value: 2}, null, 'Hello world2')
+                new Tab().init({title: 'Hello', value: model[0]}, null, 'Hello world1'),
+                new Tab().init({title: 'World', value: model[1]}, null, 'Hello world2')
             ),
+
             vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
             new Linker().init({href: routes.main.toURL({})}, null, 'Main'),
             ' ',
             new Linker().init({href: routes.profile.toURL({})}, null, 'profile'),
             ' ',
             new Linker().init({href: routes.editor.toURL({})}, null, 'Editor'),
-            routes.mainRouter.init()
+            routes.mainRouter.init(null)
         );
     }
 }
@@ -316,15 +316,20 @@ class Model {
 }
 var model:Model[] = [new Model('hello'), new Model('world')];
 
+class RadioButtons<T> extends virtual.Component<{items: T[]; label: (model:T)=>string; value?: observer.Atom<T>}> {
+    @observe active:T;
 
-class RadioButtons<T> extends virtual.Component<{value: T[]; atom: observer.Atom<T>; val: (m:T)=>string}> {
+    componentWillMount() {
+        observer.Atom.from(this.active).sync(this.props.value);
+    }
+
     render() {
         return this.rootWithAttrs({class: 'radio-buttons'},
-            this.props.value.map(m =>
+            this.props.items.map(m =>
                 vd('button', {
-                    classes: {active: m == this.props.atom.get()},
-                    events: {click: ()=>this.props.atom.set(m)}
-                }, this.props.val(m)))
+                    classes: {active: m == this.active},
+                    events: {click: ()=>this.active = m}
+                }, this.props.label(m)))
         );
     }
 }
@@ -333,11 +338,9 @@ class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
     @observe active:Object = null;
     titles:string[] = [];
     values:Object[] = [];
-    content:virtual.Child[];
-    hello = observer.Atom.from(this.active);
+    content:virtual.Child;
 
-    componentWillMount(){
-        console.log(this.hello);
+    componentWillMount() {
         observer.Atom.from(this.active).sync(this.props.val);
     }
 
@@ -354,7 +357,7 @@ class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
                     this.active = tab.props.value;
                 }
                 if (tab.props.value == this.active) {
-                    this.content = tab.children;
+                    this.content = tab.rootNode;
                 }
                 if (!firstTab) {
                     firstTab = tab;
@@ -363,10 +366,9 @@ class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
         });
         if (this.active == null && firstTab) {
             this.active = this.values[0];
-            this.content = firstTab.children;
+            this.content = firstTab.rootNode;
         }
     }
-
 
     render() {
         this.prepareTabs();
@@ -392,4 +394,4 @@ class Tab extends virtual.Component<{title: string; value?: any; default?: boole
     }
 }
 
-new IndexView().init().renderDom(document.body);
+new IndexView().init(null).renderDom(document.body);
