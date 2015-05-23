@@ -213,7 +213,7 @@ class RouteView extends virtual.Component<any> {
     render() {
         for (var route of this.routes) {
             if (route.route.isActive) {
-                return route.callback().init(null);
+                return route.callback().init({});
             }
         }
     }
@@ -237,7 +237,7 @@ module routes {
 
 class ListView extends virtual.Component<any> {
     render() {
-        return this.root(routes.profileRouter.init(null));
+        return this.root(routes.profileRouter.init({}));
     }
 }
 class Editor extends virtual.Component<any> {
@@ -264,7 +264,7 @@ class ProfileView extends virtual.Component<any> {
             ' ',
             new Linker().init({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
             ' ',
-            routes.profileRouter.init(null));
+            routes.profileRouter.init({}));
     }
 }
 
@@ -280,11 +280,11 @@ class MainView extends virtual.Component<{popup: Popup; name: string}> {
     }
 }
 
-var atom = new observer.Atom<Model>(null, null);
+var atom = new observer.Atom<Model>();
 class IndexView extends virtual.Component<any> {
     click() {
         var popup = new MainPopup();
-        popup.init(null);
+        popup.init({});
         popup.show();
     }
 
@@ -302,7 +302,7 @@ class IndexView extends virtual.Component<any> {
             new Linker().init({href: routes.profile.toURL({})}, null, 'profile'),
             ' ',
             new Linker().init({href: routes.editor.toURL({})}, null, 'Editor'),
-            routes.mainRouter.init(null)
+            routes.mainRouter.init({})
         );
     }
 }
@@ -320,7 +320,9 @@ class RadioButtons<T> extends virtual.Component<{items: T[]; label: (model:T)=>s
     @observe active:T;
 
     componentWillMount() {
-        observer.Atom.from(this.active).sync(this.props.value);
+        if (this.props.value) {
+            observer.Atom.from(this.active).sync(this.props.value);
+        }
     }
 
     render() {
@@ -334,14 +336,16 @@ class RadioButtons<T> extends virtual.Component<{items: T[]; label: (model:T)=>s
     }
 }
 
-class Tabs extends virtual.Component<{value: observer.Atom<Object>}> {
+class Tabs extends virtual.Component<{value?: observer.Atom<Object>}> {
     @observe active:Object = null;
     titles:string[] = [];
     values:Object[] = [];
     content:virtual.Child;
 
     componentWillMount() {
-        observer.Atom.from(this.active).sync(this.props.value);
+        if (this.props.value) {
+            observer.Atom.from(this.active).sync(this.props.value);
+        }
     }
 
     getChildrenTabs() {
@@ -394,4 +398,4 @@ class Tab extends virtual.Component<{title: string; value?: any; default?: boole
     }
 }
 
-new IndexView().init(null).mount(document.body);
+new IndexView().init({}).mount(document.body);

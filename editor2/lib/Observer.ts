@@ -16,7 +16,7 @@ module observer {
                 }
                 let atom:Atom<any> = this[ns][key];
                 if (!atom) {
-                    atom = new Atom(this, key);
+                    atom = new Atom(null, this, key);
                     this[ns][key] = atom;
                 }
                 return atom.get();
@@ -30,7 +30,7 @@ module observer {
                 }
                 let atom:Atom<any> = this[ns][key];
                 if (!this[ns][key]) {
-                    atom = new Atom(this, key, val);
+                    atom = new Atom(val, this, key);
                     this[ns][key] = atom;
                 }
                 atom.set(val);
@@ -42,10 +42,10 @@ module observer {
 
     export class Atom<T> {
         id = ++Atom.ID;
-        private watchers:{[id: string]: Watcher} = {};
+        private listeners:{[id: string]: Watcher | Atom<any>} = {};
         private static ID = 0;
 
-        constructor(private obj:any, private key:string, private value?:T) {}
+        constructor(private value?:T, private owner?:any, private key?:string) {}
 
         get() {
             mastersStack.push(this);
@@ -57,33 +57,39 @@ module observer {
                 return;
             }
             this.value = val;
-            if (this.watchers) {
-                for (let keys = Object.keys(this.watchers), i = 0; i < keys.length; i++) {
-                    let watcher = this.watchers[keys[i]];
-                    if (watcher) {
+            if (this.listeners) {
+                for (let keys = Object.keys(this.listeners), i = 0; i < keys.length; i++) {
+                    let watcher = this.listeners[keys[i]];
+                    if (watcher instanceof Watcher) {
                         watcher.watch();
+                    }
+                    else if (watcher instanceof Atom) {
+                        watcher.set(val);
                     }
                 }
             }
         }
 
         sync(atom:Atom<any>) {
-            if (atom) {
-                this.value = atom.value;
-                atom.setWatcher(new Watcher(() => this.set(atom.value)));
-                this.setWatcher(new Watcher(() => atom.set(this.value)));
-            }
+            this.value = atom.value;
+            atom.setListener(this);
+            this.setListener(atom);
         }
 
-        removeWatcher(watcher:Watcher) {
-            this.watchers[watcher.id] = void 0;
+        unsync(atom:Atom<any>) {
+            atom.removeListener(this);
+            this.removeListener(atom);
         }
 
-        setWatcher(watcher:Watcher) {
-            if (!this.watchers) {
-                this.watchers = {};
+        removeListener(listener:Watcher | Atom<any>) {
+            this.listeners[listener.id] = void 0;
+        }
+
+        setListener(watcher:Watcher | Atom<any>) {
+            if (!this.listeners) {
+                this.listeners = {};
             }
-            this.watchers[watcher.id] = watcher;
+            this.listeners[watcher.id] = watcher;
         }
 
         static get from() {
@@ -107,7 +113,7 @@ module observer {
         unsubscribe() {
             for (let keys = Object.keys(this.masters), j = 0; j < keys.length; j++) {
                 let masterAtom = this.masters[keys[j]];
-                masterAtom.removeWatcher(this);
+                masterAtom.removeListener(this);
             }
             this.masters = {};
         }
@@ -115,7 +121,7 @@ module observer {
         subscribe(stack:Atom<any>[]) {
             for (let i = 0; i < stack.length; i++) {
                 let atom = stack[i];
-                atom.setWatcher(this);
+                atom.setListener(this);
                 this.masters[atom.id] = atom;
             }
         }
@@ -131,7 +137,7 @@ module observer {
         }
     }
 }
-import observe = observer.observe;
+var observe = observer.observe;
 
 class Test {
     @observe a:string;

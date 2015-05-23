@@ -131,7 +131,7 @@ module virtual {
                     public children:Children[]) {
         }
 
-        mount(node: Node){
+        mount(node:Node) {
             cito.vdom.append(node, this);
             return this.dom;
         }
@@ -203,7 +203,8 @@ module virtual {
         root(...children:(Child | Child[])[]) {
             return vd(this.className, this.attrs, children);
         }
-        rootWithAttrs(attrs: Attrs, ...children:MiniChildren[]) {
+
+        rootWithAttrs(attrs:Attrs, ...children:MiniChildren[]) {
             return vd(this.className, extend(attrs, this.attrs), children);
         }
 
@@ -216,6 +217,7 @@ module virtual {
         componentDidMount():void {}
 
         componentWillUnmount():void {}
+
         componentWillMount():void {}
 
         protected render():VNode {return null}
@@ -241,7 +243,7 @@ module virtual {
             newNode.component = this;
 
             if (this.rootNode) {
-                if (this.rootNode.dom){
+                if (this.rootNode.dom) {
                     cito.vdom.update(this.rootNode, newNode);
                 }
                 this.rootNode.attrs = newNode.attrs;
@@ -255,7 +257,6 @@ module virtual {
                 this.rootNode = newNode;
             }
         }
-
 
         init(props:T, attrs?:virtual.Attrs, ...children:Child[]) {
             this.props = props;
@@ -307,7 +308,7 @@ class FFT extends virtual.Component<any> {
     }
 }
 
-new FFT().init(null).mount(document.body);
+new FFT().init({}).mount(document.body);
 
 //document.body.appendChild(fft);
 //var comp = fft.component;
