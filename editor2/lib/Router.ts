@@ -291,7 +291,7 @@ class IndexView extends virtual.Component<any> {
     render() {
         return this.root(
             new RadioButtons<Model>().init({items: model, value: atom, label: m=>m.name}),
-            new Tabs().init({val: atom}, null,
+            new Tabs().init({value: atom}, null,
                 new Tab().init({title: 'Hello', value: model[0]}, null, 'Hello world1'),
                 new Tab().init({title: 'World', value: model[1]}, null, 'Hello world2')
             ),
@@ -334,14 +334,14 @@ class RadioButtons<T> extends virtual.Component<{items: T[]; label: (model:T)=>s
     }
 }
 
-class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
+class Tabs extends virtual.Component<{value: observer.Atom<Object>}> {
     @observe active:Object = null;
     titles:string[] = [];
     values:Object[] = [];
     content:virtual.Child;
 
     componentWillMount() {
-        observer.Atom.from(this.active).sync(this.props.val);
+        observer.Atom.from(this.active).sync(this.props.value);
     }
 
     getChildrenTabs() {
