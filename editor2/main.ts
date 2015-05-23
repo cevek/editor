@@ -14,7 +14,6 @@
 ///<reference path="editor/EditorComponent.ts"/>
 ///<reference path="test/LinesStore.spec.ts"/>
 ///<reference path="lib/Observer.ts"/>
-///<reference path="../typings/webaudioapi/waa.d.ts"/>
 ///<reference path="lib/Router.ts"/>
 
 

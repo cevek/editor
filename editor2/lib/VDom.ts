@@ -131,13 +131,14 @@ module virtual {
                     public children:Children[]) {
         }
 
-        renderDom(){
-            cito.vdom.create(this);
+        renderDom(node: Node){
+            cito.vdom.append(node, this);
             return this.dom;
         }
 
     }
 
+    export type Child = VNode | string | number;
     type Children0 = VNode | string | number;
     type Children1 = Children0 | Children0[];
     type Children2 = Children1 | Children1[];
@@ -189,7 +190,7 @@ module virtual {
     export class Component<T> {
         attrs:virtual.Attrs = {};
         props:T;
-        children:MiniChildren[] = [];
+        children:Child[] = [];
         transparent = false;
         rootNode:VNode;
         watchers:observer.Watcher[] = [];
@@ -199,7 +200,7 @@ module virtual {
             return name.replace(/([A-Z]+)/g, m => '-' + m).replace(/^-+/, '').toLowerCase();
         }
 
-        root(...children:MiniChildren[]) {
+        root(...children:(Child | Child[])[]) {
             return vd(this.className, this.attrs, children);
         }
         rootWithAttrs(attrs: Attrs, ...children:MiniChildren[]) {
@@ -215,6 +216,7 @@ module virtual {
         componentDidMount():void {}
 
         componentWillUnmount():void {}
+        componentWillMount():void {}
 
         protected render():VNode {return null}
 
@@ -255,12 +257,13 @@ module virtual {
         }
 
 
-        init(props?:T, attrs?:virtual.Attrs, ...children:MiniChildren[]) {
+        init(props?:T, attrs?:virtual.Attrs, ...children:Child[]) {
             this.props = props;
             this.attrs = attrs || {};
             this.children = children;
             var watcher = new observer.Watcher(this.renderer, this).watch();
             this.watchers.push(watcher);
+            this.componentWillMount();
             return this.rootNode;
         }
     }
@@ -304,7 +307,7 @@ class FFT extends virtual.Component<any> {
     }
 }
 
-document.body.appendChild(new FFT().init().renderDom());
+new FFT().init().renderDom(document.body);
 
 //document.body.appendChild(fft);
 //var comp = fft.component;

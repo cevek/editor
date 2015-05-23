@@ -53,6 +53,9 @@ module observer {
         }
 
         set(val:T) {
+            if (this.value === val) {
+                return;
+            }
             this.value = val;
             if (this.watchers) {
                 for (let keys = Object.keys(this.watchers), i = 0; i < keys.length; i++) {
@@ -61,6 +64,14 @@ module observer {
                         watcher.watch();
                     }
                 }
+            }
+        }
+
+        sync(atom:Atom<any>) {
+            if (atom) {
+                this.value = atom.value;
+                atom.setWatcher(new Watcher(() => this.set(atom.value)));
+                this.setWatcher(new Watcher(() => atom.set(this.value)));
             }
         }
 
@@ -73,6 +84,16 @@ module observer {
                 this.watchers = {};
             }
             this.watchers[watcher.id] = watcher;
+        }
+
+        static get from() {
+            let oldStack = mastersStack;
+            mastersStack = [];
+            return <T>(val:T) => {
+                var atom = mastersStack.shift();
+                mastersStack = oldStack;
+                return atom;
+            };
         }
     }
 

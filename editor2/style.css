@@ -1,5 +1,5 @@
 * { box-sizing: border-box }
-body { font-family: Tahoma; cursor: default; margin: 0;}
+body { font-family: Tahoma; cursor: default; margin: 0; }
 .editor { width: 1000px; margin: auto; }
 .line { p1adding: 10px; height: 50px; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
 .lng { text-align: center }
@@ -27,6 +27,10 @@ svg { position: absolute }
 svg rect { cursor: ns-resize; fill: transparent; }
 body.resize-ns { cursor: ns-resize; }
 .popup { position: fixed; z-index: 10000; left: 0; top: 0; bottom: 0; right: 0; overflow: auto; background: rgba(0, 0, 0, .1); }
-.popup .popup-main { margin: 500px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
+.popup .popup-main { margin: 100px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
     border-radius: 3px; background: wheat; }
-body.remove-scroll { overflow: hidden; margin-left: calc((100vw - 100%)/2); }
+body.remove-scroll { overflow: hidden; }
+* { outline: none; }
+.radio-buttons { }
+.radio-buttons button { border: 1px solid silver; background: white; margin-left: -1px; }
+.radio-buttons button.active { background: yellow; }

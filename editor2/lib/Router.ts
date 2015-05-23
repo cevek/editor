@@ -134,22 +134,36 @@ module router {
 
 class Popup extends virtual.Component<any> {
     closeWhenClickOut = true;
-    header: virtual.VNode;
-    body: virtual.VNode;
-    footer: virtual.VNode;
+    header:virtual.VNode;
+    body:virtual.VNode;
+    footer:virtual.VNode;
+
     remove() {
         document.body.classList.remove('remove-scroll');
         document.body.removeChild(this.rootNode.dom);
+        this.removeBodyPadding();
     }
 
     show() {
+        this.rootNode.renderDom(document.body);
+        this.setBodyPaddingRight();
         document.body.classList.add('remove-scroll');
-        document.body.appendChild(this.rootNode.renderDom());
     }
 
+    private oldPaddingRight = '';
 
-    private clickOutside(e:Event) {
-        if (this.closeWhenClickOut && e.target == this.rootNode.dom){
+    private setBodyPaddingRight() {
+        this.oldPaddingRight = document.body.style.paddingRight;
+        var computed = window.getComputedStyle(document.body);
+        document.body.style.paddingRight = parseInt(computed.paddingRight, 10) + (window.innerWidth - this.rootNode.dom.offsetWidth) + 'px';
+    }
+
+    private removeBodyPadding() {
+        document.body.style.paddingRight = this.oldPaddingRight;
+    }
+
+    protected clickOutside(e:Event) {
+        if (this.closeWhenClickOut && e.target == this.rootNode.dom) {
             this.remove();
         }
     }
@@ -165,7 +179,7 @@ class Popup extends virtual.Component<any> {
     }
 }
 
-class MainPopup extends Popup{
+class MainPopup extends Popup {
     body:virtual.VNode = new MainView().init({popup: this, name: 'sdf'})
 }
 
@@ -266,6 +280,8 @@ class MainView extends virtual.Component<{popup: Popup; name: string}> {
     }
 }
 
+
+var atom = new observer.Atom(null, null);
 class IndexView extends virtual.Component<any> {
     click() {
         var popup = new MainPopup();
@@ -275,6 +291,11 @@ class IndexView extends virtual.Component<any> {
 
     render() {
         return this.root(
+            //new RadioButtons().init(),
+            new Tabs().init({val: atom}, null,
+                new Tab().init({title: 'Hello', value: 1}, null, 'Hello world1'),
+                new Tab().init({title: 'World', value: 2}, null, 'Hello world2')
+            ),
             vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
             new Linker().init({href: routes.main.toURL({})}, null, 'Main'),
             ' ',
@@ -286,4 +307,89 @@ class IndexView extends virtual.Component<any> {
     }
 }
 
-document.body.insertBefore(new IndexView().init().renderDom(), document.body.firstChild);
+class Model {
+    name:string;
+
+    constructor(name:string) {
+        this.name = name;
+    }
+}
+var model:Model[] = [new Model('hello'), new Model('world')];
+
+
+class RadioButtons<T> extends virtual.Component<{value: T[]; atom: observer.Atom<T>; val: (m:T)=>string}> {
+    render() {
+        return this.rootWithAttrs({class: 'radio-buttons'},
+            this.props.value.map(m =>
+                vd('button', {
+                    classes: {active: m == this.props.atom.get()},
+                    events: {click: ()=>this.props.atom.set(m)}
+                }, this.props.val(m)))
+        );
+    }
+}
+
+class Tabs extends virtual.Component<{val: observer.Atom<Object>}> {
+    @observe active:Object = null;
+    titles:string[] = [];
+    values:Object[] = [];
+    content:virtual.Child[];
+    hello = observer.Atom.from(this.active);
+
+    componentWillMount(){
+        console.log(this.hello);
+        observer.Atom.from(this.active).sync(this.props.val);
+    }
+
+    prepareTabs() {
+        this.titles = [];
+        this.values = [];
+        var firstTab:Tab = null;
+        this.children.forEach(child => {
+            if (child instanceof virtual.VNode && child.component instanceof Tab) {
+                var tab = <Tab>child.component;
+                this.titles.push(tab.props.title);
+                this.values.push(tab.props.value);
+                if (this.active == null && tab.props.default) {
+                    this.active = tab.props.value;
+                }
+                if (tab.props.value == this.active) {
+                    this.content = tab.children;
+                }
+                if (!firstTab) {
+                    firstTab = tab;
+                }
+            }
+        });
+        if (this.active == null && firstTab) {
+            this.active = this.values[0];
+            this.content = firstTab.children;
+        }
+    }
+
+
+    render() {
+        this.prepareTabs();
+        return this.root(
+            this.titles.map((m, i) =>
+                    vd('button', {
+                        classes: {active: this.values[i] == this.active},
+                        events: {click: ()=>this.active = this.values[i]}
+                    }, m)
+            ),
+            this.content
+        )
+    }
+}
+
+class Tab extends virtual.Component<{title: string; value?: any; default?: boolean}> {
+    componentWillMount() {
+        this.props.value = this.props.value || {};
+    }
+
+    render() {
+        return this.root(this.children);
+    }
+}
+
+new IndexView().init().renderDom(document.body);

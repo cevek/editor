@@ -1,7 +1,3 @@
-interface DOMStringMap {
-    [index:string]:string;
-}
-
 interface ILang {[lang:string]:LangItem;en:LangItem;ru:LangItem;}
 class Line {
     lang:ILang;
