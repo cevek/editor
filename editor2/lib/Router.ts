@@ -329,9 +329,10 @@ class IndexView extends virtual.Component {
                 new form.Checkbox().init()
             ),
             new form.InputGroup('Hello').init(
-                new form.SelectMultiple(
+                new form.Select(
                     this.selectOptions,
                     this.selectValues,
+                    null,
                     (val) => this.selectValues = val
                 ).init()),
             new RadioButtons(model, m=>m.name, atom).init(),

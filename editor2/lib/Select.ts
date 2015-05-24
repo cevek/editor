@@ -7,33 +7,35 @@ module form {
         constructor(public text:string, public value:T, public disabled?:boolean) {}
     }
 
-    export class SelectMultiple<T> extends virtual.Component {
-        @observe model:T;
-        @observe modelMultiple:T[];
+    export class Select<T> extends virtual.Component {
         options:virtual.VNode[] = [];
         optionValues:T[] = [];
-        multiple = true;
+        values:T[];
 
         constructor(public data:(SelectOption<T> | SelectOptGroup<T>)[],
-                    public values:T[],
+                    value:T | T[],
+                    public onChange?:(val:T)=>void,
                     public onChangeMultiple?:(val:T[])=>void) {
             super();
-            observer.Atom.from(this.modelMultiple).setListener(new observer.Listener(this.onChangeMultiple));
+            this.values = value instanceof Array ? value : [<T>value];
         }
 
         change() {
-            this.modelMultiple = [];
+            var modelMultiple:T[] = [];
+            var model:T = null;
             var setSelected = false;
             this.options.forEach((opt, i)=> {
                 var isSelected = (<HTMLOptionElement>opt.dom).selected;
                 if (isSelected) {
                     if (!setSelected) {
-                        this.model = this.optionValues[i];
+                        model = this.optionValues[i];
                         setSelected = true;
                     }
-                    this.modelMultiple.push(this.optionValues[i]);
+                    modelMultiple.push(this.optionValues[i]);
                 }
             });
+            this.onChange && this.onChange(model);
+            this.onChangeMultiple && this.onChangeMultiple(modelMultiple);
         }
 
         option(opt:SelectOption<T>) {
@@ -51,11 +53,7 @@ module form {
         }
 
         render() {
-            return vd('select', virtual.extend({
-                    multiple: this.multiple,
-                    oninput: ()=>this.change()
-                }, this.attrs),
-
+            return vd('select', virtual.extend({oninput: ()=>this.change()}, this.attrs),
                 this.data.map(item=> {
                     if (item instanceof SelectOptGroup) {
                         return vd('optgroup', {label: item.text, disabled: item.disabled},
@@ -67,17 +65,6 @@ module form {
                     }
                 })
             );
-        }
-    }
-
-    export class Select<T> extends SelectMultiple<T> {
-        multiple = false;
-
-        constructor(public data:(SelectOption<T> | SelectOptGroup<T>)[],
-                    public value:T,
-                    public onChange?:(val:T)=>void) {
-            super(data, [value]);
-            observer.Atom.from(this.model).setListener(new observer.Listener(this.onChange));
         }
     }
 
@@ -110,7 +97,6 @@ module form {
             return vd('input', {type: 'checkbox', checked: this.checked, oninput: ()=>this.change()});
         }
     }
-
 
     export class RadioItem<T> {
         constructor(public label:string, public value:T, public disabled?:boolean) {}
