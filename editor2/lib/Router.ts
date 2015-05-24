@@ -48,7 +48,7 @@ module router {
             return routes;
         }
 
-        toURL(paramss:T) {
+        toURL(paramss?:T) {
             var url = this.url;
             var params = <any>paramss;
             for (var i in params) {
@@ -132,7 +132,7 @@ module router {
 
 }
 
-class Popup extends virtual.Component<any> {
+class Popup extends virtual.Component {
     closeWhenClickOut = true;
     header:virtual.VNode;
     body:virtual.VNode;
@@ -140,12 +140,12 @@ class Popup extends virtual.Component<any> {
 
     remove() {
         document.body.classList.remove('remove-scroll');
-        document.body.removeChild(this.rootNode.dom);
+        this.rootNode.dom.parentNode.removeChild(this.rootNode.dom);
         this.removeBodyPadding();
     }
 
     show() {
-        this.rootNode.mount(document.body);
+        //this.rootNode.mount(document.body);
         this.setBodyPaddingRight();
         document.body.classList.add('remove-scroll');
     }
@@ -168,44 +168,52 @@ class Popup extends virtual.Component<any> {
         }
     }
 
+    componentDidMount() {
+        this.show();
+    }
+
     render() {
         return this.rootWithAttrs({class: 'popup', events: {click: (e)=>this.clickOutside(e)}},
             vd('.popup-main',
-                vd('.header', this.header),
-                vd('.main', this.body),
-                vd('.footer', this.footer)
+                this.header ? vd('.header', this.header) : null,
+                this.body ? vd('.main', this.body) : null,
+                this.footer ? vd('.footer', this.footer) : null
             )
         );
     }
 }
 
 class MainPopup extends Popup {
-    body:virtual.VNode = new MainView().init({popup: this, name: 'sdf'})
+    body:virtual.VNode = new MainView(this, 'sdf').init()
 }
 
-class Linker extends virtual.Component<{href:string}> {
+class Linker extends virtual.Component {
     transparent = true;
+
+    constructor(public href:string) {
+        super();
+    }
 
     click(e:Event) {
         e.preventDefault();
-        if (this.props.href != location.pathname) {
-            router.Route.go(this.props.href);
+        if (this.href != location.pathname) {
+            router.Route.go(this.href);
         }
     }
 
     render() {
         return vd('a', virtual.extend({
-            href: this.props.href,
+            href: this.href,
             events: {click: (e)=>this.click(e)}
         }, this.attrs), this.children);
     }
 }
 
-class RouteView extends virtual.Component<any> {
-    routes:{callback: ()=>virtual.Component<any>; route: router.Route<any>}[] = [];
+class RouteView extends virtual.Component {
+    routes:{callback: ()=>virtual.Component; route: router.Route<any>}[] = [];
     transparent = true;
 
-    when(route:router.Route<any>, callback:()=>virtual.Component<any>) {
+    when(route:router.Route<any>, callback:()=>virtual.Component) {
         this.routes.push({callback: callback, route: route});
         return this;
     }
@@ -213,7 +221,7 @@ class RouteView extends virtual.Component<any> {
     render() {
         for (var route of this.routes) {
             if (route.route.isActive) {
-                return route.callback().init({});
+                return route.callback().init();
             }
         }
     }
@@ -228,19 +236,19 @@ module routes {
     export var mainRouter:RouteView = new RouteView()
         .when(profile, ()=>new ProfileView())
         .when(editor, ()=>new Editor())
-        .when(main, ()=>new MainView());
+    //.when(main, ()=>new MainView());
 
     export var profileRouter = new RouteView()
         .when(profileEmail, ()=>new ProfileEditEmailView)
 
 }
 
-class ListView extends virtual.Component<any> {
+class ListView extends virtual.Component {
     render() {
-        return this.root(routes.profileRouter.init({}));
+        return this.root(routes.profileRouter.init());
     }
 }
-class Editor extends virtual.Component<any> {
+class Editor extends virtual.Component {
     render() {
         return this.root('editor');
     }
@@ -251,7 +259,7 @@ class Counter {
 }
 var counter = new Counter();
 
-class ProfileView extends virtual.Component<any> {
+class ProfileView extends virtual.Component {
 
     click() {
         counter.counter++;
@@ -262,47 +270,52 @@ class ProfileView extends virtual.Component<any> {
             'ProfileView',
             vd('button', {events: {click: ()=>this.click()}}, counter.counter),
             ' ',
-            new Linker().init({href: routes.profileEmail.toURL({})}, null, 'profileEmail'),
+            new Linker(routes.profileEmail.toURL()).init(null, 'profileEmail'),
             ' ',
-            routes.profileRouter.init({}));
+            routes.profileRouter.init()
+        );
     }
 }
 
-class ProfileEditEmailView extends virtual.Component<any> {
+class ProfileEditEmailView extends virtual.Component {
     render() {
         return this.root('ProfileEditEmailView');
     }
 }
 
-class MainView extends virtual.Component<{popup: Popup; name: string}> {
+class MainView extends virtual.Component {
+    constructor(public popup:Popup, public name:string) {
+        super();
+    }
+
     render() {
-        return this.root('MainView', vd('button', {events: {click: ()=>this.props.popup.remove()}}, 'Close'));
+        return this.root('MainView',
+            new datepicker.DatePicker().init(),
+            vd('button', {events: {click: ()=>this.popup.remove()}}, 'Close'));
     }
 }
 
 var atom = new observer.Atom<Model>();
-class IndexView extends virtual.Component<any> {
+class IndexView extends virtual.Component {
     click() {
-        var popup = new MainPopup();
-        popup.init({});
-        popup.show();
+        new MainPopup().init().mount(document.body);
     }
 
     render() {
         return this.root(
-            new RadioButtons<Model>().init({items: model, value: atom, label: m=>m.name}),
-            new Tabs().init({value: atom}, null,
-                new Tab().init({title: 'Hello', value: model[0]}, null, 'Hello world1'),
-                new Tab().init({title: 'World', value: model[1]}, null, 'Hello world2')
+            new RadioButtons<Model>(model, m=>m.name, atom).init(),
+            new Tabs(atom).init(null,
+                new Tab('Hello', model[0]).init(null, 'Hello world1'),
+                new Tab('World', model[1]).init(null, 'Hello world2')
             ),
 
             vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
-            new Linker().init({href: routes.main.toURL({})}, null, 'Main'),
+            new Linker(routes.main.toURL()).init(null, 'Main'),
             ' ',
-            new Linker().init({href: routes.profile.toURL({})}, null, 'profile'),
+            new Linker(routes.profile.toURL()).init(null, 'profile'),
             ' ',
-            new Linker().init({href: routes.editor.toURL({})}, null, 'Editor'),
-            routes.mainRouter.init({})
+            new Linker(routes.editor.toURL()).init(null, 'Editor'),
+            routes.mainRouter.init()
         );
     }
 }
@@ -316,35 +329,40 @@ class Model {
 }
 var model:Model[] = [new Model('hello'), new Model('world')];
 
-class RadioButtons<T> extends virtual.Component<{items: T[]; label: (model:T)=>string; value?: observer.Atom<T>}> {
+class RadioButtons<T> extends virtual.Component {
     @observe active:T;
 
-    componentWillMount() {
-        if (this.props.value) {
-            observer.Atom.from(this.active).sync(this.props.value);
+    constructor(public items:T[], public label:(model:T)=>string, public value?:observer.Atom<T>) {
+        super();
+        if (this.value) {
+            observer.Atom.from(this.active).sync(this.value);
         }
     }
 
     render() {
         return this.rootWithAttrs({class: 'radio-buttons'},
-            this.props.items.map(m =>
+            this.items.map(m =>
                 vd('button', {
                     classes: {active: m == this.active},
                     events: {click: ()=>this.active = m}
-                }, this.props.label(m)))
+                }, this.label(m)))
         );
     }
 }
 
-class Tabs extends virtual.Component<{value?: observer.Atom<Object>}> {
+class Tabs extends virtual.Component {
     @observe active:Object = null;
     titles:string[] = [];
     values:Object[] = [];
     content:virtual.Child;
 
+    constructor(public value?:observer.Atom<Object>) {
+        super();
+    }
+
     componentWillMount() {
-        if (this.props.value) {
-            observer.Atom.from(this.active).sync(this.props.value);
+        if (this.value) {
+            observer.Atom.from(this.active).sync(this.value);
         }
     }
 
@@ -355,12 +373,12 @@ class Tabs extends virtual.Component<{value?: observer.Atom<Object>}> {
         this.children.forEach(child => {
             if (child instanceof virtual.VNode && child.component instanceof Tab) {
                 var tab = <Tab>child.component;
-                this.titles.push(tab.props.title);
-                this.values.push(tab.props.value);
-                if (this.active == null && tab.props.default) {
-                    this.active = tab.props.value;
+                this.titles.push(tab.title);
+                this.values.push(tab.value);
+                if (this.active == null && tab.isDefault) {
+                    this.active = tab.value;
                 }
-                if (tab.props.value == this.active) {
+                if (tab.value == this.active) {
                     this.content = tab.rootNode;
                 }
                 if (!firstTab) {
@@ -388,9 +406,9 @@ class Tabs extends virtual.Component<{value?: observer.Atom<Object>}> {
     }
 }
 
-class Tab extends virtual.Component<{title: string; value?: any; default?: boolean}> {
-    componentWillMount() {
-        this.props.value = this.props.value || {};
+class Tab extends virtual.Component {
+    constructor(public title:string, public value:any = {}, public isDefault?:boolean) {
+        super();
     }
 
     render() {
@@ -398,4 +416,4 @@ class Tab extends virtual.Component<{title: string; value?: any; default?: boole
     }
 }
 
-new IndexView().init({}).mount(document.body);
+new IndexView().init().mount(document.body);

@@ -16,6 +16,8 @@
 ///<reference path="lib/Observer.ts"/>
 ///<reference path="lib/Debug.ts"/>
 ///<reference path="lib/Router.ts"/>
+///<reference path="lib/DatePicker.ts"/>
+
 
 
 var linesStore = new LinesStore();
@@ -26,7 +28,7 @@ Promise.all([
     console.log(values);
 
     linesStore.parse(values[0], values[1]);
-    React.render(React.createElement(editor.EditorComponent), document.getElementById('body'));
+    //React.render(React.createElement(editor.EditorComponent), document.getElementById('body'));
 });
 
 HTTP.get<ArrayBuffer>('../data/enAudio.mp3', true, 'arraybuffer')

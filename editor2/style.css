@@ -34,3 +34,25 @@ body.remove-scroll { overflow: hidden; }
 .radio-buttons { }
 .radio-buttons button { border: 1px solid silver; background: white; margin-left: -1px; }
 .radio-buttons button.active { background: yellow; }
+
+input:invalid { outline: 3px solid red; }
+date-picker-calendar { display: inline-block; position: absolute; background: white; padding: 5px; border: 1px solid silver }
+date-picker-calendar .month-year { font-weight: bold; font-size: 13px; }
+date-picker-calendar * { -webkit-user-select: none; cursor: default }
+date-picker-calendar .day { display: inline-block; width: 25px; text-align: right; color: silver; padding: 2px 5px;
+    font-size: 11px; border-radius: 3px; }
+date-picker-calendar .day.current { color: #0DBEFF !important; }
+date-picker-calendar .day.current-month { color: black; }
+date-picker-calendar .controls a { display: inline-block; padding: 3px 5px; }
+date-picker-calendar .day.active { background: #0DBEFF; color: white !important; }
+date-picker-calendar .week-names { border-bottom: 1px solid silver; }
+date-picker-calendar .week-name { font-weight: bold; text-align: center }
+date-picker-calendar .header { display: flex; justify-content: space-between }
+.animation { transition: transform .3s, opacity .5s; }
+.animation.ag-enter, .animation.ag-leave.ag-leave-active { opacity: 0; transform: scale(0.98) }
+.animation.ag-enter.ag-enter-active, .animation.ag-leave { opacity: 1; transform: scale(1) }
+autocomplete { width: 300px; border: 1px solid silver; background: white; padding: 10px; border-radius: 3px; }
+autocomplete input { background: transparent; border: transparent; width: 100%; outline: none }
+autocomplete .remove { float: right; }
+autocomplete .wraplist { position: relative }
+autocomplete .list { box-sizing: border-box; position: absolute; background: white; border: 1px solid silver; width: 100%; padding: 5px; }
