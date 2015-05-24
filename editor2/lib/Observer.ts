@@ -42,8 +42,8 @@ module observer {
 
     export class Atom<T> {
         id = ++Atom.ID;
-        private listeners:{[id: string]: Watcher | Atom<any>} = {};
-        private static ID = 0;
+        static ID = 0;
+        private listeners:{[id: string]: Watcher | Atom<any> | Listener<T>} = {};
 
         constructor(private value?:T, private owner?:any, private key?:string) {}
 
@@ -66,6 +66,9 @@ module observer {
                     else if (watcher instanceof Atom) {
                         watcher.set(val);
                     }
+                    else if (watcher instanceof Listener) {
+                        watcher.call(val);
+                    }
                 }
             }
         }
@@ -81,15 +84,15 @@ module observer {
             this.removeListener(atom);
         }
 
-        removeListener(listener:Watcher | Atom<any>) {
+        removeListener(listener:Watcher | Atom<any> | Listener<T>) {
             this.listeners[listener.id] = void 0;
         }
 
-        setListener(watcher:Watcher | Atom<any>) {
+        setListener(listener:Watcher | Atom<any> | Listener<T>) {
             if (!this.listeners) {
                 this.listeners = {};
             }
-            this.listeners[watcher.id] = watcher;
+            this.listeners[listener.id] = listener;
         }
 
         static get from() {
@@ -103,10 +106,21 @@ module observer {
         }
     }
 
+    export class Listener<T> {
+        id = ++Atom.ID;
+
+        constructor(private callback:(val:T)=>void, private scope?:any) {}
+
+        call(val:T) {
+            if (this.callback) {
+                this.callback.call(this.scope, val);
+            }
+        }
+    }
+
     export class Watcher {
-        id = ++Watcher.ID;
+        id = ++Atom.ID;
         private masters:{[id: string]: Atom<any>} = {};
-        private static ID = 0;
 
         constructor(private callback:()=>void, private scope?:any) {}
 
@@ -127,12 +141,14 @@ module observer {
         }
 
         watch() {
-            this.unsubscribe();
-            let oldStack = mastersStack;
-            mastersStack = [];
-            this.callback.call(this.scope);
-            this.subscribe(mastersStack);
-            mastersStack = oldStack;
+            if (this.callback) {
+                this.unsubscribe();
+                let oldStack = mastersStack;
+                mastersStack = [];
+                this.callback.call(this.scope);
+                this.subscribe(mastersStack);
+                mastersStack = oldStack;
+            }
             return this;
         }
     }

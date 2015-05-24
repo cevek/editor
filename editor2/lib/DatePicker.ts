@@ -1,8 +1,6 @@
 module datepicker {
     export class DatePicker extends virtual.Component {
-        @observe inputTree:virtual.VNode;
-        @observe calendar:DatePickerCalendar;
-        @observe focused = false;
+        inputTree:virtual.VNode;
         @observe model:Date;
 
         constructor(model?:observer.Atom<Date>) {
@@ -10,6 +8,7 @@ module datepicker {
             if (model) {
                 observer.Atom.from(this.model).sync(model);
             }
+            this.watch(this.modelChanged);
         }
 
         parser() {
@@ -33,7 +32,7 @@ module datepicker {
             var node = <HTMLInputElement>this.inputTree.dom;
 
             var val = this.model;
-            //console.log("formatter", val);
+            console.log("formatter", val);
             if (val && isFinite(val.getTime())) {
                 node.value = ('0' + val.getDate()).substr(-2) + '/' + ('0' + (val.getMonth() + 1)).substr(-2) + '/' + val.getFullYear();
             }
@@ -42,31 +41,12 @@ module datepicker {
             }
         }
 
-        closeCallback = (e:Event)=> {
-            var calendar = this.calendar;
-            //todo:
-            /*
-                        if (calendar && calendar.dom && e.target !== this.inputTree.dom/!* && !DOM.hasInParents(<Node>e.target, calendar.dom)*!/) {
-                            this.focused = false;
-                        }
-            */
-        };
-
-        componentDidMount() {
-            //document.addEventListener('mousedown', this.closeCallback);
-            console.log("componentDidMount dsaafdas");
-        }
-
-        componentWillUnmount() {
-            document.removeEventListener('mousedown', this.closeCallback);
-        }
-
         openCalendar() {
             new DatePickerCalendar(observer.Atom.from(this.model)).init().mount(document.body);
         }
 
         modelChanged(isBlurEvent = false) {
-            //console.log("model changed");
+            console.log("model changed", this.model);
             if (this.inputTree && this.inputTree.dom) {
                 var node = <HTMLInputElement>this.inputTree.dom;
                 if (this.model) {
@@ -88,19 +68,18 @@ module datepicker {
         }
 
         render() {
-            this.modelChanged();
             return this.root(
-                this.model && this.model.getTime() && this.model.toJSON(),
+                vd('div', this.model && this.model.getTime() && this.model.toJSON()),
                 vd('br'),
                 this.inputTree = vd('input', {
                     type: 'text',
                     required: true,
                     events: {
                         input: ()=>this.parser(),
-                        focus: ()=>this.openCalendar(),
                         blur: ()=>this.modelChanged(true)
                     }
-                })
+                }),
+                vd('button', {events: {click: ()=>this.openCalendar()}}, '*')
             );
         }
     }
@@ -110,9 +89,12 @@ module datepicker {
 
         static months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         static weeks = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-        static weekOrder = new List([1, 2, 3, 4, 5, 6, 0]);
+        static weekOrder = [1, 2, 3, 4, 5, 6, 0];
 
         private currentDay = DatePickerCalendar.getDayInt(new Date());
+
+        @observe private firstDayOfMonth:Date;
+        private days:Date[][] = [];//new ListFormula<Date[]>(this, this.calcDays);
 
         static getDayInt(date:Date) {
             return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
@@ -124,10 +106,6 @@ module datepicker {
             var diff = date.getDate() - weekDay + (weekDay == 0 ? -6 : 1);
             return new Date(date.setDate(diff));
         }
-
-
-        @observe private firstDayOfMonth:Date;
-        private days:Date[][] = [];//new ListFormula<Date[]>(this, this.calcDays);
 
         calcDays() {
             this.days = [];
@@ -174,10 +152,6 @@ module datepicker {
 
         }
 
-        click(day:Date) {
-            this.model = day;
-        }
-
         body:virtual.VNode;
 
         render() {
@@ -207,7 +181,7 @@ module datepicker {
                                         'current-month': this.firstDayOfMonth.getMonth() === day.getMonth(),
                                         'active': this.model && DatePickerCalendar.getDayInt(this.model) == DatePickerCalendar.getDayInt(day)
                                     },
-                                    events: {click: ()=>this.click(day)}
+                                    events: {click: ()=>this.model = day}
                                 },
                                 day.getDate()))))
             );

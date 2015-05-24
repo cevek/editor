@@ -34,7 +34,7 @@ module virtual {
         let vnode:Component;
         let tag:string;
         let attrs:Attrs = {};
-        let events:Events;
+        let events:Events = {};
         let key:string;
         let classes:string[] = [];
         if (typeof children[0] === 'string') {
@@ -45,7 +45,9 @@ module virtual {
         }
         children = flatArray(children);
 
-        if (typeof children[0] === 'object' && !(children[0] instanceof Array) && children[0].children === void 0 && children[0].tag === void 0) {
+        if (children[0] && typeof children[0] === 'object' && !(children[0] instanceof Array)
+            && children[0].children === void 0 && children[0].tag === void 0) {
+
             attrs = <any>children.shift();
             if (attrs.class) {
                 classes.push(attrs.class);
@@ -80,6 +82,10 @@ module virtual {
             let keys = Object.keys(attrs);
             let newAttrs:Attrs = {};
             for (let key of keys) {
+                if (key[0] == 'o' && key[1] == 'n') {
+                    events[key.substr(2)] = attrs[key];
+                    continue;
+                }
                 if (attrs[key] !== void 0) {
                     var newKey = key.replace(/([A-Z])/g, m => '-' + m.toLowerCase());
                     newAttrs[newKey] = attrs[key];
@@ -87,6 +93,7 @@ module virtual {
             }
             attrs = newAttrs;
         }
+
         if (classes.length) {
             attrs.class = classes.join(' ');
         }
@@ -257,8 +264,16 @@ module virtual {
             }
         }
 
-        init(attrs?:virtual.Attrs, ...children:Child[]) {
-            this.attrs = attrs || {};
+        init(attrs?:virtual.Attrs, ...children:Child[]):VNode;
+        init(...children:Child[]):VNode;
+        init(...children:any[]) {
+            if (children[0] && typeof children[0] === 'object' && !(children[0] instanceof Array)
+                && children[0].children === void 0 && children[0].tag === void 0) {
+                this.attrs = children.shift();
+            }
+            if (!this.attrs) {
+                this.attrs = {};
+            }
             this.children = children;
             this.componentWillMount();
             var watcher = new observer.Watcher(this.renderer, this).watch();
@@ -282,9 +297,10 @@ declare module cito.vdom {
 
 class NFF extends virtual.Component {
 
-    constructor(public model:string, public title: string){
+    constructor(public model:string, public title:string) {
         super();
     }
+
     @observe content = 'hello';
 
     componentDidMount():void {
@@ -304,12 +320,21 @@ class NFF extends virtual.Component {
 }
 
 class FFT extends virtual.Component {
+    @observe random = 0;
+
+    constructor() {
+        super();
+        setInterval(() => {
+            this.random = Math.random();
+        }, 1000);
+    }
+
     render() {
-        return Math.random() > 0.5 ? new NFF('adsfsa', 'wqe3').init() : null;
+        return this.random > 0.5 ? new NFF('adsfsa', 'wqe3').init() : null;
     }
 }
 
-new FFT().init().mount(document.body);
+//new FFT().init().mount(document.body);
 
 //document.body.appendChild(fft);
 //var comp = fft.component;

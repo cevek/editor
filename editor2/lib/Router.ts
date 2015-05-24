@@ -301,20 +301,51 @@ class IndexView extends virtual.Component {
         new MainPopup().init().mount(document.body);
     }
 
+    selectOptions = [
+        new form.SelectOption('hello', 1),
+        new form.SelectOptGroup('group', [
+            new form.SelectOption('world', 2)
+        ])
+    ];
+
+    selectValues = [3];
+
+    @observe isMultiple = true;
+
+    radioGroups = [
+        new form.RadioItem('one', 1),
+        new form.RadioItem('two', 2),
+        new form.RadioItem('three', 3),
+    ];
+
     render() {
         return this.root(
-            new RadioButtons<Model>(model, m=>m.name, atom).init(),
+            //new FFT().init(),
+            vd('button', {onclick: ()=>this.isMultiple = false}, 'Single'),
+            vd('button', {onclick: ()=>this.isMultiple = true}, 'Multiple'),
+            new form.RadioGroup(this.radioGroups, 2).init(),
+
+            new form.InputGroup('Checkbox', true).init(
+                new form.Checkbox().init()
+            ),
+            new form.InputGroup('Hello').init(
+                new form.SelectMultiple(
+                    this.selectOptions,
+                    this.selectValues,
+                    (val) => this.selectValues = val
+                ).init()),
+            new RadioButtons(model, m=>m.name, atom).init(),
             new Tabs(atom).init(null,
-                new Tab('Hello', model[0]).init(null, 'Hello world1'),
-                new Tab('World', model[1]).init(null, 'Hello world2')
+                new Tab('Hello', model[0]).init('Hello world1'),
+                new Tab('World', model[1]).init('Hello world2')
             ),
 
             vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
-            new Linker(routes.main.toURL()).init(null, 'Main'),
+            new Linker(routes.main.toURL()).init('Main'),
             ' ',
-            new Linker(routes.profile.toURL()).init(null, 'profile'),
+            new Linker(routes.profile.toURL()).init('profile'),
             ' ',
-            new Linker(routes.editor.toURL()).init(null, 'Editor'),
+            new Linker(routes.editor.toURL()).init('Editor'),
             routes.mainRouter.init()
         );
     }

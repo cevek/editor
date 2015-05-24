@@ -30,7 +30,7 @@ body.resize-ns { cursor: ns-resize; }
 .popup .popup-main { margin: 100px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
     border-radius: 3px; background: wheat; }
 body.remove-scroll { overflow: hidden; }
-* { outline: none; }
+* { o1utline: none; }
 .radio-buttons { }
 .radio-buttons button { border: 1px solid silver; background: white; margin-left: -1px; }
 .radio-buttons button.active { background: yellow; }
