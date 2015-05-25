@@ -1,3 +1,5 @@
+///<reference path="Popup.ts"/>
+///<reference path="DatePicker.ts"/>
 module control {
 
     export class SelectOptGroup<T> {

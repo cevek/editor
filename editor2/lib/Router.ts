@@ -132,58 +132,8 @@ module router {
 
 }
 
-class Popup extends virtual.Component {
-    closeWhenClickOut = true;
-    header:virtual.VNode;
-    body:virtual.VNode;
-    footer:virtual.VNode;
 
-    remove() {
-        document.body.classList.remove('remove-scroll');
-        this.rootNode.dom.parentNode.removeChild(this.rootNode.dom);
-        this.removeBodyPadding();
-    }
-
-    show() {
-        //this.rootNode.mount(document.body);
-        this.setBodyPaddingRight();
-        document.body.classList.add('remove-scroll');
-    }
-
-    private oldPaddingRight = '';
-
-    private setBodyPaddingRight() {
-        this.oldPaddingRight = document.body.style.paddingRight;
-        var computed = window.getComputedStyle(document.body);
-        document.body.style.paddingRight = parseInt(computed.paddingRight, 10) + (window.innerWidth - this.rootNode.dom.offsetWidth) + 'px';
-    }
-
-    private removeBodyPadding() {
-        document.body.style.paddingRight = this.oldPaddingRight;
-    }
-
-    protected clickOutside(e:Event) {
-        if (this.closeWhenClickOut && e.target == this.rootNode.dom) {
-            this.remove();
-        }
-    }
-
-    componentDidMount() {
-        this.show();
-    }
-
-    render() {
-        return this.rootWithAttrs({class: 'popup', events: {click: (e)=>this.clickOutside(e)}},
-            vd('.popup-main',
-                this.header ? vd('.header', this.header) : null,
-                this.body ? vd('.main', this.body) : null,
-                this.footer ? vd('.footer', this.footer) : null
-            )
-        );
-    }
-}
-
-class MainPopup extends Popup {
+class MainPopup extends control.Popup {
     body:virtual.VNode = new MainView(this, 'sdf').init()
 }
 
@@ -284,7 +234,7 @@ class ProfileEditEmailView extends virtual.Component {
 }
 
 class MainView extends virtual.Component {
-    constructor(public popup:Popup, public name:string) {
+    constructor(public popup:control.Popup, public name:string) {
         super();
     }
 
@@ -298,7 +248,7 @@ class MainView extends virtual.Component {
 var atom = new observer.Atom<Model>();
 class IndexView extends virtual.Component {
     click() {
-        new MainPopup().init().mount(document.body);
+        control.Popup.show(new MainPopup());
     }
 
     selectOptions = [

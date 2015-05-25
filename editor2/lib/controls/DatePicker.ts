@@ -37,7 +37,7 @@ module control {
         }
 
         openCalendar() {
-            new DatePickerCalendarPopup(this.model, (val) => this.model = val).init().mount(document.body);
+            Popup.show(new DatePickerCalendarPopup(this.model, (val) => this.model = val));
         }
 
         modelChanged(isBlurEvent = false) {

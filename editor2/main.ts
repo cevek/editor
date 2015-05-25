@@ -5,7 +5,6 @@
 ///<reference path="lib/VDom.ts"/>
 ///<reference path="lib/EventEmitter.ts"/>
 ///<reference path="lib/react.d.ts" />
-//==/<reference path="expiriments/DOM.ts" />
 ///<reference path="lib/HTTP.ts"/>
 ///<reference path="Store.ts"/>
 ///<reference path="lib/ReactDOM.ts"/>
@@ -17,7 +16,6 @@
 ///<reference path="lib/Debug.ts"/>
 ///<reference path="lib/controls/Controls.ts"/>
 ///<reference path="lib/Router.ts"/>
-///<reference path="lib/controls/DatePicker.ts"/>
 
 
 
