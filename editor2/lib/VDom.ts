@@ -7,6 +7,16 @@ interface HTMLElement {
     virtualNode: virtual.VNode;
 }
 
+module DOMUtils {
+    export function getParents(node:Node) {
+        var parents:Node[] = [];
+        while (node = node.parentNode) {
+            parents.push(node);
+        }
+        return parents;
+    }
+}
+
 module virtual {
     function flatArray(array:any[]) {
         var nodes = <any[]>[];

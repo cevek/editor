@@ -40,8 +40,6 @@ module control {
         }
 
         option(opt:SelectOption<T>) {
-            console.log(opt, this.values, this.values.indexOf(opt.value) > -1);
-
             var option = vd('option', {
                 selected: this.values.indexOf(opt.value) > -1,
                 disabled: opt.disabled
