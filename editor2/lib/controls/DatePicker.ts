@@ -1,4 +1,4 @@
-module form {
+module control {
     export class DatePicker extends virtual.Component {
         @observe model:Date;
         input:virtual.VNode;
@@ -190,5 +190,5 @@ module form {
     }
 }
 
-new form.DatePicker().init().mount(document.body);
-new form.DatePickerCalendar().init().mount(document.body);
+new control.DatePicker().init().mount(document.body);
+new control.DatePickerCalendar().init().mount(document.body);

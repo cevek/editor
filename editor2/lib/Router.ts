@@ -290,7 +290,7 @@ class MainView extends virtual.Component {
 
     render() {
         return this.root('MainView',
-            new form.DatePicker().init(),
+            new control.DatePicker().init(),
             vd('button', {events: {click: ()=>this.popup.remove()}}, 'Close'));
     }
 }
@@ -302,9 +302,9 @@ class IndexView extends virtual.Component {
     }
 
     selectOptions = [
-        new form.SelectOption('hello', 1),
-        new form.SelectOptGroup('group', [
-            new form.SelectOption('world', 2)
+        new control.SelectOption('hello', 1),
+        new control.SelectOptGroup('group', [
+            new control.SelectOption('world', 2)
         ])
     ];
 
@@ -313,9 +313,9 @@ class IndexView extends virtual.Component {
     @observe isMultiple = true;
 
     radioGroups = [
-        new form.RadioItem('one', 1),
-        new form.RadioItem('two', 2),
-        new form.RadioItem('three', 3),
+        new control.RadioItem('one', 1),
+        new control.RadioItem('two', 2),
+        new control.RadioItem('three', 3),
     ];
 
     render() {
@@ -323,22 +323,22 @@ class IndexView extends virtual.Component {
             //new FFT().init(),
             vd('button', {onclick: ()=>this.isMultiple = false}, 'Single'),
             vd('button', {onclick: ()=>this.isMultiple = true}, 'Multiple'),
-            new form.RadioGroup(this.radioGroups, 2).init(),
+            new control.RadioGroup(this.radioGroups, 2).init(),
 
-            new form.InputGroup('Checkbox', true).init(
-                new form.Checkbox().init()
+            new control.InputGroup('Checkbox', true).init(
+                new control.Checkbox().init()
             ),
-            new form.InputGroup('Hello').init(
-                new form.Select(
+            new control.InputGroup('Hello').init(
+                new control.Select(
                     this.selectOptions,
                     this.selectValues,
                     null,
                     (val) => this.selectValues = val
                 ).init()),
-            new RadioButtons(model, m=>m.name, atom).init(),
-            new Tabs(atom).init(null,
-                new Tab('Hello', model[0]).init('Hello world1'),
-                new Tab('World', model[1]).init('Hello world2')
+            new control.RadioButtons(model, m=>m.name, atom).init(),
+            new control.Tabs(atom).init(null,
+                new control.Tab('Hello', model[0]).init('Hello world1'),
+                new control.Tab('World', model[1]).init('Hello world2')
             ),
 
             vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
@@ -361,91 +361,5 @@ class Model {
 }
 var model:Model[] = [new Model('hello'), new Model('world')];
 
-class RadioButtons<T> extends virtual.Component {
-    @observe active:T;
-
-    constructor(public items:T[], public label:(model:T)=>string, public value?:observer.Atom<T>) {
-        super();
-        if (this.value) {
-            observer.Atom.from(this.active).sync(this.value);
-        }
-    }
-
-    render() {
-        return this.rootWithAttrs({class: 'radio-buttons'},
-            this.items.map(m =>
-                vd('button', {
-                    classes: {active: m == this.active},
-                    events: {click: ()=>this.active = m}
-                }, this.label(m)))
-        );
-    }
-}
-
-class Tabs extends virtual.Component {
-    @observe active:Object = null;
-    titles:string[] = [];
-    values:Object[] = [];
-    content:virtual.Child;
-
-    constructor(public value?:observer.Atom<Object>) {
-        super();
-    }
-
-    componentWillMount() {
-        if (this.value) {
-            observer.Atom.from(this.active).sync(this.value);
-        }
-    }
-
-    getChildrenTabs() {
-        this.titles = [];
-        this.values = [];
-        var firstTab:Tab = null;
-        this.children.forEach(child => {
-            if (child instanceof virtual.VNode && child.component instanceof Tab) {
-                var tab = <Tab>child.component;
-                this.titles.push(tab.title);
-                this.values.push(tab.value);
-                if (this.active == null && tab.isDefault) {
-                    this.active = tab.value;
-                }
-                if (tab.value == this.active) {
-                    this.content = tab.rootNode;
-                }
-                if (!firstTab) {
-                    firstTab = tab;
-                }
-            }
-        });
-        if (this.active == null && firstTab) {
-            this.active = this.values[0];
-            this.content = firstTab.rootNode;
-        }
-    }
-
-    render() {
-        this.getChildrenTabs();
-        return this.root(
-            this.titles.map((m, i) =>
-                    vd('button', {
-                        classes: {active: this.values[i] == this.active},
-                        events: {click: ()=>this.active = this.values[i]}
-                    }, m)
-            ),
-            this.content
-        )
-    }
-}
-
-class Tab extends virtual.Component {
-    constructor(public title:string, public value:any = {}, public isDefault?:boolean) {
-        super();
-    }
-
-    render() {
-        return this.root(this.children);
-    }
-}
 
 new IndexView().init().mount(document.body);
