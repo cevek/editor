@@ -75,7 +75,7 @@ module control{
         constructor(data:(SelectOption<T> | SelectOptGroup<T>)[],
                     value?:T,
                     onChange?:(val:T)=>void) {
-            super(data, value ? [value] : [], onChange);
+            super(data, value == null ? [] : [value], onChange);
         }
     }
     export class SelectMultiple<T> extends SelectBase<T> {
