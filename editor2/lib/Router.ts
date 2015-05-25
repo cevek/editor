@@ -241,7 +241,7 @@ class MainView extends virtual.Component {
     render() {
         return this.root('MainView',
             new control.DatePicker().init(),
-            vd('button', {events: {click: ()=>this.popup.remove()}}, 'Close'));
+            vd('button', {events: {click: ()=>this.popup.close()}}, 'Close'));
     }
 }
 

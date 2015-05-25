@@ -1,24 +1,30 @@
 module control {
     export class Popup extends virtual.Component {
         closeWhenClickOut = true;
+        closeButton = true;
         hasOpacity = true;
+        styled = true;
         header:virtual.VNode;
         body:virtual.VNode;
         footer:virtual.VNode;
+        target:Node;
 
-        static show(popup: Popup){
+        mainLeft = 0;
+        mainTop = 0;
+
+        static show(popup:Popup) {
             popup.init().mount(document.body);
+
             return popup;
         }
 
-        remove() {
+        close() {
             document.body.classList.remove('remove-scroll');
             this.rootNode.dom.parentNode.removeChild(this.rootNode.dom);
             this.removeBodyPadding();
         }
 
         show() {
-            //this.rootNode.mount(document.body);
             this.setBodyPaddingRight();
             document.body.classList.add('remove-scroll');
         }
@@ -37,7 +43,16 @@ module control {
 
         protected clickOutside(e:Event) {
             if (this.closeWhenClickOut && e.target == this.rootNode.dom) {
-                this.remove();
+                this.close();
+            }
+        }
+
+        componentWillMount() {
+            //todo:test for all browsers
+            if (this.target) {
+                var rect = (<Element>this.target).getBoundingClientRect();
+                this.mainLeft = rect.left;
+                this.mainTop = rect.bottom;
             }
         }
 
@@ -46,8 +61,23 @@ module control {
         }
 
         render() {
-            return this.rootWithAttrs({class: 'popup', events: {click: (e)=>this.clickOutside(e)}},
-                vd('.popup-main',
+            return this.rootWithAttrs({
+                    class: 'popup',
+                    classes: {
+                        styled: this.styled,
+                        opacity: this.hasOpacity
+                    },
+                    onclick: (e)=>this.clickOutside(e)
+                },
+                vd('.popup-main', {
+                        style: {
+                            float: this.target ? 'left' : '',
+                            position: 'relative',
+                            left: this.mainLeft + 'px',
+                            top: this.mainTop + 'px',
+                        }
+                    },
+                    this.closeButton ? vd('span.close-button', {onclick: ()=>this.close()}, '×') : null,
                     this.header ? vd('.header', this.header) : null,
                     this.body ? vd('.main', this.body) : null,
                     this.footer ? vd('.footer', this.footer) : null

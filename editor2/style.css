@@ -26,17 +26,19 @@ svg { position: absolute }
 .panel { position: absolute }
 svg rect { cursor: ns-resize; fill: transparent; }
 body.resize-ns { cursor: ns-resize; }
-.popup { position: fixed; z-index: 10000; left: 0; top: 0; bottom: 0; right: 0; overflow: auto; background: rgba(0, 0, 0, .1); }
-.popup .popup-main { margin: 100px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
+.popup { position: fixed; z-index: 10000; left: 0; top: 0; bottom: 0; right: 0; overflow: auto; }
+.popup .popup-main {  }
+.popup.styled .popup-main { margin: 100px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
     border-radius: 3px; background: wheat; }
+.popup.opacity { background: rgba(0, 0, 0, .1); }
+.popup span.close-button { position: absolute; right: 10px; top: 10px; }
 body.remove-scroll { overflow: hidden; }
 * { o1utline: none; }
 .radio-buttons { }
 .radio-buttons button { border: 1px solid silver; background: white; margin-left: -1px; }
 .radio-buttons button.active { background: yellow; }
-
 input:invalid { outline: 3px solid red; }
-date-picker-calendar { display: inline-block; position: absolute; background: white; padding: 5px; border: 1px solid silver }
+date-picker-calendar { display: inline-block; background: white; padding: 5px; border: 1px solid silver }
 date-picker-calendar .month-year { font-weight: bold; font-size: 13px; }
 date-picker-calendar * { -webkit-user-select: none; cursor: default }
 date-picker-calendar .day { display: inline-block; width: 25px; text-align: right; color: silver; padding: 2px 5px;

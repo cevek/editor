@@ -37,7 +37,7 @@ module control {
         }
 
         openCalendar() {
-            Popup.show(new DatePickerCalendarPopup(this.model, (val) => this.model = val));
+            Popup.show(new DatePickerCalendarPopup(this.model, this.input.dom, (val) => this.model = val));
         }
 
         modelChanged(isBlurEvent = false) {
@@ -178,12 +178,18 @@ module control {
         }
     }
 
-    export class DatePickerCalendarPopup extends Popup{
-        constructor(public value:Date, public onChange?:(val:Date)=>void) {
+    export class DatePickerCalendarPopup extends Popup {
+        hasOpacity = false;
+        styled = false;
+        closeButton = false;
+
+        constructor(public value:Date, public target:Node, public onChange?:(val:Date)=>void) {
             super();
         }
+
         body:virtual.VNode;
-        render(){
+
+        render() {
             this.body = new DatePickerCalendar(this.value, this.onChange).init();
             return super.render();
         }

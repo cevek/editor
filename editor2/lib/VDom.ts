@@ -159,6 +159,18 @@ module virtual {
         events?: Events;
         key?: string;
         classes?: {[index:string]: boolean};
+
+        onclick?:((e:MouseEvent)=>void);
+        onmousedown?:((e:MouseEvent)=>void);
+        onmouseup?:((e:MouseEvent)=>void);
+        onmouseenter?:((e:MouseEvent)=>void);
+        onmouseleave?:((e:MouseEvent)=>void);
+        onmousemove?:((e:MouseEvent)=>void);
+        onmousewheel?:((e:MouseWheelEvent)=>void);
+        onkeydown?:((e:KeyboardEvent)=>void);
+        onkeyup?:((e:KeyboardEvent)=>void);
+        onkeypress?:((e:KeyboardEvent)=>void);
+
         [index:string]:any;
     }
 
