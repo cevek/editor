@@ -251,7 +251,6 @@ class IndexView extends virtual.Component {
     }
 
     selectOptions = [
-        new control.SelectOption('Select value', 0, true, true),
         new control.SelectOption('hello', 1),
         new control.SelectOptGroup('group', [
             new control.SelectOption('world', 2)
@@ -284,13 +283,24 @@ class IndexView extends virtual.Component {
                     new control.Select(
                         this.selectOptions,
                         this.selectValues[0],
-                        (val) => this.selectValues = val ? [val] : []).init({required: true})),
+                        'Select value',
+                        (val) => this.selectValues = val ? [val] : []
+                    ).init({required: false})),
                 new control.InputGroup('Hello2').init(
                     new control.SelectMultiple(
                         this.selectOptions,
                         this.selectValues,
+                        'Select value',
                         (val) => this.selectValues = val
                     ).init({required: true})),
+                new control.InputGroup('Hello3').init(
+                    new control.SelectMultiple(
+                        this.selectOptions,
+                        this.selectValues,
+                        //null,
+                        'Select value',
+                        (val) => this.selectValues = val
+                    ).init({required: false})),
                 new control.RadioButtons(model, m=>m.name, atom).init(),
                 new control.Tabs(atom).init(null,
                     new control.Tab('Hello', model[0]).init('Hello world1'),
