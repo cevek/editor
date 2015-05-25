@@ -1,25 +1,22 @@
-module datepicker {
+module form {
     export class DatePicker extends virtual.Component {
-        inputTree:virtual.VNode;
         @observe model:Date;
+        input:virtual.VNode;
 
-        constructor(model?:observer.Atom<Date>) {
+        constructor(value?:Date, onChange?:(val:Date)=>void) {
             super();
-            if (model) {
-                observer.Atom.from(this.model).sync(model);
-            }
+            this.model = value;
+            observer.Atom.from(this.model).setListener(new observer.Listener(onChange));
             this.watch(this.modelChanged);
         }
 
         parser() {
-            var node = <HTMLInputElement>this.inputTree.dom;
+            var node = <HTMLInputElement>this.input.dom;
             var value = node.value.trim().replace(/[^\d]+/g, '/');
             value = value.replace(/^(\d{1,2})\/(\d{1,2})\//, '$2/$1/');
             var has3DigitBlocks = value.match(/(\d{1,4})\/(\d{1,2})\/(\d{1,4})/);
             //var year4Digit = has3DigitBlocks && (has3DigitBlocks[1].length == 2 || has3DigitBlocks[1].length == 4);
             var date = new Date(value);
-            //console.log("parser", value, date, has3DigitBlocks);
-
             if (value.length > 5 && has3DigitBlocks && isFinite(date.getTime()) && date.getFullYear() >= 1000 && date.getFullYear() < 3000) {
                 this.model = date;
             }
@@ -29,10 +26,8 @@ module datepicker {
         }
 
         formatter(setEmptyIfInvalid = false) {
-            var node = <HTMLInputElement>this.inputTree.dom;
-
+            var node = <HTMLInputElement>this.input.dom;
             var val = this.model;
-            console.log("formatter", val);
             if (val && isFinite(val.getTime())) {
                 node.value = ('0' + val.getDate()).substr(-2) + '/' + ('0' + (val.getMonth() + 1)).substr(-2) + '/' + val.getFullYear();
             }
@@ -42,13 +37,13 @@ module datepicker {
         }
 
         openCalendar() {
-            new DatePickerCalendar(observer.Atom.from(this.model)).init().mount(document.body);
+            new DatePickerCalendarPopup(this.model, (val) => this.model = val).init().mount(document.body);
         }
 
         modelChanged(isBlurEvent = false) {
             console.log("model changed", this.model);
-            if (this.inputTree && this.inputTree.dom) {
-                var node = <HTMLInputElement>this.inputTree.dom;
+            if (this.input && this.input.dom) {
+                var node = <HTMLInputElement>this.input.dom;
                 if (this.model) {
                     if (isFinite(this.model.getTime())) {
                         node.setCustomValidity('');
@@ -71,7 +66,7 @@ module datepicker {
             return this.root(
                 vd('div', this.model && this.model.getTime() && this.model.toJSON()),
                 vd('br'),
-                this.inputTree = vd('input', {
+                this.input = vd('input', {
                     type: 'text',
                     required: true,
                     events: {
@@ -84,7 +79,7 @@ module datepicker {
         }
     }
 
-    export class DatePickerCalendar extends Popup {
+    export class DatePickerCalendar extends virtual.Component {
         @observe model:Date;
 
         static months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -94,7 +89,14 @@ module datepicker {
         private currentDay = DatePickerCalendar.getDayInt(new Date());
 
         @observe private firstDayOfMonth:Date;
-        private days:Date[][] = [];//new ListFormula<Date[]>(this, this.calcDays);
+        private days:Date[][] = [];
+
+        constructor(value?:Date, onChange?:(val:Date)=>void) {
+            super();
+            this.model = value;
+            observer.Atom.from(this.model).setListener(new observer.Listener(onChange));
+            this.watch(this.modelChanged);
+        }
 
         static getDayInt(date:Date) {
             return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
@@ -119,15 +121,6 @@ module datepicker {
             }
         }
 
-        constructor(model:observer.Atom<Date>) {
-            super();
-            observer.Atom.from(this.model).sync(model);
-
-            //console.log("DateCalendar created", this);
-            //this.model = model.proxy(this);
-            this.watch(this.modelChanged);
-        }
-
         modelChanged() {
             var dt = this.model;
             if (dt && isFinite(dt.getTime())) {
@@ -149,14 +142,11 @@ module datepicker {
                 nDt = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
             }
             this.firstDayOfMonth = nDt;
-
         }
-
-        body:virtual.VNode;
 
         render() {
             this.calcDays();
-            this.body = vd(
+            return this.root(
                 vd('.header',
                     vd('.month-year',
                         DatePickerCalendar.months[this.firstDayOfMonth.getMonth()],
@@ -185,9 +175,20 @@ module datepicker {
                                 },
                                 day.getDate()))))
             );
+        }
+    }
+
+    export class DatePickerCalendarPopup extends Popup{
+        constructor(public value:Date, public onChange?:(val:Date)=>void) {
+            super();
+        }
+        body:virtual.VNode;
+        render(){
+            this.body = new DatePickerCalendar(this.value, this.onChange).init();
             return super.render();
         }
     }
 }
 
-new datepicker.DatePicker().init().mount(document.body);
+new form.DatePicker().init().mount(document.body);
+new form.DatePickerCalendar().init().mount(document.body);

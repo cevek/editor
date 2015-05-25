@@ -15,7 +15,7 @@
 ///<reference path="test/LinesStore.spec.ts"/>
 ///<reference path="lib/Observer.ts"/>
 ///<reference path="lib/Debug.ts"/>
-///<reference path="lib/Select.ts"/>
+///<reference path="lib/Form.ts"/>
 ///<reference path="lib/Router.ts"/>
 ///<reference path="lib/DatePicker.ts"/>
 
