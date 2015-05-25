@@ -132,7 +132,6 @@ module router {
 
 }
 
-
 class MainPopup extends control.Popup {
     body:virtual.VNode = new MainView(this, 'sdf').init()
 }
@@ -252,13 +251,14 @@ class IndexView extends virtual.Component {
     }
 
     selectOptions = [
+        new control.SelectOption('Select value', 0, true, true),
         new control.SelectOption('hello', 1),
         new control.SelectOptGroup('group', [
             new control.SelectOption('world', 2)
         ])
     ];
 
-    selectValues = [3];
+    @observe selectValues:number[] = [];
 
     @observe isMultiple = true;
 
@@ -270,34 +270,42 @@ class IndexView extends virtual.Component {
 
     render() {
         return this.root(
-            //new FFT().init(),
-            vd('button', {onclick: ()=>this.isMultiple = false}, 'Single'),
-            vd('button', {onclick: ()=>this.isMultiple = true}, 'Multiple'),
-            new control.RadioGroup(this.radioGroups, 2).init(),
+            vd('form',
+                //new FFT().init(),
+                vd('button', {onclick: ()=>this.isMultiple = false}, 'Single'),
+                vd('button', {onclick: ()=>this.isMultiple = true}, 'Multiple'),
+                new control.RadioGroup(this.radioGroups, 2).init(),
 
-            new control.InputGroup('Checkbox', true).init(
-                new control.Checkbox().init()
-            ),
-            new control.InputGroup('Hello').init(
-                new control.Select(
-                    this.selectOptions,
-                    this.selectValues,
-                    null,
-                    (val) => this.selectValues = val
-                ).init()),
-            new control.RadioButtons(model, m=>m.name, atom).init(),
-            new control.Tabs(atom).init(null,
-                new control.Tab('Hello', model[0]).init('Hello world1'),
-                new control.Tab('World', model[1]).init('Hello world2')
-            ),
+                new control.InputGroup('Checkbox', true).init(
+                    new control.Checkbox().init()
+                ),
+                vd(this.selectValues),
+                new control.InputGroup('Hello').init(
+                    new control.Select(
+                        this.selectOptions,
+                        this.selectValues[0],
+                        (val) => this.selectValues = val ? [val] : []).init({required: true})),
+                new control.InputGroup('Hello2').init(
+                    new control.SelectMultiple(
+                        this.selectOptions,
+                        this.selectValues,
+                        (val) => this.selectValues = val
+                    ).init({required: true})),
+                new control.RadioButtons(model, m=>m.name, atom).init(),
+                new control.Tabs(atom).init(null,
+                    new control.Tab('Hello', model[0]).init('Hello world1'),
+                    new control.Tab('World', model[1]).init('Hello world2')
+                ),
 
-            vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
-            new Linker(routes.main.toURL()).init('Main'),
-            ' ',
-            new Linker(routes.profile.toURL()).init('profile'),
-            ' ',
-            new Linker(routes.editor.toURL()).init('Editor'),
-            routes.mainRouter.init()
+                vd('button', 'send'),
+                vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
+                new Linker(routes.main.toURL()).init('Main'),
+                ' ',
+                new Linker(routes.profile.toURL()).init('profile'),
+                ' ',
+                new Linker(routes.editor.toURL()).init('Editor'),
+                routes.mainRouter.init()
+            )
         );
     }
 }
@@ -310,6 +318,5 @@ class Model {
     }
 }
 var model:Model[] = [new Model('hello'), new Model('world')];
-
 
 new IndexView().init().mount(document.body);
