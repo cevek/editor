@@ -245,6 +245,14 @@ class MainView extends virtual.Component {
     }
 }
 
+class ModelA {
+    title:string;
+
+    constructor(title:string) {
+        this.title = title;
+    }
+}
+
 var atom = new observer.Atom<Model>();
 class IndexView extends virtual.Component {
     click() {
@@ -268,10 +276,13 @@ class IndexView extends virtual.Component {
         new control.RadioItem('three', 3),
     ];
 
+    autocompleteItems = [new ModelA('hello'), new ModelA('world'), new ModelA('hello world')];
+
     render() {
         return this.root(
             vd('form',
                 //new FFT().init(),
+                new control.AutoComplete(this.autocompleteItems, (item)=>item.title, 'hello').init(),
                 new control.RadioGroup(this.radioGroups, 2).init(),
 
                 new control.InputGroup('Checkbox', true).init(

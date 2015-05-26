@@ -330,6 +330,7 @@ module virtual {
 }
 
 import vd = virtual.d;
+import Cmp = virtual.Component;
 
 declare module cito.vdom {
     export function create(newNode:virtual.VNode):void;
