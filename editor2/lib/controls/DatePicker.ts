@@ -3,7 +3,7 @@ module control {
         @observe model:Date;
         @observe focused = false;
         input:virtual.VNode;
-
+        button:virtual.VNode;
 
         constructor(value?:Date, onChange?:(val:Date)=>void) {
             super();
@@ -64,7 +64,6 @@ module control {
             }
         }
 
-
         render() {
             return this.root(
                 vd('div', this.model && this.model.getTime() && this.model.toJSON()),
@@ -72,14 +71,16 @@ module control {
                 this.input = vd('input', {
                     type: 'text',
                     required: true,
-                    events: {
-                        input: ()=>this.parser(),
-                        blur: ()=>this.modelChanged(true)
-                    }
+                    oninput: ()=>this.parser(),
+                    onfocus: ()=>this.openCalendar(),
+                    onblur: ()=>this.modelChanged(true)
                 }),
+
+                this.button = vd('button', {events: {click: ()=>this.openCalendar()}}, '*'),
                 this.focused ?
-                    new DatePickerCalendarPopup(this.model, this.input, () => this.focused = false, (val)=>this.model = val).init() : null,
-                vd('button', {events: {click: ()=>this.openCalendar()}}, '*')
+                    new Tip(this.input, [this.input, this.button], ()=>this.focused = false).init(
+                        new DatePickerCalendar(this.model, (val)=>this.model = val).init()
+                    ) : null
             );
         }
     }
@@ -182,48 +183,7 @@ module control {
             );
         }
     }
-
-    export class DatePickerCalendarPopup extends virtual.Component {
-        clickCallback:(e:Event)=>void;
-
-        constructor(public model:Date,
-                    public target:virtual.VNode,
-                    public onClose:()=>void,
-                    public onChange?:(val:Date)=>void) {
-            super();
-        }
-
-        componentDidMount() {
-            var rect1 = (<Element>this.target.dom).getBoundingClientRect();
-            var rect2 = (<Element>this.rootNode.dom).getBoundingClientRect();
-            this.rootNode.dom.style.marginLeft = rect1.left - rect2.left + 'px';
-            this.rootNode.dom.style.marginTop = rect1.bottom - rect2.top + 'px';
-            var calendarParents = DOMUtils.getParents(this.rootNode.dom);
-            var inputParents = DOMUtils.getParents(this.target.dom);
-
-            this.clickCallback = (e) => {
-                var node = <Node>e.target;
-                if (calendarParents.indexOf(node) > -1 || inputParents.indexOf(node) > -1) {
-                    this.onClose();
-                }
-            };
-            document.addEventListener('click', this.clickCallback);
-        }
-
-        componentWillUnmount() {
-            document.removeEventListener('click', this.clickCallback);
-        }
-
-        render() {
-            return new DatePickerCalendar(this.model, this.onChange).init({
-                style: {
-                    position: 'absolute',
-                    display: 'block'
-                }
-            });
-        }
-    }
 }
 
 new control.DatePicker().init().mount(document.body);
-new control.DatePickerCalendar().init().mount(document.body);
+//new control.DatePickerCalendar().init().mount(document.body);

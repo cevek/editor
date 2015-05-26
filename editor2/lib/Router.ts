@@ -217,7 +217,7 @@ class ProfileView extends virtual.Component {
     render() {
         return this.root(
             'ProfileView',
-            vd('button', {events: {click: ()=>this.click()}}, counter.counter),
+            new control.Button(counter.counter + '', ()=>this.click()).init(),
             ' ',
             new Linker(routes.profileEmail.toURL()).init(null, 'profileEmail'),
             ' ',
@@ -240,7 +240,8 @@ class MainView extends virtual.Component {
     render() {
         return this.root('MainView',
             new control.DatePicker().init(),
-            vd('button', {events: {click: ()=>this.popup.close()}}, 'Close'));
+            new control.Button('Close', ()=>this.popup.close()).init()
+        );
     }
 }
 
@@ -271,8 +272,6 @@ class IndexView extends virtual.Component {
         return this.root(
             vd('form',
                 //new FFT().init(),
-                vd('button', {onclick: ()=>this.isMultiple = false}, 'Single'),
-                vd('button', {onclick: ()=>this.isMultiple = true}, 'Multiple'),
                 new control.RadioGroup(this.radioGroups, 2).init(),
 
                 new control.InputGroup('Checkbox', true).init(
@@ -308,7 +307,7 @@ class IndexView extends virtual.Component {
                 ),
 
                 vd('button', 'send'),
-                vd('button', {events: {click: ()=>this.click()}}, 'Open Popup'),
+                new control.Button('Open Popup', ()=>this.click()).init(),
                 new Linker(routes.main.toURL()).init('Main'),
                 ' ',
                 new Linker(routes.profile.toURL()).init('profile'),

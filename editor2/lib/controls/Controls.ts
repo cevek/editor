@@ -81,10 +81,21 @@ module control {
             return this.rootWithAttrs({class: 'radio-buttons'},
                 this.items.map(m =>
                     vd('button', {
+                        type: 'button',
                         classes: {active: m == this.active},
-                        events: {click: ()=>this.active = m}
+                        onclick: ()=>this.active = m
                     }, this.label(m)))
             );
+        }
+    }
+
+    export class Button extends virtual.Component {
+        constructor(public text:string, public onClick:()=>void) {
+            super();
+        }
+
+        render() {
+            return vd('button', virtual.extend({type: 'button', onclick: this.onClick}, this.attrs), this.text);
         }
     }
 
@@ -136,7 +147,8 @@ module control {
                 this.titles.map((m, i) =>
                         vd('button', {
                             classes: {active: this.values[i] == this.active},
-                            events: {click: ()=>this.active = this.values[i]}
+                            type: 'button',
+                            onclick: ()=>this.active = this.values[i]
                         }, m)
                 ),
                 this.content

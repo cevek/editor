@@ -25,9 +25,14 @@ module virtual {
             if (child instanceof Array) {
                 nodes = nodes.concat(flatArray(child));
             }
-            else if (child !== null && child !== void 0 && typeof child !== 'boolean') {
-                if (typeof child === 'number') {
-                    child = child + '';
+            else {
+                if (child !== null && child !== void 0 && typeof child !== 'boolean') {
+                    if (typeof child === 'number') {
+                        child = child + '';
+                    }
+                }
+                else {
+                    child = d();
                 }
                 nodes.push(child);
             }
@@ -139,6 +144,7 @@ module virtual {
     export class VNode {
         public dom:HTMLElement = null;
         public domLength:number = null;
+        public customData:any = null;
 
         constructor(public tag:string,
                     public attrs:Attrs,
@@ -222,6 +228,7 @@ module virtual {
         transparent = false;
         rootNode:VNode;
         watchers:observer.Watcher[] = [];
+        nnode:Node;
 
         get className() {
             var name = (<string>(<any>this.constructor).name);
@@ -248,10 +255,27 @@ module virtual {
 
         componentWillMount():void {}
 
+        destructor() {
+            this.watchers.forEach(watcher => watcher.unsubscribe());
+        }
+
         protected render():VNode {return null}
 
         runRender() {
             return this.rootNode = this.render();
+        }
+
+        private destroyChildren(children:Children[]) {
+            for (var child of children) {
+                if (child instanceof Array) {
+                    this.destroyChildren(child);
+                }
+                else {
+                    if (child && child instanceof VNode && child.component) {
+                        child.component.destructor();
+                    }
+                }
+            }
         }
 
         private renderer() {
@@ -264,13 +288,13 @@ module virtual {
                 newNode.events = {};
             }
             newNode.events['$created'] = ()=>this.componentDidMount();
-            newNode.events['$destroyed'] = ()=> {
-                this.watchers.forEach(watcher => watcher.unsubscribe());
-                this.componentWillUnmount();
-            };
+            newNode.events['$destroyed'] = ()=> this.componentWillUnmount();
             newNode.component = this;
 
             if (this.rootNode) {
+                if (this.rootNode.children !== newNode.children) {
+                    this.destroyChildren(this.rootNode.children);
+                }
                 if (this.rootNode.dom) {
                     cito.vdom.update(this.rootNode, newNode);
                 }

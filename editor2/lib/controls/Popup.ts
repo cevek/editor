@@ -85,4 +85,39 @@ module control {
             );
         }
     }
+
+    export class Tip extends virtual.Component {
+        constructor(public target:virtual.VNode,
+                    public notCloseOnClick:virtual.VNode[],
+                    public onClose:()=>void) {
+            super();
+        }
+
+        componentDidMount() {
+            var targetRect = (<Element>this.target.dom).getBoundingClientRect();
+            var srcRect = (<Element>this.rootNode.dom).getBoundingClientRect();
+            this.rootNode.dom.style.marginLeft = targetRect.left - srcRect.left + 'px';
+            this.rootNode.dom.style.marginTop = targetRect.bottom - srcRect.top + 'px';
+            var clickCallback = (e:MouseEvent) => {
+                var node = <Node>e.target;
+                var parents = DOMUtils.getParents(node);
+                parents.push(node);
+                var otherTargets = this.notCloseOnClick || [];
+                if (parents.indexOf(this.rootNode.dom) === -1 && otherTargets.every(
+                            t => parents.indexOf(t.dom) === -1)) {
+                    this.onClose();
+                }
+            };
+            (<any>this.rootNode.dom).clickCallback = clickCallback;
+            document.addEventListener('click', clickCallback);
+        }
+
+        componentWillUnmount() {
+            document.removeEventListener('click', (<any>this.rootNode.dom).clickCallback);
+        }
+
+        render() {
+            return this.rootWithAttrs({style: {position: 'absolute', d1isplay: 'block'}}, this.children);
+        }
+    }
 }
