@@ -27,7 +27,7 @@ svg { position: absolute }
 svg rect { cursor: ns-resize; fill: transparent; }
 body.resize-ns { cursor: ns-resize; }
 .popup { position: fixed; z-index: 10000; left: 0; top: 0; bottom: 0; right: 0; overflow: auto; }
-.popup .popup-main {  }
+.popup .popup-main { }
 .popup.styled .popup-main { margin: 100px auto; width: 600px; min-height: 400px; padding: 20px; border: 1px solid silver;
     border-radius: 3px; background: wheat; }
 .popup.opacity { background: rgba(0, 0, 0, .1); }
@@ -53,8 +53,7 @@ date-picker-calendar .header { display: flex; justify-content: space-between }
 .animation { transition: transform .3s, opacity .5s; }
 .animation.ag-enter, .animation.ag-leave.ag-leave-active { opacity: 0; transform: scale(0.98) }
 .animation.ag-enter.ag-enter-active, .animation.ag-leave { opacity: 1; transform: scale(1) }
-autocomplete { width: 300px; border: 1px solid silver; background: white; padding: 10px; border-radius: 3px; }
-autocomplete input { background: transparent; border: transparent; width: 100%; outline: none }
-autocomplete .remove { float: right; }
-autocomplete .wraplist { position: relative }
-autocomplete .list { box-sizing: border-box; position: absolute; background: white; border: 1px solid silver; width: 100%; padding: 5px; }
+auto-complete { width: 300px;  background: white; border-radius: 3px; }
+auto-complete .items { background: white; border: 1px solid silver; }
+auto-complete .active { background: #0DBEFF; color: white; }
+auto-complete .item { padding: 3px 8px; }

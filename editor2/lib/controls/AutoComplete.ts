@@ -1,9 +1,11 @@
-module control{
+module control {
     export class AutoComplete<T> extends virtual.Component {
         input:virtual.VNode;
+        inputNode:HTMLInputElement;
         @observe focused = false;
         @observe value = '';
-        @observe filtered:T[];
+        @observe active = 0;
+        filtered:T[];
 
         constructor(public items:T[],
                     public title:(item:T)=>string,
@@ -24,7 +26,7 @@ module control{
         defaultTemplate(item:T, find:string) {
             var text = this.title(item);
             var pos = text.indexOf(find);
-            if (pos > -1) {
+            if (pos > -1 && find.length > 0) {
                 return vd('div',
                     text.substring(0, pos),
                     vd('b', text.substring(pos, pos + find.length)),
@@ -35,19 +37,56 @@ module control{
         }
 
         doFilter() {
-            return this.items.filter(item => this.filter(item, this.value));
+            return this.filtered = this.items.filter(item => this.filter(item, this.value));
         }
 
-        click(item:T) {
-            var node = <HTMLInputElement>this.input.dom;
+        setActiveNodeValue() {
+            this.inputNode.value = this.title(this.filtered[this.active]);
+        }
+
+        select(item:T) {
             this.value = this.title(item);
-            node.value = this.value;
+            this.inputNode.value = this.value;
             this.focused = false;
             this.onSelect && this.onSelect(item, this.value);
         }
 
-        componentDidMount() {
+        open() {
+            this.focused = true;
+            this.active = 0;
+        }
 
+        close() {
+            this.focused = false;
+            this.inputNode.value = this.value;
+        }
+
+        keydown(e:KeyboardEvent) {
+            var key = new KeyboardKey(e);
+            if (key.noMod && this.focused) {
+                var last = this.filtered.length - 1;
+                if (key.up) {
+                    this.active = this.active == 0 ? last : this.active - 1;
+                    this.setActiveNodeValue();
+                    e.preventDefault();
+                }
+                if (key.down) {
+                    this.active = this.active >= last ? 0 : this.active + 1;
+                    this.setActiveNodeValue();
+                    e.preventDefault();
+                }
+                if (key.enter) {
+                    this.select(this.filtered[this.active]);
+                    e.preventDefault();
+                }
+                if (key.escape) {
+                    this.close();
+                }
+            }
+        }
+
+        componentDidMount() {
+            this.inputNode = <HTMLInputElement>this.input.dom;
         }
 
         render() {
@@ -55,13 +94,17 @@ module control{
                 this.input = vd('input', {
                     type: 'text',
                     value: this.value,
-                    onfocus: ()=>this.focused = true,
+                    onkeydown: (e:KeyboardEvent)=>this.keydown(e),
+                    onfocus: ()=>this.open(),
                     oninput: ()=>this.value = (<HTMLInputElement>this.input.dom).value
                 }),
                 this.focused ?
-                    new Tip(this.input, [this.input], ()=>this.focused = false).init(
-                        vd('.items', this.doFilter().map((item)=>
-                            vd('.item', {onclick: ()=>this.click(item)},
+                    new Tip(this.input, [this.input], ()=>this.close()).init(
+                        vd('.items', this.doFilter().map((item, i)=>
+                            vd('.item', {
+                                    classes: {active: i == this.active},
+                                    onclick: ()=>this.select(item)
+                                },
                                 this.template(item, this.value))))
                     ) : null
             );
