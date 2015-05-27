@@ -399,7 +399,7 @@ module editor {
                         this.model.collapsedLines[i + 1] ?
                             vd({
                                 events: {
-                                    click: e => this.collapse(e),
+                                    click: (e:MouseEvent) => this.collapse(e),
                                 },
                                 classes: {
                                     collapsible: true,

@@ -100,8 +100,10 @@ module control {
             this.rootNode.dom.style.marginTop = targetRect.bottom - srcRect.top + 'px';
             var clickCallback = (e:MouseEvent) => {
                 var node = <Node>e.target;
-                var parents = DOMUtils.getParents(node);
-                parents.push(node);
+                var parents = [node];
+                while (node = node.parentNode) {
+                    parents.push(node);
+                }
                 var otherTargets = this.notCloseOnClick || [];
                 if (parents.indexOf(this.rootNode.dom) === -1 && otherTargets.every(
                             t => parents.indexOf(t.dom) === -1)) {

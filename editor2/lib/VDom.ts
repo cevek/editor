@@ -1,50 +1,11 @@
-module Components {
-    export var attrs = 'attrs';
-    export var props = 'props';
-}
-
-interface HTMLElement {
-    virtualNode: virtual.VNode;
-}
-
-module DOMUtils {
-    export function getParents(node:Node) {
-        var parents:Node[] = [];
-        while (node = node.parentNode) {
-            parents.push(node);
-        }
-        return parents;
-    }
-}
+///<reference path="Component.ts"/>
 
 module virtual {
-    function flatArray(array:any[]) {
-        var nodes = <any[]>[];
-        for (var i = 0; i < array.length; i++) {
-            var child = array[i];
-            if (child instanceof Array) {
-                nodes = nodes.concat(flatArray(child));
-            }
-            else {
-                if (child !== null && child !== void 0 && typeof child !== 'boolean') {
-                    if (typeof child === 'number') {
-                        child = child + '';
-                    }
-                }
-                else {
-                    child = d();
-                }
-                nodes.push(child);
-            }
-        }
-        return nodes;
-    }
-
     export function d(tag:string, attrs:Attrs):VNode;
-    export function d(tag:string, ...children:Children[]):VNode;
-    export function d(tag:string, attrs:Attrs, ...children:Children[]):VNode;
-    export function d(attrs:Attrs, ...children:Children[]):VNode;
-    export function d(...children:Children[]):VNode;
+    export function d(tag:string, ...children:RestChildren[]):VNode;
+    export function d(tag:string, attrs:Attrs, ...children:RestChildren[]):VNode;
+    export function d(attrs:Attrs, ...children:RestChildren[]):VNode;
+    export function d(...children:RestChildren[]):VNode;
     export function d(...children:any[]) {
         let vnode:Component;
         let tag:string;
@@ -112,20 +73,7 @@ module virtual {
         if (classes.length) {
             attrs.class = classes.join(' ');
         }
-        return new VNode(tag, attrs, key, events, null, children);
-    }
-
-    export interface Events {
-        [name: string]: ((e:Event)=>void);
-        click?:((e:MouseEvent)=>void);
-        mousedown?:((e:MouseEvent)=>void);
-        mouseup?:((e:MouseEvent)=>void);
-        mouseenter?:((e:MouseEvent)=>void);
-        mouseleave?:((e:MouseEvent)=>void);
-        mousemove?:((e:MouseEvent)=>void);
-        keydown?:((e:KeyboardEvent)=>void);
-        keyup?:((e:KeyboardEvent)=>void);
-        keypress?:((e:KeyboardEvent)=>void);
+        return new VNode(tag, attrs, key, events, null, <Children[]>children);
     }
 
     export function extend(obj:Attrs, to:Attrs):Attrs {
@@ -140,6 +88,8 @@ module virtual {
         }
         return to;
     }
+
+    interface Events {[index:string]:(e:Event)=>void}
 
     export class VNode {
         public dom:HTMLElement = null;
@@ -162,12 +112,8 @@ module virtual {
     }
 
     export type Child = VNode | string | number;
-    type Children0 = VNode | string | number;
-    type Children1 = Children0 | Children0[];
-    type Children2 = Children1 | Children1[];
-    type Children3 = Children2 | Children2[];
-    export type MiniChildren = Children3 | Children3[];
-    export type Children = MiniChildren | MiniChildren[];
+    export type Children = Child | (Child | (Child | (Child | Child[])[])[])[];
+    export type RestChildren = Children | Children[];
     export interface Attrs {
         id?: string;
         class?: string;
@@ -190,147 +136,30 @@ module virtual {
         [index:string]:any;
     }
 
-    export class Attributes implements Attrs {
-    [index:string]:any;
-        id:string;
-        class:string;
-        style:{[index:string]:string | number};
-        events:Events;
-        key:string;
-        classes:{[index:string]: boolean};
 
-        extend(attrs:Attrs) {
-            return extend(attrs, this);
-        }
-    }
-
-    /* export function render(fn:()=>VNode) {
-         var oldNode:VNode;
-         var newNode:VNode;
-         return observer.watch(()=> {
-             newNode = fn();
-             if (oldNode) {
-                 cito.vdom.update(oldNode, newNode);
-             }
-             else {
-                 cito.vdom.create(newNode);
-             }
-             console.log(newNode);
-
-             newNode.dom.component = newNode;
-             oldNode = newNode;
-         });
-
-     }*/
-    export class Component {
-        attrs:virtual.Attrs = {};
-        children:Child[] = [];
-        transparent = false;
-        rootNode:VNode;
-        watchers:observer.Watcher[] = [];
-        nnode:Node;
-
-        get className() {
-            var name = (<string>(<any>this.constructor).name);
-            return name.replace(/([A-Z]+)/g, m => '-' + m).replace(/^-+/, '').toLowerCase();
-        }
-
-        root(...children:(Child | Child[])[]) {
-            return vd(this.className, this.attrs, children);
-        }
-
-        rootWithAttrs(attrs:Attrs, ...children:MiniChildren[]) {
-            return vd(this.className, extend(attrs, this.attrs), children);
-        }
-
-        watch(method:()=>void) {
-            var watcher = new observer.Watcher(method, this).watch();
-            this.watchers.push(watcher);
-            return watcher;
-        }
-
-        componentDidMount():void {}
-
-        componentWillUnmount():void {}
-
-        componentWillMount():void {}
-
-        destructor() {
-            this.watchers.forEach(watcher => watcher.unsubscribe());
-        }
-
-        protected render():VNode {return null}
-
-        runRender() {
-            return this.rootNode = this.render();
-        }
-
-        private destroyChildren(children:Children[]) {
-            for (var child of children) {
-                if (child instanceof Array) {
-                    this.destroyChildren(child);
-                }
-                else {
-                    if (child && child instanceof VNode && child.component) {
-                        child.component.destructor();
-                    }
-                }
-            }
-        }
-
-        private renderer() {
-            var newNode = this.render();
-
-            if (!newNode) {
-                newNode = new VNode('#', null, null, {}, this, ['']);
-            }
-            if (!newNode.events) {
-                newNode.events = {};
-            }
-            newNode.events['$created'] = ()=>this.componentDidMount();
-            newNode.events['$destroyed'] = ()=> this.componentWillUnmount();
-            newNode.component = this;
-
-            if (this.rootNode) {
-                if (this.rootNode.children !== newNode.children) {
-                    this.destroyChildren(this.rootNode.children);
-                }
-                if (this.rootNode.dom) {
-                    cito.vdom.update(this.rootNode, newNode);
-                }
-                this.rootNode.attrs = newNode.attrs;
-                this.rootNode.children = newNode.children;
-                this.rootNode.component = newNode.component;
-                this.rootNode.events = newNode.events;
-                this.rootNode.key = newNode.key;
-                this.rootNode.tag = newNode.tag;
+    export function flatArray(array:any[]) {
+        var nodes = <any[]>[];
+        for (var i = 0; i < array.length; i++) {
+            var child = array[i];
+            if (child instanceof Array) {
+                nodes = nodes.concat(flatArray(child));
             }
             else {
-                this.rootNode = newNode;
+                if (child !== null && child !== void 0 && typeof child !== 'boolean') {
+                    if (typeof child === 'number') {
+                        child = child + '';
+                    }
+                }
+                else {
+                    child = d();
+                }
+                nodes.push(child);
             }
         }
-
-        init(attrs?:virtual.Attrs, ...children:Child[]):VNode;
-        init(...children:Child[]):VNode;
-        init(...children:any[]) {
-            if (children[0] && typeof children[0] === 'object' && !(children[0] instanceof Array)
-                && children[0].children === void 0 && children[0].tag === void 0) {
-                this.attrs = children.shift();
-            }
-            if (!this.attrs) {
-                this.attrs = {};
-            }
-            this.children = children;
-            this.componentWillMount();
-            var watcher = new observer.Watcher(this.renderer, this).watch();
-            this.watchers.push(watcher);
-            return this.rootNode;
-        }
+        return nodes;
     }
 }
-
 import vd = virtual.d;
-import Cmp = virtual.Component;
 
 declare module cito.vdom {
     export function create(newNode:virtual.VNode):void;
@@ -341,122 +170,3 @@ declare module cito.vdom {
 
     export function remove(oldNode:virtual.VNode):void;
 }
-
-class NFF extends virtual.Component {
-
-    constructor(public model:string, public title:string) {
-        super();
-    }
-
-    @observe content = 'hello';
-
-    componentDidMount():void {
-        console.log("onAttached");
-    }
-
-    componentWillUnmount():void {
-        console.log("onDetached");
-    }
-
-    render() {
-        console.log("render");
-        //var m = this.attrs.model;
-        //var t = this.attrs.title;
-        return vd('div', this.content);
-    }
-}
-
-class FFT extends virtual.Component {
-    @observe random = 0;
-
-    constructor() {
-        super();
-        setInterval(() => {
-            this.random = Math.random();
-        }, 1000);
-    }
-
-    render() {
-        return this.random > 0.5 ? new NFF('adsfsa', 'wqe3').init() : null;
-    }
-}
-
-//new FFT().init().mount(document.body);
-
-//document.body.appendChild(fft);
-//var comp = fft.component;
-
-/*
-function Component(name:string) {
-    return function (target:new ()=>void) {
-        var proto:{[index:string]:PropertyDescriptor} = {
-            createdCallback: {
-                value: function createdCallback() {
-                    var el = this;
-                    var component:Component1<Attrs> = <any>new target();
-                    var oldNode:VNode;
-                    var newNode:VNode;
-
-                    function dependencyObserver() {
-                        newNode = (<any>component).render();
-                        if (oldNode) {
-                            cito.vdom.update(oldNode, newNode);
-                        }
-                        else {
-                            cito.vdom.append(el, newNode);
-                        }
-                        component.rootNode = newNode;
-                    }
-
-                    observer.watch(dependencyObserver);
-                    this.component = component;
-
-                    var attrs = <string[]>(<any>target)[Components.attrs];
-                    if (attrs) {
-                        attrs.forEach(attr => {
-                            this.component[attr] = el.getAttribute(attr);
-                        });
-                    }
-
-                    console.log('here I am ^_^ ');
-                    console.log('with content: ', this.textContent);
-                }
-            },
-            attachedCallback: {
-                value: function attachedCallback() {
-                    var el = this;
-                    var comp = <Component1<Attrs>>this.component;
-                    if (comp.componentDidMount) {
-                        comp.componentDidMount();
-                    }
-                    console.log('live on DOM ;-) ');
-                }
-            },
-            detachedCallback: {
-                value: function detachedCallback() {
-                    var comp = <Component1<Attrs>>this.component;
-                    if (comp.componentWillUnmount) {
-                        comp.componentWillUnmount();
-                    }
-                    console.log('leaving the DOM :-( )');
-                }
-            },
-            attributeChangedCallback: {
-                value: function attributeChangedCallback(name:string, previousValue:string, value:string) {
-                    var comp = <Component1<Attrs>>this.component;
-                    cito.vdom.update(this.component.rootNode, this.component.runRender());
-                    /!*
-                                        if (comp.onAttributeChanged) {
-                                            comp.onAttributeChanged(name, previousValue, value);
-                                        }
-                    *!/
-                    this.component[name] = value;
-                }
-            }
-        };
-
-        (<any>document).registerElement(name, {
-            prototype: Object.create(HTMLElement.prototype, proto)
-        });
-    }
-}*/

@@ -2,7 +2,7 @@ module control {
     export class AutoComplete<T> extends virtual.Component {
         input:virtual.VNode;
         inputNode:HTMLInputElement;
-        @observe focused = false;
+        @observe opened = false;
         @observe value = '';
         @observe active = 0;
         filtered:T[];
@@ -47,23 +47,23 @@ module control {
         select(item:T) {
             this.value = this.title(item);
             this.inputNode.value = this.value;
-            this.focused = false;
+            this.opened = false;
             this.onSelect && this.onSelect(item, this.value);
         }
 
         open() {
-            this.focused = true;
+            this.opened = true;
             this.active = 0;
         }
 
         close() {
-            this.focused = false;
+            this.opened = false;
             this.inputNode.value = this.value;
         }
 
         keydown(e:KeyboardEvent) {
             var key = new KeyboardKey(e);
-            if (key.noMod && this.focused) {
+            if (key.noMod && this.opened) {
                 var last = this.filtered.length - 1;
                 if (key.up) {
                     this.active = this.active == 0 ? last : this.active - 1;
@@ -98,7 +98,7 @@ module control {
                     onfocus: ()=>this.open(),
                     oninput: ()=>this.value = (<HTMLInputElement>this.input.dom).value
                 }),
-                this.focused ?
+                this.opened ?
                     new Tip(this.input, [this.input], ()=>this.close()).init(
                         vd('.items', this.doFilter().map((item, i)=>
                             vd('.item', {

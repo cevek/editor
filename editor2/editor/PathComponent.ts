@@ -225,7 +225,7 @@ module editor {
                 this.isCutTop ? null :
                     vd('rect', {
                         events: {
-                            mousedown: e => this.resizeTime(e, true),
+                            mousedown: (e:MouseEvent) => this.resizeTime(e, true),
                         },
                         x: 0,
                         y: this.top - this.halfHandlHeight,
@@ -235,7 +235,7 @@ module editor {
                 this.isCutBottom ? null :
                     vd('rect', {
                         events: {
-                            mousedown: e => this.resizeTime(e, false),
+                            mousedown: (e:MouseEvent) => this.resizeTime(e, false),
                         },
                         x: 0,
                         y: this.bottom - this.halfHandlHeight,
