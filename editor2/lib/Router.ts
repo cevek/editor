@@ -133,44 +133,41 @@ module router {
 }
 
 class MainPopup extends control.Popup {
-    body:virtual.VNode = new MainView(this, 'sdf').init()
+    body:virtual.VNode = vc(MainView).init({popup: this, name: 'sdf'})
 }
 
-class Linker extends virtual.Component {
+class Linker extends virtual.Component<{href: string}> {
     transparent = true;
-
-    constructor(public href:string) {
-        super();
-    }
 
     click(e:Event) {
         e.preventDefault();
-        if (this.href != location.pathname) {
-            router.Route.go(this.href);
+        if (this.props.href != location.pathname) {
+            router.Route.go(this.props.href);
         }
     }
 
     render() {
         return vd('a', virtual.extend({
-            href: this.href,
+            href: this.props.href,
             events: {click: (e)=>this.click(e)}
         }, this.attrs), this.children);
     }
 }
 
-class RouteView extends virtual.Component {
-    routes:{callback: ()=>virtual.Component; route: router.Route<any>}[] = [];
+class RouteView extends virtual.Component<{}> {
+    routes:{callback: ()=>new ()=>virtual.Component<any>; route: router.Route<any>}[] = [];
     transparent = true;
 
-    when(route:router.Route<any>, callback:()=>virtual.Component) {
-        this.routes.push({callback: callback, route: route});
+    when(route:router.Route<any>, callback:new ()=>virtual.Component<any>) {
+        //todo:
+        //this.routes.push({callback: callback, route: route});
         return this;
     }
 
     render() {
         for (var route of this.routes) {
             if (route.route.isActive) {
-                return route.callback().init();
+                return vc(route.callback()).init({});
             }
         }
     }
@@ -183,21 +180,23 @@ module routes {
     export var editor = new router.Route('/editor/editor2/editor2.html');
 
     export var mainRouter:RouteView = new RouteView()
-        .when(profile, ()=>new ProfileView())
-        .when(editor, ()=>new Editor())
+        .when(profile, ProfileView)
+        .when(editor, Editor);
     //.when(main, ()=>new MainView());
 
     export var profileRouter = new RouteView()
-        .when(profileEmail, ()=>new ProfileEditEmailView)
+        .when(profileEmail, ProfileEditEmailView)
 
 }
 
-class ListView extends virtual.Component {
+class ListView extends virtual.Component<{}> {
     render() {
-        return this.root(routes.profileRouter.init());
+        return vd();
+        //todo:
+        //return this.root(vc(routes.profileRouter).init({}));
     }
 }
-class Editor extends virtual.Component {
+class Editor extends virtual.Component<{}> {
     render() {
         return this.root('editor');
     }
@@ -208,7 +207,7 @@ class Counter {
 }
 var counter = new Counter();
 
-class ProfileView extends virtual.Component {
+class ProfileView extends virtual.Component<{}> {
 
     click() {
         counter.counter++;
@@ -217,30 +216,27 @@ class ProfileView extends virtual.Component {
     render() {
         return this.root(
             'ProfileView',
-            new control.Button(counter.counter + '', ()=>this.click()).init(),
+            vc(control.Button).init({text: counter.counter + '', onClick: ()=>this.click()}),
             ' ',
-            new Linker(routes.profileEmail.toURL()).init(null, 'profileEmail'),
-            ' ',
-            routes.profileRouter.init()
+            vc(Linker).init({href: routes.profileEmail.toURL()}, null, 'profileEmail'),
+            ' '
+            //todo:
+            //routes.profileRouter.init()
         );
     }
 }
 
-class ProfileEditEmailView extends virtual.Component {
+class ProfileEditEmailView extends virtual.Component<{}> {
     render() {
         return this.root('ProfileEditEmailView');
     }
 }
 
-class MainView extends virtual.Component {
-    constructor(public popup:control.Popup, public name:string) {
-        super();
-    }
-
+class MainView extends virtual.Component<{ popup:control.Popup; name:string }> {
     render() {
         return this.root('MainView',
-            new control.DatePicker().init(),
-            new control.Button('Close', ()=>this.popup.close()).init()
+            vc(control.DatePicker).init({}),
+            vc(control.Button).init({text: 'Close', onClick: ()=>this.props.popup.close()})
         );
     }
 }
@@ -254,7 +250,7 @@ class ModelA {
 }
 
 var atom = new observer.Atom<Model>();
-class IndexView extends virtual.Component {
+class IndexView extends virtual.Component<{}> {
     click() {
         control.Popup.show(new MainPopup());
     }
@@ -282,49 +278,45 @@ class IndexView extends virtual.Component {
         return this.root(
             vd('form',
                 //new FFT().init(),
-                new control.AutoComplete(this.autocompleteItems, (item)=>item.title, 'hello').init(),
-                new control.RadioGroup(this.radioGroups, 2).init(),
-
-                new control.InputGroup('Checkbox', true).init(
-                    new control.Checkbox().init()
+                new virtual.VC(control.AutoComplete).init({
+                    items: this.autocompleteItems,
+                    title: (item)=>item.title,
+                    value: 'hello'
+                }),
+                vc(control.RadioGroup).init({items: this.radioGroups, value: 2}),
+                vc(control.InputGroup).init({label: 'Checkbox', labelRight: true}, null,
+                    vc(control.Checkbox).init({checked: false})
                 ),
                 vd(this.selectValues),
-                new control.InputGroup('Hello').init(
-                    new control.Select(
-                        this.selectOptions,
-                        this.selectValues[0],
-                        'Select value',
-                        (val) => this.selectValues = val ? [val] : []
-                    ).init({required: false})),
-                new control.InputGroup('Hello2').init(
-                    new control.SelectMultiple(
-                        this.selectOptions,
-                        this.selectValues,
-                        'Select value',
-                        (val) => this.selectValues = val
-                    ).init({required: true})),
-                new control.InputGroup('Hello3').init(
-                    new control.SelectMultiple(
-                        this.selectOptions,
-                        this.selectValues,
-                        //null,
-                        'Select value',
-                        (val) => this.selectValues = val
-                    ).init({required: false})),
-                new control.RadioButtons(model, m=>m.name, atom).init(),
-                new control.Tabs(atom).init(null,
-                    new control.Tab('Hello', model[0]).init('Hello world1'),
-                    new control.Tab('World', model[1]).init('Hello world2')
+                vc(control.InputGroup).init({label: 'Hello'}, null,
+                    vc(control.SelectBase).init({
+                        data: this.selectOptions,
+                        values: this.selectValues[0],
+                        emptyLabel: 'Select value',
+                        onChange: (val:number) => this.selectValues = val ? [val] : []
+                    }, {required: false})),
+                vc(control.InputGroup).init({label: 'Hello2'}, null,
+                    vc(control.SelectBase).init({
+                        data: this.selectOptions,
+                        values: this.selectValues,
+                        emptyLabel: 'Select value',
+                        onChangeMultiple: (val:number[]) => this.selectValues = val
+                    }, {required: true})),
+                vc(control.RadioButtons).init({items: model, label: (m:Model)=>m.name, value: atom}),
+                vc(control.Tabs).init({value: atom}, null,
+                    vc(control.Tab).init({title: 'Hello', value: model[0]}, null, 'Hello world1'),
+                    vc(control.Tab).init({title: 'World', value: model[1]}, null, 'Hello world2')
                 ),
 
                 vd('button', 'send'),
-                new control.Button('Open Popup', ()=>this.click()).init(),
-                new Linker(routes.main.toURL()).init('Main'),
+                vc(control.Button).init({text: 'Open Popup', onClick: ()=>this.click()}),
+                vc(Linker).init({href: routes.main.toURL()}, null, 'Main'),
                 ' ',
-                new Linker(routes.profile.toURL()).init('profile'),
+                vc(Linker).init({href: routes.profile.toURL()}, null, 'Profile'),
                 ' ',
-                new Linker(routes.editor.toURL()).init('Editor'),
-                routes.mainRouter.init()
+                vc(Linker).init({href: routes.editor.toURL()}, null, 'Editor')
+                //todo
+                //routes.mainRouter.init()
             )
         );
     }
@@ -339,4 +331,4 @@ class Model {
 }
 var model:Model[] = [new Model('hello'), new Model('world')];
 
-new IndexView().init().mount(document.body);
+vc(IndexView).init({}).mount(document.body);

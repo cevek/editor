@@ -1,4 +1,5 @@
 ///<reference path="Component.ts"/>
+///<reference path="aaa.d.ts"/>
 
 module virtual {
     export function d(tag:string, attrs:Attrs):VNode;
@@ -7,7 +8,7 @@ module virtual {
     export function d(attrs:Attrs, ...children:RestChildren[]):VNode;
     export function d(...children:RestChildren[]):VNode;
     export function d(...children:any[]) {
-        let vnode:Component;
+        let vnode:Component<any>;
         let tag:string;
         let attrs:Attrs = {};
         let events:Events = {};
@@ -100,7 +101,7 @@ module virtual {
                     public attrs:Attrs,
                     public key:string,
                     public events:Events,
-                    public component:Component,
+                    public component:Component<any>,
                     public children:Children[],
                     public updateCallback?:(oldNode:VNode)=>void) {
         }

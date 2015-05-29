@@ -5,33 +5,25 @@
 ///<reference path="AutoComplete.ts"/>
 module control {
 
-    export class InputGroup extends virtual.Component {
-        constructor(public label:string, public labelRight = false) {
-            super();
-        }
-
+    export class InputGroup extends virtual.Component<{label:string; labelRight?: boolean}> {
         render() {
-            var label = vd('span.label', this.label);
+            var label = vd('span.label', this.props.label);
             return this.root(
-                this.labelRight
+                this.props.labelRight
                     ? vd('label', this.children, label)
                     : vd('label', label, ":", this.children)
             );
         }
     }
 
-    export class Checkbox extends virtual.Component {
-        constructor(public checked = false, public onChange?:(val:boolean)=>void) {
-            super();
-        }
-
+    export class Checkbox extends virtual.Component<{checked:boolean; onChange?:(val:boolean)=>void}> {
         change() {
             var checked = (<HTMLInputElement>this.rootNode.dom).checked;
-            this.onChange && this.onChange(checked);
+            this.props.onChange && this.props.onChange(checked);
         }
 
         render() {
-            return vd('input', {type: 'checkbox', checked: this.checked, oninput: ()=>this.change()});
+            return vd('input', {type: 'checkbox', checked: this.props.checked, oninput: ()=>this.change()});
         }
     }
 
@@ -39,27 +31,21 @@ module control {
         constructor(public label:string, public value:T, public disabled?:boolean) {}
     }
 
-    export class RadioGroup<T> extends virtual.Component {
+    export class RadioGroup<T> extends virtual.Component<{items:RadioItem<T>[];value?:T;onChange?:(val:T)=>void}> {
         name = Math.random().toString(33).substr(2, 3);
 
-        constructor(public items:RadioItem<T>[],
-                    public value?:T,
-                    public onChange?:(val:T)=>void) {
-            super();
-        }
-
         change(item:RadioItem<T>) {
-            this.onChange && this.onChange(item.value);
+            this.props.onChange && this.props.onChange(item.value);
         }
 
         render() {
             return this.rootWithAttrs({class: 'radio-buttons'},
-                this.items.map(item =>
-                        new InputGroup(item.label, true).init(
+                this.props.items.map(item =>
+                        vc(InputGroup).init({label: item.label, labelRight: true}, null,
                             vd('input', {
                                 type: 'radio',
                                 name: this.name,
-                                checked: this.value === item.value,
+                                checked: this.props.value === item.value,
                                 disabled: item.disabled,
                                 oninput: ()=>this.change(item)
                             })
@@ -69,35 +55,28 @@ module control {
         }
     }
 
-    export class RadioButtons<T> extends virtual.Component {
+    export class RadioButtons<T> extends virtual.Component<{items:T[]; label:(model:T)=>string; value?:observer.Atom<T>}> {
         @observe active:T;
-
-        constructor(public items:T[], public label:(model:T)=>string, public value?:observer.Atom<T>) {
-            super();
-            if (this.value) {
-                observer.Atom.from(this.active).sync(this.value);
-            }
-        }
 
         render() {
             return this.rootWithAttrs({class: 'radio-buttons'},
-                this.items.map(m =>
+                this.props.items.map(m =>
                     vd('button', {
                         type: 'button',
                         classes: {active: m == this.active},
                         onclick: ()=>this.active = m
-                    }, this.label(m)))
+                    }, this.props.label(m)))
             );
         }
     }
 
-    export class Button extends virtual.Component {
-        constructor(public text:string, public onClick:()=>void) {
-            super();
-        }
+    export class Button extends virtual.Component<{ text:string; onClick:()=>void}> {
 
         render() {
-            return vd('button', virtual.extend({type: 'button', onclick: this.onClick}, this.attrs), this.text);
+            return vd('button', virtual.extend({
+                type: 'button',
+                onclick: this.props.onClick
+            }, this.attrs), this.props.text);
         }
     }
 }

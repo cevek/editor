@@ -6,18 +6,15 @@ module control {
         constructor(public text:string, public value:T, public disabled?:boolean) {}
     }
 
-    class SelectBase<T> extends virtual.Component {
+    export class SelectBase<T> extends virtual.Component<{
+        data:(SelectOption<T> | SelectOptGroup<T>)[];
+        values:T[];
+        emptyLabel?:string;
+        onChange?:(val:T)=>void;
+        onChangeMultiple?:(val:T[])=>void}> {
+
         options:virtual.VNode[] = [];
         optionValues:SelectOption<T>[] = [];
-
-        constructor(public data:(SelectOption<T> | SelectOptGroup<T>)[],
-                    public values:T[],
-                    public emptyLabel?:string,
-                    public onChange?:(val:T)=>void,
-                    public onChangeMultiple?:(val:T[])=>void,
-                    public isMultiple = false) {
-            super();
-        }
 
         change() {
             var modelMultiple:T[] = [];
@@ -35,13 +32,13 @@ module control {
                 }
             });
 
-            this.onChange && this.onChange(model);
-            this.onChangeMultiple && this.onChangeMultiple(modelMultiple);
+            this.props.onChange && this.props.onChange(model);
+            this.props.onChangeMultiple && this.props.onChangeMultiple(modelMultiple);
         }
 
         option(opt:SelectOption<T>) {
             var option = vd('option', {
-                selected: this.values.indexOf(opt.value) > -1,
+                selected: this.props.values.indexOf(opt.value) > -1,
                 disabled: opt.disabled
             }, opt.text);
             this.options.push(option);
@@ -51,20 +48,20 @@ module control {
 
         componentDidMount() {
             //workaround
-            if (this.attrs['required'] && this.isMultiple && this.values.length == 0) {
+            if (this.attrs['required'] && this.attrs['multiple'] && this.props.values.length == 0) {
                 (<HTMLSelectElement>this.rootNode.dom).selectedIndex = -1;
             }
         }
 
         render() {
-            return vd('select', virtual.extend({multiple: this.isMultiple, oninput: ()=>this.change()}, this.attrs),
-                this.emptyLabel ?
+            return vd('select', virtual.extend({oninput: ()=>this.change()}, this.attrs),
+                this.props.emptyLabel ?
                     vd('option', {
                         value: '',
                         disabled: this.attrs['required'],
-                        selected: (!this.attrs['required'] || !this.isMultiple) && this.values.length == 0
-                    }, this.emptyLabel) : null,
-                this.data.map(item=> {
+                        selected: (!this.attrs['required'] || !this.attrs['multiple']) && this.props.values.length == 0
+                    }, this.props.emptyLabel) : null,
+                this.props.data.map(item=> {
                     if (item instanceof SelectOptGroup) {
                         return vd('optgroup', {label: item.text, disabled: item.disabled},
                             item.children.map(opt => this.option(opt))
@@ -78,20 +75,4 @@ module control {
         }
     }
 
-    export class Select<T> extends SelectBase<T> {
-        constructor(data:(SelectOption<T> | SelectOptGroup<T>)[],
-                    value?:T,
-                    emptyLabel?:string,
-                    onChange?:(val:T)=>void) {
-            super(data, value == null ? [] : [value], emptyLabel, onChange);
-        }
-    }
-    export class SelectMultiple<T> extends SelectBase<T> {
-        constructor(data:(SelectOption<T> | SelectOptGroup<T>)[],
-                    values?:T[],
-                    emptyLabel?:string,
-                    onChange?:(val:T[])=>void) {
-            super(data, values, emptyLabel, null, onChange, true);
-        }
-    }
 }

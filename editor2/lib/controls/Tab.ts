@@ -1,5 +1,5 @@
 module control {
-    export class Tabs extends virtual.Component {
+    export class Tabs extends virtual.Component<{value?:observer.Atom<Object>}> {
         @observe active:Object = null;
         titles:string[] = [];
         values:Object[] = [];
@@ -22,12 +22,12 @@ module control {
             this.children.forEach(child => {
                 if (child instanceof virtual.VNode && child.component instanceof Tab) {
                     var tab = <Tab>child.component;
-                    this.titles.push(tab.title);
-                    this.values.push(tab.value);
-                    if (this.active == null && tab.isDefault) {
-                        this.active = tab.value;
+                    this.titles.push(tab.props.title);
+                    this.values.push(tab.props.value);
+                    if (this.active == null && tab.props.isDefault) {
+                        this.active = tab.props.value;
                     }
-                    if (tab.value == this.active) {
+                    if (tab.props.value == this.active) {
                         this.content = tab.rootNode;
                     }
                     if (!firstTab) {
@@ -56,11 +56,7 @@ module control {
         }
     }
 
-    export class Tab extends virtual.Component {
-        constructor(public title:string, public value:any = {}, public isDefault?:boolean) {
-            super();
-        }
-
+    export class Tab extends virtual.Component<{title:string; value?:any; isDefault?:boolean}> {
         render() {
             return this.root(this.children);
         }

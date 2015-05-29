@@ -29,23 +29,33 @@ module virtual {
     const enum State{CREATE, UPDATE}
     var currentState = State.CREATE;
     export class VC<T> {
-        constructor(public ctor:new (params:T)=>Component) {}
+        constructor(private ctor:new ()=>Component<T>) {}
 
-        init(params:T, attrs:Attrs, ...children:RestChildren[]) {
+        init(props:T, attrs?:Attrs, ...children:RestChildren[]) {
             if (currentState == State.CREATE) {
-                return new this.ctor(params).init(attrs, <any>children);
+                return new this.ctor().init(props, attrs, <any>children);
             }
             else {
+                function updateCallback(oldNode:VNode) {
+                    oldNode.component.updateAttrs(props, attrs);
+                    oldNode.component.update();
+                }
+
                 return new VNode(null, null, null, null, null, null, updateCallback);
             }
         }
+    }
+
+    export function vc<T>(ctor:new ()=>Component<T>) {
+        return new VC(ctor);
     }
 
     function updateCallback(oldNode:VNode) {
         oldNode.component.update();
     }
 
-    export class Component {
+    export class Component<T> {
+        props:T;
         attrs:virtual.Attrs = {};
         children:Children[] = [];
         transparent = false;
@@ -70,6 +80,10 @@ module virtual {
             var watcher = new observer.Watcher(method, this).watch();
             this.watchers.push(watcher);
             return watcher;
+        }
+
+        updateAttrs(params:any, attrs?:Attrs, ...children:RestChildren[]) {
+
         }
 
         componentDidMount():void {}
@@ -134,9 +148,9 @@ module virtual {
             }
         }
 
-        init(attrs?:virtual.Attrs, ...children:Child[]):VNode;
-        init(...children:Child[]):VNode;
-        init(...children:any[]) {
+        init(props:T, attrs?:virtual.Attrs, ...children:Child[]):VNode;
+        init(props:T, ...children:Child[]):VNode;
+        init(props:T, ...children:any[]) {
             if (children[0] && typeof children[0] === 'object' && !(children[0] instanceof Array)
                 && children[0].children === void 0 && children[0].tag === void 0) {
                 this.attrs = children.shift();
@@ -152,3 +166,6 @@ module virtual {
         }
     }
 }
+
+import VC = virtual.VC;
+import vc = virtual.vc;

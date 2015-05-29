@@ -1,5 +1,5 @@
 module control {
-    export class DatePicker extends virtual.Component {
+    export class DatePicker extends virtual.Component<{}> {
         @observe model:Date;
         @observe focused = false;
         input:virtual.VNode;
@@ -79,13 +79,13 @@ module control {
                 this.button = vd('button', {events: {click: ()=>this.openCalendar()}}, '*'),
                 this.focused ?
                     new Tip(this.input, [this.input, this.button], ()=>this.focused = false).init(
-                        new DatePickerCalendar(this.model, (val)=>this.model = val).init()
+                        vc(DatePickerCalendar).init({value: this.model, onChange: (val)=>this.model = val})
                     ) : null
             );
         }
     }
 
-    export class DatePickerCalendar extends virtual.Component {
+    export class DatePickerCalendar extends virtual.Component<{value?:Date; onChange?:(val:Date)=>void}> {
         @observe model:Date;
 
         static months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -185,5 +185,5 @@ module control {
     }
 }
 
-new control.DatePicker().init().mount(document.body);
+vc(control.DatePicker).init({}).mount(document.body);
 //new control.DatePickerCalendar().init().mount(document.body);

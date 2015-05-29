@@ -1,5 +1,11 @@
 module control {
-    export class AutoComplete<T> extends virtual.Component {
+    export class AutoComplete<T> extends virtual.Component<{
+        items: T[];
+        title: (item:T)=>string;
+        value: string; filter?:(item:T, text:string)=>boolean;
+        template?:(item:T, text:string)=>virtual.VNode;
+        onSelect?:(item:T, text:string)=>void
+    }> {
         input:virtual.VNode;
         inputNode:HTMLInputElement;
         @observe opened = false;
@@ -7,24 +13,19 @@ module control {
         @observe active = 0;
         filtered:T[];
 
-        constructor(public items:T[],
-                    public title:(item:T)=>string,
-                    value = '',
-                    public filter?:(item:T, text:string)=>boolean,
-                    public template?:(item:T, text:string)=>virtual.VNode,
-                    public onSelect?:(item:T, text:string)=>void) {
+        constructor() {
             super();
-            this.value = value;
-            this.filter = this.filter || this.defaultFilter;
-            this.template = this.template || this.defaultTemplate;
+            this.props.value = this.props.value || '';
+            this.props.filter = this.props.filter || this.defaultFilter;
+            this.props.template = this.props.template || this.defaultTemplate;
         }
 
-        defaultFilter(item:T, find:string) {
-            return this.title(item).indexOf(find) > -1;
-        }
+        defaultFilter = (item:T, find:string) => {
+            return this.props.title(item).indexOf(find) > -1;
+        };
 
-        defaultTemplate(item:T, find:string) {
-            var text = this.title(item);
+        defaultTemplate = (item:T, find:string) => {
+            var text = this.props.title(item);
             var pos = text.indexOf(find);
             if (pos > -1 && find.length > 0) {
                 return vd('div',
@@ -34,21 +35,21 @@ module control {
                 );
             }
             return vd('div', text);
-        }
+        };
 
         doFilter() {
-            return this.filtered = this.items.filter(item => this.filter(item, this.value));
+            return this.filtered = this.props.items.filter(item => this.props.filter(item, this.value));
         }
 
         setActiveNodeValue() {
-            this.inputNode.value = this.title(this.filtered[this.active]);
+            this.inputNode.value = this.props.title(this.filtered[this.active]);
         }
 
         select(item:T) {
-            this.value = this.title(item);
+            this.value = this.props.title(item);
             this.inputNode.value = this.value;
             this.opened = false;
-            this.onSelect && this.onSelect(item, this.value);
+            this.props.onSelect && this.props.onSelect(item, this.value);
         }
 
         open() {
@@ -105,7 +106,7 @@ module control {
                                     classes: {active: i == this.active},
                                     onclick: ()=>this.select(item)
                                 },
-                                this.template(item, this.value))))
+                                this.props.template(item, this.value))))
                     ) : null
             );
         }

@@ -1,5 +1,5 @@
 module control {
-    export class Popup extends virtual.Component {
+    export class Popup extends virtual.Component<{}> {
         closeWhenClickOut = true;
         closeButton = true;
         hasOpacity = true;
@@ -13,7 +13,7 @@ module control {
         mainTop = 0;
 
         static show(popup:Popup) {
-            popup.init().mount(document.body);
+            popup.init({}).mount(document.body);
 
             return popup;
         }
@@ -86,7 +86,7 @@ module control {
         }
     }
 
-    export class Tip extends virtual.Component {
+    export class Tip extends virtual.Component<{}> {
         constructor(public target:virtual.VNode,
                     public notCloseOnClick:virtual.VNode[],
                     public onClose:()=>void) {
