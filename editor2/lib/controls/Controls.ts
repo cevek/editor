@@ -41,7 +41,7 @@ module control {
         render() {
             return this.rootWithAttrs({class: 'radio-buttons'},
                 this.props.items.map(item =>
-                        vc(InputGroup).init({label: item.label, labelRight: true}, null,
+                        new InputGroup().init({label: item.label, labelRight: true}, null,
                             vd('input', {
                                 type: 'radio',
                                 name: this.name,

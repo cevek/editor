@@ -1,14 +1,13 @@
 module control {
-    export class DatePicker extends virtual.Component<{}> {
+    export class DatePicker extends virtual.Component<{value?:Date; onChange?:(val:Date)=>void}> {
         @observe model:Date;
         @observe focused = false;
         input:virtual.VNode;
         button:virtual.VNode;
 
-        constructor(value?:Date, onChange?:(val:Date)=>void) {
-            super();
-            this.model = value;
-            observer.Atom.from(this.model).setListener(new observer.Listener(onChange));
+        updateAttrs(){
+            this.model = this.props.value;
+            observer.Atom.from(this.model).setListener(new observer.Listener(this.props.onChange));
             this.watch(this.modelChanged);
         }
 
@@ -78,8 +77,12 @@ module control {
 
                 this.button = vd('button', {events: {click: ()=>this.openCalendar()}}, '*'),
                 this.focused ?
-                    new Tip(this.input, [this.input, this.button], ()=>this.focused = false).init(
-                        vc(DatePickerCalendar).init({value: this.model, onChange: (val)=>this.model = val})
+                    new Tip().init({
+                            target: this.input,
+                            notCloseOnClick: [this.input, this.button],
+                            onClose: ()=>this.focused = false
+                        }, null,
+                        new DatePickerCalendar().init({value: this.model, onChange: (val)=>this.model = val})
                     ) : null
             );
         }
@@ -185,5 +188,5 @@ module control {
     }
 }
 
-vc(control.DatePicker).init({}).mount(document.body);
+new control.DatePicker().init({}).mount(document.body);
 //new control.DatePickerCalendar().init().mount(document.body);

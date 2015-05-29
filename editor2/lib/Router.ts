@@ -133,7 +133,7 @@ module router {
 }
 
 class MainPopup extends control.Popup {
-    body:virtual.VNode = vc(MainView).init({popup: this, name: 'sdf'})
+    body:virtual.VNode = new MainView().init({popup: this, name: 'sdf'})
 }
 
 class Linker extends virtual.Component<{href: string}> {
@@ -167,7 +167,9 @@ class RouteView extends virtual.Component<{}> {
     render() {
         for (var route of this.routes) {
             if (route.route.isActive) {
-                return vc(route.callback()).init({});
+                //todo
+                return vd();
+                //return route.callback().init({});
             }
         }
     }
@@ -193,7 +195,7 @@ class ListView extends virtual.Component<{}> {
     render() {
         return vd();
         //todo:
-        //return this.root(vc(routes.profileRouter).init({}));
+        //return this.root(new routes.profileRouter().init({}));
     }
 }
 class Editor extends virtual.Component<{}> {
@@ -216,9 +218,9 @@ class ProfileView extends virtual.Component<{}> {
     render() {
         return this.root(
             'ProfileView',
-            vc(control.Button).init({text: counter.counter + '', onClick: ()=>this.click()}),
+            new control.Button().init({text: counter.counter + '', onClick: ()=>this.click()}),
             ' ',
-            vc(Linker).init({href: routes.profileEmail.toURL()}, null, 'profileEmail'),
+            new Linker().init({href: routes.profileEmail.toURL()}, null, 'profileEmail'),
             ' '
             //todo:
             //routes.profileRouter.init()
@@ -235,8 +237,8 @@ class ProfileEditEmailView extends virtual.Component<{}> {
 class MainView extends virtual.Component<{ popup:control.Popup; name:string }> {
     render() {
         return this.root('MainView',
-            vc(control.DatePicker).init({}),
-            vc(control.Button).init({text: 'Close', onClick: ()=>this.props.popup.close()})
+            new control.DatePicker().init({}),
+            new control.Button().init({text: 'Close', onClick: ()=>this.props.popup.close()})
         );
     }
 }
@@ -278,43 +280,43 @@ class IndexView extends virtual.Component<{}> {
         return this.root(
             vd('form',
                 //new FFT().init(),
-                new virtual.VC(control.AutoComplete).init({
+                new control.AutoComplete().init({
                     items: this.autocompleteItems,
-                    title: (item)=>item.title,
+                    title: (item:ModelA)=>item.title,
                     value: 'hello'
                 }),
-                vc(control.RadioGroup).init({items: this.radioGroups, value: 2}),
-                vc(control.InputGroup).init({label: 'Checkbox', labelRight: true}, null,
-                    vc(control.Checkbox).init({checked: false})
+                new control.RadioGroup().init({items: this.radioGroups, value: 2}),
+                new control.InputGroup().init({label: 'Checkbox', labelRight: true}, null,
+                    new control.Checkbox().init({checked: false})
                 ),
                 vd(this.selectValues),
-                vc(control.InputGroup).init({label: 'Hello'}, null,
-                    vc(control.SelectBase).init({
+                new control.InputGroup().init({label: 'Hello'}, null,
+                    new control.SelectBase().init({
                         data: this.selectOptions,
-                        values: this.selectValues[0],
+                        values: this.selectValues,
                         emptyLabel: 'Select value',
                         onChange: (val:number) => this.selectValues = val ? [val] : []
                     }, {required: false})),
-                vc(control.InputGroup).init({label: 'Hello2'}, null,
-                    vc(control.SelectBase).init({
+                new control.InputGroup().init({label: 'Hello2'}, null,
+                    new control.SelectBase().init({
                         data: this.selectOptions,
                         values: this.selectValues,
                         emptyLabel: 'Select value',
                         onChangeMultiple: (val:number[]) => this.selectValues = val
                     }, {required: true})),
-                vc(control.RadioButtons).init({items: model, label: (m:Model)=>m.name, value: atom}),
-                vc(control.Tabs).init({value: atom}, null,
-                    vc(control.Tab).init({title: 'Hello', value: model[0]}, null, 'Hello world1'),
-                    vc(control.Tab).init({title: 'World', value: model[1]}, null, 'Hello world2')
+                new control.RadioButtons().init({items: model, label: (m:Model)=>m.name, value: atom}),
+                new control.Tabs().init({value: atom}, null,
+                    new control.Tab().init({title: 'Hello', value: model[0]}, null, 'Hello world1'),
+                    new control.Tab().init({title: 'World', value: model[1]}, null, 'Hello world2')
                 ),
 
                 vd('button', 'send'),
-                vc(control.Button).init({text: 'Open Popup', onClick: ()=>this.click()}),
-                vc(Linker).init({href: routes.main.toURL()}, null, 'Main'),
+                new control.Button().init({text: 'Open Popup', onClick: ()=>this.click()}),
+                new Linker().init({href: routes.main.toURL()}, null, 'Main'),
                 ' ',
-                vc(Linker).init({href: routes.profile.toURL()}, null, 'Profile'),
+                new Linker().init({href: routes.profile.toURL()}, null, 'Profile'),
                 ' ',
-                vc(Linker).init({href: routes.editor.toURL()}, null, 'Editor')
+                new Linker().init({href: routes.editor.toURL()}, null, 'Editor')
                 //todo
                 //routes.mainRouter.init()
             )
@@ -331,4 +333,4 @@ class Model {
 }
 var model:Model[] = [new Model('hello'), new Model('world')];
 
-vc(IndexView).init({}).mount(document.body);
+new IndexView().init({}).mount(document.body);

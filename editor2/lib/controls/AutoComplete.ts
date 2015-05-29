@@ -13,8 +13,7 @@ module control {
         @observe active = 0;
         filtered:T[];
 
-        constructor() {
-            super();
+        updateAttrs() {
             this.props.value = this.props.value || '';
             this.props.filter = this.props.filter || this.defaultFilter;
             this.props.template = this.props.template || this.defaultTemplate;
@@ -100,7 +99,7 @@ module control {
                     oninput: ()=>this.value = (<HTMLInputElement>this.input.dom).value
                 }),
                 this.opened ?
-                    new Tip(this.input, [this.input], ()=>this.close()).init(
+                    new Tip().init({target: this.input, notCloseOnClick: [this.input], onClose: ()=>this.close()}, null,
                         vd('.items', this.doFilter().map((item, i)=>
                             vd('.item', {
                                     classes: {active: i == this.active},

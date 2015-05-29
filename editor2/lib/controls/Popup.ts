@@ -86,15 +86,10 @@ module control {
         }
     }
 
-    export class Tip extends virtual.Component<{}> {
-        constructor(public target:virtual.VNode,
-                    public notCloseOnClick:virtual.VNode[],
-                    public onClose:()=>void) {
-            super();
-        }
+    export class Tip extends virtual.Component<{target:virtual.VNode; notCloseOnClick:virtual.VNode[]; onClose:()=>void}> {
 
         componentDidMount() {
-            var targetRect = (<Element>this.target.dom).getBoundingClientRect();
+            var targetRect = (<Element>this.props.target.dom).getBoundingClientRect();
             var srcRect = (<Element>this.rootNode.dom).getBoundingClientRect();
             this.rootNode.dom.style.marginLeft = targetRect.left - srcRect.left + 'px';
             this.rootNode.dom.style.marginTop = targetRect.bottom - srcRect.top + 'px';
@@ -104,10 +99,10 @@ module control {
                 while (node = node.parentNode) {
                     parents.push(node);
                 }
-                var otherTargets = this.notCloseOnClick || [];
+                var otherTargets = this.props.notCloseOnClick || [];
                 if (parents.indexOf(this.rootNode.dom) === -1 && otherTargets.every(
                             t => parents.indexOf(t.dom) === -1)) {
-                    this.onClose();
+                    this.props.onClose();
                 }
             };
             (<any>this.rootNode.dom).clickCallback = clickCallback;
@@ -119,7 +114,7 @@ module control {
         }
 
         render() {
-            return this.rootWithAttrs({style: {position: 'absolute', d1isplay: 'block'}}, this.children);
+            return this.rootWithAttrs({style: {position: 'absolute'}}, this.children);
         }
     }
 }

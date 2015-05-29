@@ -1,6 +1,4 @@
 ///<reference path="Component.ts"/>
-///<reference path="aaa.d.ts"/>
-
 module virtual {
     export function d(tag:string, attrs:Attrs):VNode;
     export function d(tag:string, ...children:RestChildren[]):VNode;
