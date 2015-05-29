@@ -101,7 +101,8 @@ module virtual {
                     public key:string,
                     public events:Events,
                     public component:Component,
-                    public children:Children[]) {
+                    public children:Children[],
+                    public updateCallback?:(oldNode:VNode)=>void) {
         }
 
         mount(node:Node) {
@@ -135,7 +136,6 @@ module virtual {
 
         [index:string]:any;
     }
-
 
     export function flatArray(array:any[]) {
         var nodes = <any[]>[];

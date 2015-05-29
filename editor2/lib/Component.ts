@@ -1,4 +1,50 @@
+/**
+ * ------------------ The Life-Cycle of a Composite Component ------------------
+ *
+ * - constructor: Initialization of state. The instance is now retained.
+ *   - componentWillMount
+ *   - render
+ *   - [children's constructors]
+ *     - [children's componentWillMount and render]
+ *     - [children's componentDidMount]
+ *     - componentDidMount
+ *
+ *       Update Phases:
+ *       - componentWillReceiveProps (only called if parent updated)
+ *       - shouldComponentUpdate
+ *         - componentWillUpdate
+ *           - render
+ *           - [children's constructors or receive props phases]
+ *         - componentDidUpdate
+ *
+ *     - componentWillUnmount
+ *     - [children's componentWillUnmount]
+ *   - [children destroyed]
+ * - (destroyed): The instance is now blank, released by React and ready for GC.
+ *
+ * -----------------------------------------------------------------------------
+ */
+
 module virtual {
+    const enum State{CREATE, UPDATE}
+    var currentState = State.CREATE;
+    export class VC<T> {
+        constructor(public ctor:new (params:T)=>Component) {}
+
+        init(params:T, attrs:Attrs, ...children:RestChildren[]) {
+            if (currentState == State.CREATE) {
+                return new this.ctor(params).init(attrs, <any>children);
+            }
+            else {
+                return new VNode(null, null, null, null, null, null, updateCallback);
+            }
+        }
+    }
+
+    function updateCallback(oldNode:VNode) {
+        oldNode.component.update();
+    }
+
     export class Component {
         attrs:virtual.Attrs = {};
         children:Children[] = [];
@@ -52,7 +98,10 @@ module virtual {
         }
 
         update() {
+            var oldState = currentState;
+            currentState = this.rootNode && this.rootNode.dom ? State.UPDATE : State.CREATE;
             var newNode = this.render();
+            currentState = oldState;
 
             if (!newNode) {
                 newNode = new VNode('#', null, null, {}, this, ['']);
@@ -65,9 +114,11 @@ module virtual {
             newNode.component = this;
 
             if (this.rootNode) {
-                if (this.rootNode.children !== newNode.children) {
-                    this.destroyChildren(this.rootNode.children);
-                }
+                /*
+                                if (this.rootNode.children !== newNode.children) {
+                                    this.destroyChildren(this.rootNode.children);
+                                }
+                */
                 if (this.rootNode.dom) {
                     cito.vdom.update(this.rootNode, newNode);
                 }
