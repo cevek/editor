@@ -13,8 +13,8 @@ module control {
         onChange?:(val:T)=>void;
         onChangeMultiple?:(val:T[])=>void}> {
 
-        options:virtual.VNode[] = [];
-        optionValues:SelectOption<T>[] = [];
+        options:virtual.VNode[];
+        optionValues:SelectOption<T>[];
 
         change() {
             var modelMultiple:T[] = [];
@@ -51,6 +51,11 @@ module control {
             if (this.attrs['required'] && this.attrs['multiple'] && this.props.values.length == 0) {
                 (<HTMLSelectElement>this.rootNode.dom).selectedIndex = -1;
             }
+        }
+
+        updateAttrs(){
+            this.options = [];
+            this.optionValues = [];
         }
 
         render() {

@@ -1,5 +1,8 @@
 ///<reference path="Component.ts"/>
 module virtual {
+    interface ENodee extends HTMLElement {
+        comp: Component<any>;
+    }
     export function d(tag:string, attrs:Attrs):VNode;
     export function d(tag:string, ...children:RestChildren[]):VNode;
     export function d(tag:string, attrs:Attrs, ...children:RestChildren[]):VNode;
@@ -72,7 +75,13 @@ module virtual {
         if (classes.length) {
             attrs.class = classes.join(' ');
         }
-        return new VNode(tag, attrs, key, events, null, <Children[]>children);
+        var node = new VNode();
+        node.tag = tag;
+        node.attrs = attrs;
+        node.key = key;
+        node.events = events;
+        node.children = <Children[]>children;
+        return node;
     }
 
     export function extend(obj:Attrs, to:Attrs):Attrs {
@@ -88,21 +97,17 @@ module virtual {
         return to;
     }
 
-    interface Events {[index:string]:(e:Event)=>void}
+    export interface Events {[index:string]:(e:Event)=>void}
 
     export class VNode {
         public dom:HTMLElement = null;
         public domLength:number = null;
-        public customData:any = null;
-
-        constructor(public tag:string,
-                    public attrs:Attrs,
-                    public key:string,
-                    public events:Events,
-                    public component:Component<any>,
-                    public children:Children[],
-                    public updateCallback?:(oldNode:VNode)=>void) {
-        }
+        public tag:string;
+        public attrs:Attrs;
+        public key:string;
+        public events:Events;
+        public component:Component<any>;
+        public children:Children[];
 
         mount(node:Node) {
             cito.vdom.append(node, this);
@@ -110,6 +115,85 @@ module virtual {
         }
 
     }
+    export class VCNodeRoot extends VNode {
+        constructor() {
+            super();
+        }
+
+        replaceWith(newNode:VNode) {
+            this.attrs = newNode.attrs;
+            this.children = newNode.children;
+            this.component = newNode.component;
+            this.events = newNode.events;
+            this.key = newNode.key;
+            this.tag = newNode.tag;
+            this.dom = newNode.dom;
+            this.domLength = newNode.domLength;
+        }
+
+        public syncComponent(oldNode:VCNodeRoot) {
+            //return false;
+            var dom = oldNode.dom;
+            if (dom) {
+                var oldComp = oldNode.component;
+                var newCmp = this.component;
+                //console.log(newCmp.componentName(), !!oldComp, oldComp !== newCmp, oldComp && oldComp.constructor === newCmp.constructor);
+
+                if (oldComp && oldComp !== newCmp && oldComp.constructor === newCmp.constructor) {
+                    oldComp.attrs = newCmp.attrs;
+                    oldComp.props = newCmp.props;
+                    oldComp.children = newCmp.children;
+
+                    newCmp.destructor();
+                    newCmp.DESTROYED = true;
+
+                    oldComp.updateAttrs();
+                    oldComp.REPLACED = true;
+
+                    oldComp.update();
+                    this.replaceWith(oldNode);
+
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /*
+
+        export class VC<T> {
+            constructor(private ctor:new ()=>Component<T>) {}
+
+            init(props:T, attrs?:Attrs, ...children:Children[]) {
+                if (currentState == State.CREATE) {
+                    return new this.ctor().init(props, attrs, <any>children);
+                }
+                else {
+                    var ctor = this.ctor;
+
+                    function updateCallback(oldNode:VNode) {
+                        if (oldNode.component) {
+                            oldNode.component.props = props;
+                            oldNode.component.attrs = attrs;
+                            oldNode.component.children = children;
+                            oldNode.component.updateAttrs();
+                            oldNode.component.update();
+                        }
+                        else {
+                            return new ctor().init(props, attrs, <any>children);
+                        }
+                    }
+
+                    return new VNode(void 0, null, void 0, null, null, null, updateCallback);
+                }
+            }
+        }
+
+        export function vc<T>(ctor:new ()=>Component<T>) {
+            return new VC(ctor);
+        }
+    */
 
     export type Child = VNode | string | number;
     export type Children = Child | (Child | (Child | (Child | Child[])[])[])[];

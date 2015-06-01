@@ -26,50 +26,24 @@
  */
 
 module virtual {
+
     const enum State{CREATE, UPDATE}
     var currentState = State.CREATE;
-    /*export class VC<T> {
-        constructor(private ctor:new ()=>Component<T>) {}
-
-        init(props:T, attrs?:Attrs, ...children:Children[]) {
-            if (currentState == State.CREATE) {
-                return new this.ctor().init(props, attrs, <any>children);
-            }
-            else {
-                var ctor = this.ctor;
-
-                function updateCallback(oldNode:VNode) {
-                    if (oldNode.component) {
-                        oldNode.component.props = props;
-                        oldNode.component.attrs = attrs;
-                        oldNode.component.children = children;
-                        oldNode.component.updateAttrs();
-                        oldNode.component.update();
-                    }
-                    else {
-                        return new ctor().init(props, attrs, <any>children);
-                    }
-                }
-
-                return new VNode(void 0, null, void 0, null, null, null, updateCallback);
-            }
-        }
-    }
-
-    export function vc<T>(ctor:new ()=>Component<T>) {
-        return new VC(ctor);
-    }*/
 
     function updateCallback(oldNode:VNode) {
         oldNode.component.update();
     }
 
     export class Component<T> {
+        id = ++Component.ID;
+        static ID = 0;
+        DESTROYED:boolean;
+        REPLACED:boolean;
         props:T;
         attrs:virtual.Attrs = {};
         children:Children[] = [];
         transparent = false;
-        rootNode:VNode;
+        rootNode:VCNodeRoot;
         watchers:observer.Watcher[] = [];
         nnode:Node;
 
@@ -120,13 +94,10 @@ module virtual {
         }
 
         update() {
-            var oldState = currentState;
-            currentState = this.rootNode && this.rootNode.dom ? State.UPDATE : State.CREATE;
             var newNode = this.render();
-            currentState = oldState;
-
             if (!newNode) {
-                newNode = new VNode('#', null, null, {}, this, ['']);
+                newNode = new VNode();//'#', null, null, {}, this, ['']);
+                //newNode.tag = '#';
             }
             if (!newNode.events) {
                 newNode.events = {};
@@ -144,16 +115,14 @@ module virtual {
                 if (this.rootNode.dom) {
                     cito.vdom.update(this.rootNode, newNode);
                 }
-                this.rootNode.attrs = newNode.attrs;
-                this.rootNode.children = newNode.children;
-                this.rootNode.component = newNode.component;
-                this.rootNode.events = newNode.events;
-                this.rootNode.key = newNode.key;
-                this.rootNode.tag = newNode.tag;
             }
             else {
-                this.rootNode = newNode;
+                this.rootNode = new VCNodeRoot();
             }
+            if (this.DESTROYED) {
+                return;
+            }
+            this.rootNode.replaceWith(newNode);
         }
 
         init(props:T, attrs?:virtual.Attrs, ...children:Child[]):VNode;
@@ -176,7 +145,4 @@ module virtual {
         }
     }
 }
-
-/*
-import VC = virtual.VC;
-import vc = virtual.vc;*/
+//import vc = virtual.vc;

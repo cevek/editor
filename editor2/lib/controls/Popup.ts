@@ -88,29 +88,29 @@ module control {
 
     export class Tip extends virtual.Component<{target:virtual.VNode; notCloseOnClick:virtual.VNode[]; onClose:()=>void}> {
 
+        clickCallback = (e:MouseEvent) => {
+            var node = <Node>e.target;
+            var parents = [node];
+            while (node = node.parentNode) {
+                parents.push(node);
+            }
+            var otherTargets = this.props.notCloseOnClick || [];
+            if (parents.indexOf(this.rootNode.dom) === -1 && otherTargets.every(
+                        t => parents.indexOf(t.dom) === -1)) {
+                this.props.onClose();
+            }
+        };
+
         componentDidMount() {
             var targetRect = (<Element>this.props.target.dom).getBoundingClientRect();
             var srcRect = (<Element>this.rootNode.dom).getBoundingClientRect();
             this.rootNode.dom.style.marginLeft = targetRect.left - srcRect.left + 'px';
             this.rootNode.dom.style.marginTop = targetRect.bottom - srcRect.top + 'px';
-            var clickCallback = (e:MouseEvent) => {
-                var node = <Node>e.target;
-                var parents = [node];
-                while (node = node.parentNode) {
-                    parents.push(node);
-                }
-                var otherTargets = this.props.notCloseOnClick || [];
-                if (parents.indexOf(this.rootNode.dom) === -1 && otherTargets.every(
-                            t => parents.indexOf(t.dom) === -1)) {
-                    this.props.onClose();
-                }
-            };
-            (<any>this.rootNode.dom).clickCallback = clickCallback;
-            document.addEventListener('click', clickCallback);
+            document.addEventListener('click', this.clickCallback);
         }
 
         componentWillUnmount() {
-            document.removeEventListener('click', (<any>this.rootNode.dom).clickCallback);
+            document.removeEventListener('click', this.clickCallback);
         }
 
         render() {

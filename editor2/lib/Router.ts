@@ -29,6 +29,7 @@ module router {
             window.addEventListener('popstate', ()=>this.urlChanged(), false);
         }
 
+
         urlChanged() {
             this.isActive = this.regexp.test(window.location.pathname);
             if (this.isActive) {
@@ -274,12 +275,21 @@ class IndexView extends virtual.Component<{}> {
         new control.RadioItem('three', 3),
     ];
 
+    @observe random = 0;
+
     autocompleteItems = [new ModelA('hello'), new ModelA('world'), new ModelA('hello world')];
+
+    componentDidMount(){
+        setInterval(() => {
+            this.random = Math.random();
+        }, 1000);
+    }
 
     render() {
         return this.root(
             vd('form',
                 //new FFT().init(),
+                this.random,
                 new control.AutoComplete().init({
                     items: this.autocompleteItems,
                     title: (item:ModelA)=>item.title,

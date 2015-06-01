@@ -13,6 +13,11 @@ module control {
         @observe active = 0;
         filtered:T[];
 
+        constructor(){
+            super();
+            //console.log("Autocomplete Constructor", this);
+        }
+
         updateAttrs() {
             this.props.value = this.props.value || '';
             this.props.filter = this.props.filter || this.defaultFilter;
@@ -41,10 +46,12 @@ module control {
         }
 
         setActiveNodeValue() {
+            //console.log("setActiveNodeValue");
             this.inputNode.value = this.props.title(this.filtered[this.active]);
         }
 
         select(item:T) {
+            //console.log("select");
             this.value = this.props.title(item);
             this.inputNode.value = this.value;
             this.opened = false;
@@ -85,18 +92,30 @@ module control {
             }
         }
 
+        oninput(){
+            this.value = (<HTMLInputElement>this.input.dom).value;
+            this.opened = true;
+        }
+
         componentDidMount() {
+            //console.log("Autocompelete didmount");
             this.inputNode = <HTMLInputElement>this.input.dom;
         }
 
+        componentWillUnmount(){
+            //console.log("Autocompelete componentWillUnmount");
+        }
+
         render() {
+            //console.log("render", this.value);
+
             return this.root(
                 this.input = vd('input', {
                     type: 'text',
                     value: this.value,
                     onkeydown: (e:KeyboardEvent)=>this.keydown(e),
                     onfocus: ()=>this.open(),
-                    oninput: ()=>this.value = (<HTMLInputElement>this.input.dom).value
+                    oninput: ()=>this.oninput(),
                 }),
                 this.opened ?
                     new Tip().init({target: this.input, notCloseOnClick: [this.input], onClose: ()=>this.close()}, null,
@@ -106,7 +125,7 @@ module control {
                                     onclick: ()=>this.select(item)
                                 },
                                 this.props.template(item, this.value))))
-                    ) : null
+                    ): null
             );
         }
     }
