@@ -188,5 +188,5 @@ module control {
     }
 }
 
-new control.DatePicker().init({}).mount(document.body);
+//new control.DatePicker().init({}).mount(document.body);
 //new control.DatePickerCalendar().init().mount(document.body);

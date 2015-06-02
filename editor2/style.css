@@ -53,7 +53,8 @@ date-picker-calendar .header { display: flex; justify-content: space-between }
 .animation { transition: transform .3s, opacity .5s; }
 .animation.ag-enter, .animation.ag-leave.ag-leave-active { opacity: 0; transform: scale(0.98) }
 .animation.ag-enter.ag-enter-active, .animation.ag-leave { opacity: 1; transform: scale(1) }
-auto-complete { width: 300px;  background: white; border-radius: 3px; }
+auto-complete { width: 300px; background: white; border-radius: 3px; }
 auto-complete .items { background: white; border: 1px solid silver; }
 auto-complete .active { background: #0DBEFF; color: white; }
 auto-complete .item { padding: 3px 8px; }
+div.inline { display: inline-block; width: 50px; height: 20px; }

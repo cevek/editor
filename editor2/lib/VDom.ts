@@ -1,4 +1,5 @@
 ///<reference path="Component.ts"/>
+///<reference path="SpeedTest.ts"/>
 module virtual {
     interface ENodee extends HTMLElement {
         comp: Component<any>;
