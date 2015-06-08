@@ -53,7 +53,6 @@ class SpeedTest extends virtual.Component<{}> {
     }
 }
 
-
 class SpeedTestReact extends React.Component<{}, any> {
     items:number[][] = [];
     counter = 0;
@@ -88,9 +87,13 @@ class SpeedTestReact extends React.Component<{}, any> {
         );
     }
 }
-//React.render(React.createElement(SpeedTestReact, null), document.body);
+if (location.hash === '#react') {
+    React.render(React.createElement(SpeedTestReact, null), document.body);
+}
 
-setTimeout(() => {
-    //new SpeedTest().init({}).mount(document.body);
-});
+if (location.hash === '#argentum') {
+    setTimeout(() => {
+        new SpeedTest().init({}).mount(document.body);
+    });
+}
 
